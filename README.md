@@ -35,7 +35,7 @@ Apply the `environmentPickerOption` modifier to any SwiftUI view to enable dynam
 
 ```swift
 import SwiftUI
-import swiftui-environment-picker
+import EnvironmentPicker
 
 struct ContentView: View {
     var body: some View {
@@ -59,6 +59,9 @@ Conform to the `EnvironmentPickerKey` protocol to define your dynamic keys. Here
 Conform to the `EnvironmentPickerKey` protocol to define your dynamic keys.
 
 ```swift
+import SwiftUI
+import EnvironmentPicker
+
 enum MyDynamicKey: String, EnvironmentPickerKey {
     case optionOne, optionTwo
 
@@ -82,6 +85,9 @@ enum MyDynamicKey: String, EnvironmentPickerKey {
 #### Example 2: Changing Foreground Style
 
 ```swift
+import SwiftUI
+import EnvironmentPicker
+
 enum ForegroundStyleKey: String, EnvironmentPickerKey {
     case standard, muted
 
@@ -105,6 +111,9 @@ enum ForegroundStyleKey: String, EnvironmentPickerKey {
 #### Example 3: Toggling Disabled State
 
 ```swift
+import SwiftUI
+import EnvironmentPicker
+
 enum DisabledStateKey: String, EnvironmentPickerKey {
     case enabled, disabled
 
