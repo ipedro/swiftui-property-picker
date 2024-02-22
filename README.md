@@ -30,7 +30,7 @@ Apply the `environmentPickerOption` modifier to any SwiftUI view to enable dynam
 
 ```swift
 import SwiftUI
-import swiftui-environment-picker
+import EnvironmentPicker
 
 struct ContentView: View {
     var body: some View {
