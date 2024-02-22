@@ -1,7 +1,7 @@
 import XCTest
-@testable import swiftui_environment_picker
+@testable import EnvironmentPicker
 
-final class swiftui_environment_pickerTests: XCTestCase {
+final class EnvironmentPickerTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest
