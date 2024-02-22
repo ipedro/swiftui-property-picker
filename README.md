@@ -1,5 +1,10 @@
 # SwiftUI Environment Picker
 
+![Swift Version](https://img.shields.io/badge/swift-5.7-orange.svg)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![SPM Compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-brightgreen.svg)
+
 `swiftui-environment-picker` is a SwiftUI package that enhances the capability of SwiftUI views to dynamically adapt based on environment values. This package provides a robust system for selecting environment values through custom view modifiers and selector styles, enabling developers to create customizable and responsive UI components with ease.
 
 ## Features
@@ -30,17 +35,26 @@ Apply the `environmentPickerOption` modifier to any SwiftUI view to enable dynam
 
 ```swift
 import SwiftUI
-import EnvironmentPicker
+import swiftui-environment-picker
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello, Dynamic World!")
-            .environmentPickerOption(MyDynamicKey.self)
+        Button("Hello, Dynamic World!") {
+            // do something
+        }
+        .environmentPickerOption(MyDynamicKey.self)
+        .environmentPickerOption(ForegroundStyleKey.self)
+        .environmentPickerOption(DisabledStateKey.self)
     }
 }
 ```
 
 ### Defining Dynamic Keys
+
+Conform to the `EnvironmentPickerKey` protocol to define your dynamic keys. Here are two examples that change native `EnvironmentValues`:
+
+
+#### Example 1: Changing Custom Properties
 
 Conform to the `EnvironmentPickerKey` protocol to define your dynamic keys.
 
@@ -49,7 +63,7 @@ enum MyDynamicKey: String, EnvironmentPickerKey {
     case optionOne, optionTwo
 
     static var keyPath: WritableKeyPath<EnvironmentValues, String> {
-        \.myDynamicValue
+        \.myCustomKey // some custom key
     }
 
     static var defaultCase: Self {
@@ -65,14 +79,59 @@ enum MyDynamicKey: String, EnvironmentPickerKey {
 }
 ```
 
-### Customizing Picker Styles
-
-Implement the `EnvironmentPickerStyle` protocol to create custom picker styles.
+#### Example 2: Changing Foreground Style
 
 ```swift
-struct CustomPickerStyle: EnvironmentPickerStyle {
-    // Implementation details...
+enum ForegroundStyleKey: String, EnvironmentPickerKey {
+    case standard, muted
+
+    static var keyPath: WritableKeyPath<EnvironmentValues, Color> {
+        \.foregroundColor
+    }
+
+    static var defaultCase: Self {
+        .standard
+    }
+
+    var value: Color {
+        switch self {
+        case .standard: return .blue
+        case .muted: return .gray
+        }
+    }
 }
+```
+
+#### Example 3: Toggling Disabled State
+
+```swift
+enum DisabledStateKey: String, EnvironmentPickerKey {
+    case enabled, disabled
+
+    static var keyPath: WritableKeyPath<EnvironmentValues, Bool> {
+        \.isEnabled
+    }
+
+    static var defaultCase: Self {
+        .enabled
+    }
+
+    var value: Bool {
+        switch self {
+        case .enabled: return false
+        case .disabled: return true
+        }
+    }
+}
+```
+
+### Customizing Picker Styles
+
+Implement the `EnvironmentPickerStyle` protocol to create custom picker styles. Here's how you can apply a custom style:
+
+```swift
+Text("Select Option")
+    .environmentPickerStyle(CustomPickerStyle())
 ```
 
 ## Contributing
@@ -89,6 +148,9 @@ Contributions to `swiftui-environment-picker` are welcome! Whether it's submitti
 
 `swiftui-environment-picker` is available under the MIT license. See the LICENSE file for more info.
 
----
+## Acknowledgments
 
-For more information on how to use `swiftui-environment-picker`, please refer to the [documentation](https://github.io/ipedro/swiftui-environment-picker/).
+- Thanks to all the contributors who have helped to shape this project.
+- Inspired by the dynamic and customizable nature of SwiftUI.
+
+For more information on how to use `swiftui-environment-picker`, please refer to the [documentation](https://github.com/ipedro/swiftui-environment-picker/wiki).
