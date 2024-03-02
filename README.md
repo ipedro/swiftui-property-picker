@@ -31,7 +31,7 @@ Then, simply import `swiftui-environment-picker` in your SwiftUI views to get st
 
 ### Basic Usage
 
-Apply the `environmentPickerOption` modifier to any SwiftUI view to enable dynamic value selection based on a specified key.
+Apply the `environmentPicker` modifier to any SwiftUI view to enable dynamic value selection based on a specified key.
 
 ```swift
 import SwiftUI
@@ -42,9 +42,9 @@ struct ContentView: View {
         Button("Hello, Dynamic World!") {
             // do something
         }
-        .environmentPickerOption(MyDynamicKey.self)
-        .environmentPickerOption(ForegroundStyleKey.self)
-        .environmentPickerOption(DisabledStateKey.self)
+        .environmentPicker(MyDynamicKey.self)
+        .environmentPicker(ForegroundStyleKey.self)
+        .environmentPicker(DisabledStateKey.self)
     }
 }
 ```
@@ -136,12 +136,111 @@ enum DisabledStateKey: String, EnvironmentPickerKey {
 
 ### Customizing Picker Styles
 
-Implement the `EnvironmentPickerStyle` protocol to create custom picker styles. Here's how you can apply a custom style:
+The `swiftui-environment-picker` package includes several built-in styles for presenting dynamic value selectors. These styles allow you to easily customize the appearance and behavior of your value selectors to match the design and functionality of your app. Below are detailed examples of the built-in styles and how to apply them.
+
+#### Built-in Styles
+
+##### 1. Sheet
+
+The `SheetEnvironmentPicker` style presents your dynamic value options in a modal sheet. This style is ideal for offering a focused selection experience without leaving the current context.
+
+**Usage Example:**
 
 ```swift
-Text("Select Option")
+import SwiftUI
+import EnvironmentPicker
+
+struct ContentView: View {
+    @State private var isSheetPresented = false
+
+    var body: some View {
+        Button("Open Picker") {
+            isSheetPresented = true
+        }
+        .environmentPickerStyle(.sheet(isPresented: $isSheetPresented))
+    }
+}
+```
+
+**Effect:**
+
+When the user taps the button, a modal sheet appears with the available dynamic value options. The user can select an option, which then updates the corresponding environment value.
+
+##### 2. Inline
+
+The `InlineEnvironmentPicker` style embeds the dynamic value options directly within your view hierarchy. This inline style is useful for integrating the picker seamlessly within your layout.
+
+**Usage Example:**
+
+```swift
+import SwiftUI
+import EnvironmentPicker
+
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            Text("Select an Option")
+            .environmentPickerStyle(.inline)
+            // Additional content
+        }
+    }
+}
+```
+
+##### 3. Context Menu
+
+The `InlineEnvironmentPicker` style embeds the dynamic value options directly within your view hierarchy. This inline style is useful for integrating the picker seamlessly within your layout.
+
+**Usage Example:**
+
+```swift
+import SwiftUI
+import EnvironmentPicker
+
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            Text("Select an Option")
+            .environmentPickerStyle(.inline)
+            // Additional content
+        }
+    }
+}
+```
+
+**Effect:**
+
+The dynamic value options are displayed inline within the `VStack`, allowing the user to select an option without navigating away from the current view.
+
+#### Customizing Styles
+
+You can also create your own custom styles by conforming to the `EnvironmentPickerStyle` protocol. This allows for complete control over the presentation and interaction of the picker.
+
+**Creating a Custom Style:**
+
+```swift
+import SwiftUI
+import EnvironmentPicker
+
+struct CustomPickerStyle: EnvironmentPickerStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        // Custom implementation
+    }
+}
+```
+
+**Applying a Custom Style:**
+
+```swift
+Text("Custom Picker")
     .environmentPickerStyle(CustomPickerStyle())
 ```
+
+By creating and applying custom styles, you can tailor the dynamic value selection process to fit the unique needs and design language of your app, enhancing the user experience.
+
+#### Summary
+
+Customizing the picker styles provides flexibility and creative control over how dynamic values are selected within your SwiftUI application. Whether using the built-in styles for convenience or creating your own for a bespoke UI, this package supports a wide range of use cases and design requirements.
 
 ## Contributing
 

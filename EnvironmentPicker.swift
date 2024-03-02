@@ -20,6 +20,8 @@
 
 import SwiftUI
 
+// MARK: - View Modifier
+
 /// A SwiftUI ViewModifier for dynamically selecting and applying environment values.
 ///
 /// This ViewModifier leverages `ObservableObject` for state management, enabling dynamic
@@ -32,7 +34,7 @@ import SwiftUI
 /// struct ContentView: View {
 ///     var body: some View {
 ///         Text("Hello, Dynamic World!")
-///             .environmentPickerValue(MyDynamicKey.self)
+///             .environmentPicker(MyDynamicKey.self)
 ///     }
 /// }
 /// ```
@@ -57,6 +59,10 @@ struct EnvironmentPickerContainer<Key>: ViewModifier where Key: EnvironmentPicke
         self.key = key
     }
 
+    private var selectedValue: EnvironmentPickerContent {
+        .init(selection: $store.selection)
+    }
+
     /// Modifies the provided content view to dynamically apply selected environment values.
     ///
     /// - Parameter content: The original content view to modify.
@@ -68,7 +74,7 @@ struct EnvironmentPickerContainer<Key>: ViewModifier where Key: EnvironmentPicke
                 GeometryReader { _ in
                     Color.clear.preference(
                         key: EnvironmentPickerPreferenceKey.self,
-                        value: [.init(selection: $store.selection)]
+                        value: [selectedValue]
                     )
                 }
             )
@@ -80,7 +86,7 @@ public extension View {
     ///
     /// - Parameter key: The type of the dynamic value key.
     /// - Returns: A view modified to dynamically select and apply an environment value.
-    func environmentPickerOption<Key: EnvironmentPickerKey>(_ key: Key.Type) -> some View {
+    func environmentPicker<Key: EnvironmentPickerKey>(_ key: Key.Type) -> some View {
         modifier(EnvironmentPickerContainer(key))
     }
 }
@@ -94,11 +100,13 @@ public extension View {
     }
 }
 
+// MARK: - Key Protocol
+
 /// Defines the requirements for keys used with dynamic environment values in SwiftUI.
 ///
 /// Conforming types can dynamically select and apply values to the SwiftUI environment,
 /// enabling customizable and responsive UI components.
-public protocol EnvironmentPickerKey: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
+public protocol EnvironmentPickerKey<Value>: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
     /// The associated value type for the dynamic key.
     associatedtype Value
     /// The key path to the associated value in the environment.
@@ -134,17 +142,19 @@ public extension EnvironmentPickerKey {
 /// for dynamic updates and customization of menu content based on user selection.
 struct EnvironmentPickerPreferenceKey: PreferenceKey {
     /// The default value for the dynamic value entries.
-    static var defaultValue: [EnvironmentPickerEntry] = []
+    static var defaultValue: [EnvironmentPickerContent] = []
 
     /// Combines the current value with the next value.
     ///
     /// - Parameters:
     ///   - value: The current value of dynamic value entries.
     ///   - nextValue: A closure that returns the next set of dynamic value entries.
-    static func reduce(value: inout [EnvironmentPickerEntry], nextValue: () -> [EnvironmentPickerEntry]) {
+    static func reduce(value: inout [EnvironmentPickerContent], nextValue: () -> [EnvironmentPickerContent]) {
         value.append(contentsOf: nextValue())
     }
 }
+
+// MARK: - Sheet Style
 
 public extension EnvironmentPickerStyle where Self == SheetEnvironmentPicker {
     static func sheet(isPresented: Binding<Bool>) -> Self {
@@ -214,7 +224,7 @@ public struct SheetEnvironmentPicker: EnvironmentPickerStyle {
     }
 }
 
-// MARK: - EnvironmentPickerStyle Protocol Extensions
+// MARK: - Inline Style
 
 /// Provides a convenient static property for accessing the inline selector style.
 public extension EnvironmentPickerStyle where Self == InlineEnvironmentPicker {
@@ -229,14 +239,11 @@ public struct InlineEnvironmentPicker: EnvironmentPickerStyle {
     /// - Parameter configuration: The configuration containing the dynamic value options and content.
     /// - Returns: A view displaying the dynamic value options inline.
     public func makeBody(configuration: Configuration) -> some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                configuration.pickers
-                configuration.content.padding(.top)
-            }
-            .frame(maxWidth: .infinity)
+        VStack(spacing: .zero) {
+            configuration.content
+            Divider().padding(.horizontal)
+            configuration.pickers.padding(.top, 8)
         }
-        .scrollBounceBehaviorBasedOnSize()
     }
 }
 
@@ -251,6 +258,8 @@ private extension View {
         }
     }
 }
+
+// MARK: - Context Menu Style
 
 /// Provides a convenient static property for accessing the context menu selector style.
 public extension EnvironmentPickerStyle where Self == ContextMenuEnvironmentPicker {
@@ -271,7 +280,7 @@ public struct ContextMenuEnvironmentPicker: EnvironmentPickerStyle {
     }
 }
 
-// MARK: - EnvironmentPickerStyle Protocol
+// MARK: - EnvironmentPickerStyle
 
 /// A protocol for defining custom styles for presenting dynamic value selectors.
 public protocol EnvironmentPickerStyle {
@@ -304,15 +313,17 @@ public struct EnvironmentPickerStyleConfiguration {
     /// Represents the dynamic value entries within the selector.
     public struct PickerEntries: View {
         /// The data for each dynamic value entry.
-        let data: [EnvironmentPickerEntry]
+        let data: [EnvironmentPickerContent]
 
         /// Creates the view for each dynamic value entry, typically as a picker.
         public var body: some View {
-            ForEach(data) { entry in
-                Picker(entry.title, selection: entry.selection) {
-                    ForEach(entry.options, id: \.self) { item in
-                        Text(item).tag(item)
-                    }
+            ForEach(data, content: picker(_:))
+        }
+
+        private func picker(_ content: EnvironmentPickerContent) -> some View {
+            Picker(content.title, selection: content.selection) {
+                ForEach(content.options, id: \.self) { item in
+                    Text(item).tag(item)
                 }
             }
         }
@@ -370,7 +381,7 @@ extension EnvironmentValues {
  struct ContentView: View {
      var body: some View {
      Text("Hello, Dynamic World!")
-         .environmentPickerValue(MyDynamicKey.self)
+         .environmentPicker(MyDynamicKey.self)
      }
  }
  ```
@@ -428,7 +439,7 @@ public struct EnvironmentPicker<Content: View>: View {
     /// The content to be presented alongside the dynamic value selector.
     let content: Content
     /// The state holding the dynamic value entries.
-    @State private var data: [EnvironmentPickerEntry] = []
+    @State private var data: [EnvironmentPickerContent] = []
     /// The current dynamic value selector style from the environment.
     @Environment(\.style) private var style
 
@@ -458,7 +469,61 @@ public struct EnvironmentPicker<Content: View>: View {
     }
 }
 
+// MARK: - Content
+
+/// Represents a dynamic value entry with a unique identifier, title, and selectable options.
+struct EnvironmentPickerContent: Identifiable, Equatable {
+    /// A unique identifier for the entry.
+    let id = UUID()
+    /// The title of the entry, used as a label in the UI.
+    let title: String
+    /// A binding to the currently selected option.
+    let selection: Binding<String>
+    /// The options available for selection.
+    let options: [String]
+
+    /// Initializes a new dynamic value entry with the specified parameters.
+    ///
+    /// - Parameters:
+    ///   - key: The dynamic value key type.
+    ///   - selection: A binding to the currently selected key.
+    init<Key: EnvironmentPickerKey>(_ key: Key.Type = Key.self, selection: Binding<Key>) {
+        self.options = Key.allCases.map(\.rawValue)
+        self.title = Key.defaultDescription
+        self.selection = Binding {
+            selection.wrappedValue.rawValue
+        } set: { rawValue in
+            if let newValue = Key(rawValue: rawValue) {
+                selection.wrappedValue = newValue
+            }
+        }
+    }
+
+    /// Determines if two entries are equal based on their identifiers.
+    static func == (lhs: EnvironmentPickerContent, rhs: EnvironmentPickerContent) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
 // MARK: - Helper Extensions for View Presentation
+
+/// Extension to `String` for improving readability of camelCase strings by adding spaces.
+private extension String {
+    /// Adds spaces before each uppercase letter in a camelCase string.
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// let camelCaseString = "environmentPickerKey"
+    /// let readableString = camelCaseString.addingSpacesToCamelCase()
+    /// // readableString is "dynamic Value Key"
+    /// ```
+    ///
+    /// - Returns: A new string with spaces added before each uppercase letter.
+    func addingSpacesToCamelCase() -> String {
+        self.replacingOccurrences(of: "(?<=[a-z])(?=[A-Z])", with: " $0", options: .regularExpression, range: self.range(of: self))
+    }
+}
 
 /// A private extension to View for customizing the presentation detents of a menu.
 private extension View {
@@ -493,54 +558,52 @@ private extension View {
     }
 }
 
-/// Represents a dynamic value entry with a unique identifier, title, and selectable options.
-struct EnvironmentPickerEntry: Identifiable, Equatable {
-    /// A unique identifier for the entry.
-    let id = UUID()
-    /// The title of the entry, used as a label in the UI.
-    let title: String
-    /// A binding to the currently selected option.
-    let selection: Binding<String>
-    /// The options available for selection.
-    let options: [String]
+// MARK: - Preview
 
-    /// Initializes a new dynamic value entry with the specified parameters.
-    ///
-    /// - Parameters:
-    ///   - key: The dynamic value key type.
-    ///   - selection: A binding to the currently selected key.
-    init<Key: EnvironmentPickerKey>(_ key: Key.Type = Key.self, selection: Binding<Key>) {
-        self.options = Key.allCases.map(\.rawValue)
-        self.title = Key.defaultDescription
-        self.selection = Binding {
-            selection.wrappedValue.rawValue
-        } set: { rawValue in
-            if let newValue = Key(rawValue: rawValue) {
-                selection.wrappedValue = newValue
+#if DEBUG
+struct Example: PreviewProvider {
+
+    static var previews: some View {
+        EnvironmentPicker {
+            NavigationView {
+                VStack {
+                    Button {
+                        //
+                    } label: {
+                        Text("Button")
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .environmentPicker(UserInteractionOptions.self)
+            .environmentPicker(ColorSchemeOptions.self)
+        }
+    }
+
+    enum UserInteractionOptions: String, EnvironmentPickerKey {
+        case Enabled, Disabled
+
+        static let keyPath = \EnvironmentValues.isEnabled
+
+        var value: Bool {
+            switch self {
+            case .Enabled: true
+            case .Disabled: false
             }
         }
     }
 
-    /// Determines if two entries are equal based on their identifiers.
-    static func == (lhs: EnvironmentPickerEntry, rhs: EnvironmentPickerEntry) -> Bool {
-        lhs.id == rhs.id
-    }
-}
+    enum ColorSchemeOptions: String, EnvironmentPickerKey {
+        case Light, Dark
 
-/// Extension to `String` for improving readability of camelCase strings by adding spaces.
-private extension String {
-    /// Adds spaces before each uppercase letter in a camelCase string.
-    ///
-    /// Usage:
-    ///
-    /// ```swift
-    /// let camelCaseString = "environmentPickerKey"
-    /// let readableString = camelCaseString.addingSpacesToCamelCase()
-    /// // readableString is "dynamic Value Key"
-    /// ```
-    ///
-    /// - Returns: A new string with spaces added before each uppercase letter.
-    func addingSpacesToCamelCase() -> String {
-        self.replacingOccurrences(of: "(?<=[a-z])(?=[A-Z])", with: " $0", options: .regularExpression, range: self.range(of: self))
+        static let keyPath = \EnvironmentValues.colorScheme
+
+        var value: ColorScheme {
+            switch self {
+            case .Light: .light
+            case .Dark: .dark
+            }
+        }
     }
 }
+#endif
