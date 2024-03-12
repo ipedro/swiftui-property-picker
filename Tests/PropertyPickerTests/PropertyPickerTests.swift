@@ -1,7 +1,7 @@
 import XCTest
-@testable import EnvironmentPicker
+@testable import PropertyPicker
 
-final class EnvironmentPickerTests: XCTestCase {
+final class PropertyPickerTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest

@@ -3,24 +3,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "swiftui-environment-picker",
+    name: "swiftui-property-picker",
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
     ],
     products: [
         .library(
-            name: "EnvironmentPicker",
-            targets: ["EnvironmentPicker"]),
+            name: "PropertyPicker",
+            targets: ["PropertyPicker"]),
     ],
     targets: [
         .target(
-            name: "EnvironmentPicker",
+            name: "PropertyPicker",
             path: ".",
-            sources: ["EnvironmentPicker.swift"]
+            sources: ["PropertyPicker.swift"]
         ),
         .testTarget(
-            name: "EnvironmentPickerTests",
-            dependencies: ["EnvironmentPicker"]),
+            name: "PropertyPickerTests",
+            dependencies: ["PropertyPicker"]),
     ]
 )
