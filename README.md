@@ -44,8 +44,10 @@ import PropertyPicker
 struct AdjustablePreviewView: View {
     @PropertyPickerState(FontSizeKey.self)
     private var fontSize
+
     @PropertyPickerState(ColorSchemeKey.self)
     private var colorScheme
+
     @PropertyPickerState(DisabledStateKey.self)
     private var isButtonDisabled
     
@@ -53,7 +55,7 @@ struct AdjustablePreviewView: View {
         PropertyPicker {
             VStack {
                 Text("Dynamic Preview")
-                    .font(.system(size: CGFloat(fontSize)))
+                    .font(.system(size: fontSize))
                 
                 Button("Action") {}
                     .disabled(isButtonDisabled)
