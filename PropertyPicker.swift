@@ -20,37 +20,7 @@
 
 import SwiftUI
 
-// MARK: - View Modifier
-
-/// A SwiftUI ViewModifier for dynamically selecting and applying environment values.
-///
-/// This ViewModifier leverages `ObservableObject` for state management, enabling dynamic
-/// updates of SwiftUI views based on user-selected values. It is designed to facilitate
-/// customization and enhance interactivity within the SwiftUI environment.
-///
-/// Usage:
-///
-/// ```swift
-/// struct ContentView: View {
-///     var body: some View {
-///         Text("Hello, Dynamic World!")
-///             .propertyPicker(MyDynamicKey.self)
-///     }
-/// }
-/// ```
-///
-/// - Requires: `Key` conforming to `PropertyPickerEnvironmentKey` protocol.
-struct PropertyPickerEnvironmentWriter<Key>: ViewModifier where Key: PropertyPickerEnvironmentKey {
-    let key: Key.Type
-
-    func body(content: Content) -> some View {
-        PropertyPickerReader(key) { value in
-            content.environment(key.keyPath, value)
-        }
-    }
-}
-
-struct PropertyPickerReader<Key, Content>: View where Key: PropertyPickerKey, Content: View {
+struct PropertyPickerContainer<Key, Content>: View where Key: PropertyPickerKey, Content: View {
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Store: ObservableObject {
         @Published 
@@ -88,19 +58,14 @@ struct PropertyPickerReader<Key, Content>: View where Key: PropertyPickerKey, Co
 }
 
 public extension View {
-    /// Applies a dynamic value selector to the view based on the specified key.
-    ///
-    /// - Parameters:
-    ///   - key: The type of the property picker key.
-    ///   - action: A closure to run when the selected value changes.
-    ///   
-    /// - Returns: A view modified to dynamically select and apply an environment value.
+
     func propertyPicker<Key: PropertyPickerKey>(
-        _ key: Key.Type,
-        onUpdate action: @escaping (_ value: Key.Value) -> Void
+        _ pickerState: PropertyPickerState<Key>
     ) -> some View where Key.Value: Equatable {
-        PropertyPickerReader(key) { value in
-            onChange(of: value, perform: action)
+        PropertyPickerContainer(pickerState.key) { initialValue in
+            onChange(of: initialValue) { newValue in
+                pickerState.binding.wrappedValue = newValue
+            }
         }
     }
 
@@ -115,7 +80,7 @@ public extension View {
         _ key: Key.Type,
         _ state: Binding<Key.Value>
     ) -> some View where Key.Value: Equatable {
-        PropertyPickerReader(key) { initialValue in
+        PropertyPickerContainer(key) { initialValue in
             onChange(of: initialValue) { newValue in
                 state.wrappedValue = newValue
             }
@@ -124,13 +89,18 @@ public extension View {
 
     /// Applies a dynamic value selector to the view based on the specified key.
     ///
-    /// - Parameter key: The type of the property picker environment key.
+    /// - Parameters:
+    ///   - key: The type of the property picker environment key.
+    ///   - environmentKeyPath: A key path that indicates the property of the EnvironmentValues structure to update.
     ///
     /// - Returns: A view modified to dynamically select and apply an environment value.
-    func propertyPicker<Key: PropertyPickerEnvironmentKey>(
-        _ key: Key.Type
+    func propertyPicker<Key: PropertyPickerKey>(
+        _ key: Key.Type,
+        _ environmentKeyPath: WritableKeyPath<EnvironmentValues, Key.Value>
     ) -> some View {
-        modifier(PropertyPickerEnvironmentWriter(key: key))
+        PropertyPickerContainer(key) { value in
+            environment(environmentKeyPath, value)
+        }
     }
 }
 
@@ -141,17 +111,6 @@ public extension View {
     func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
         environment(\.propertyPickerStyle, style)
     }
-}
-
-// MARK: - Key Protocol
-
-/// Defines the requirements for keys used with dynamic environment values in SwiftUI.
-///
-/// Conforming types can dynamically select and apply values to the SwiftUI environment,
-/// enabling customizable and responsive UI components.
-public protocol PropertyPickerEnvironmentKey<Value>: PropertyPickerKey {
-    /// The key path to the associated value in the environment.
-    static var keyPath: WritableKeyPath<EnvironmentValues, Value> { get }
 }
 
 public protocol PropertyPickerKey<Value>: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
@@ -196,7 +155,7 @@ struct PropertyPickerPreferenceKey: PreferenceKey {
     ///   - value: The current value of dynamic value entries.
     ///   - nextValue: A closure that returns the next set of dynamic value entries.
     static func reduce(value: inout [PropertyPickerContent], nextValue: () -> [PropertyPickerContent]) {
-        value.append(contentsOf: nextValue())
+        value = nextValue() + value
     }
 }
 
@@ -518,6 +477,28 @@ public struct PropertyPicker<Content: View>: View {
     }
 }
 
+@propertyWrapper
+public struct PropertyPickerState<Key: PropertyPickerKey>: DynamicProperty {
+    public var wrappedValue: Key.Value {
+        state.wrappedValue
+    }
+
+    public var projectedValue: Self {
+        self
+    }
+
+    public var binding: Binding<Key.Value> { state.projectedValue }
+
+    let key: Key.Type
+
+    private let state: State<Key.Value>
+
+    public init(_ key: Key.Type) {
+        self.key = key
+        self.state = State(initialValue: key.defaultCase.value)
+    }
+}
+
 // MARK: - Content
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable options.
@@ -625,15 +606,13 @@ struct Example: PreviewProvider {
                     .buttonStyle(.bordered)
                 }
             }
-            .propertyPicker(UserInteractionOptions.self)
-            .propertyPicker(ColorSchemeOptions.self)
+            .propertyPicker(UserInteractionOptions.self, \.isEnabled)
+            .propertyPicker(ColorSchemeOptions.self, \.colorScheme)
         }
     }
 
-    enum UserInteractionOptions: String, PropertyPickerEnvironmentKey {
+    enum UserInteractionOptions: String, PropertyPickerKey {
         case Enabled, Disabled
-
-        static let keyPath = \EnvironmentValues.isEnabled
 
         var value: Bool {
             switch self {
@@ -643,10 +622,8 @@ struct Example: PreviewProvider {
         }
     }
 
-    enum ColorSchemeOptions: String, PropertyPickerEnvironmentKey {
+    enum ColorSchemeOptions: String, PropertyPickerKey {
         case Light, Dark
-
-        static let keyPath = \EnvironmentValues.colorScheme
 
         var value: ColorScheme {
             switch self {
