@@ -34,7 +34,7 @@ import SwiftUI
 /// struct ContentView: View {
 ///     var body: some View {
 ///         Text("Hello, Dynamic World!")
-///             .environmentPicker(MyDynamicKey.self)
+///             .propertyPicker(MyDynamicKey.self)
 ///     }
 /// }
 /// ```
@@ -50,7 +50,7 @@ struct PropertyPickerEnvironmentWriter<Key>: ViewModifier where Key: PropertyPic
     }
 }
 
-public struct PropertyPickerReader<Key, Content>: View where Key: PropertyPickerValueKey, Content: View {
+struct PropertyPickerReader<Key, Content>: View where Key: PropertyPickerKey, Content: View {
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Store: ObservableObject {
         @Published 
@@ -68,21 +68,21 @@ public struct PropertyPickerReader<Key, Content>: View where Key: PropertyPicker
         .init(selection: $store.selection)
     }
 
-    public init(
+    init(
         _ key: Key.Type = Key.self,
         @ViewBuilder content: @escaping (Key.Value) -> Content
     ) {
         self.content = content
     }
 
-    public var body: some View {
-        content(store.selection.value).background(
-            GeometryReader { _ in
-                Color.clear.preference(
-                    key: PropertyPickerPreferenceKey.self,
-                    value: [selectedValue]
-                )
-            }
+    var body: some View {
+        content(store.selection.value).background(background)
+    }
+
+    private var background: some View {
+        Color.clear.preference(
+            key: PropertyPickerPreferenceKey.self,
+            value: [selectedValue]
         )
     }
 }
@@ -90,16 +90,53 @@ public struct PropertyPickerReader<Key, Content>: View where Key: PropertyPicker
 public extension View {
     /// Applies a dynamic value selector to the view based on the specified key.
     ///
-    /// - Parameter key: The type of the dynamic value key.
+    /// - Parameters:
+    ///   - key: The type of the property picker key.
+    ///   - action: A closure to run when the selected value changes.
+    ///   
     /// - Returns: A view modified to dynamically select and apply an environment value.
-    func propertyPickerOption<Key: PropertyPickerEnvironmentKey>(_ key: Key.Type) -> some View {
+    func propertyPicker<Key: PropertyPickerKey>(
+        _ key: Key.Type,
+        onUpdate action: @escaping (_ value: Key.Value) -> Void
+    ) -> some View where Key.Value: Equatable {
+        PropertyPickerReader(key) { value in
+            onChange(of: value, perform: action)
+        }
+    }
+
+    /// Applies a dynamic value selector to the view based on the specified key.
+    ///
+    /// - Parameters:
+    ///   - key: The type of the property picker key.
+    ///   - state: A property that can read and write a value owned by a source of truth.
+    ///
+    /// - Returns: A view modified to dynamically select a value and update a source of truth.
+    func propertyPicker<Key: PropertyPickerKey>(
+        _ key: Key.Type,
+        _ state: Binding<Key.Value>
+    ) -> some View where Key.Value: Equatable {
+        PropertyPickerReader(key) { initialValue in
+            onChange(of: initialValue) { newValue in
+                state.wrappedValue = newValue
+            }
+        }
+    }
+
+    /// Applies a dynamic value selector to the view based on the specified key.
+    ///
+    /// - Parameter key: The type of the property picker environment key.
+    ///
+    /// - Returns: A view modified to dynamically select and apply an environment value.
+    func propertyPicker<Key: PropertyPickerEnvironmentKey>(
+        _ key: Key.Type
+    ) -> some View {
         modifier(PropertyPickerEnvironmentWriter(key: key))
     }
 }
 
 public extension View {
     /// Applies a dynamic value selector to the view.
-    /// - Parameter key: The type of the dynamic value key.
+    /// - Parameter key: The type of the property picker key.
     /// - Returns: A view modified to select and apply a dynamic environment value based on the given key.
     func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
         environment(\.propertyPickerStyle, style)
@@ -112,12 +149,12 @@ public extension View {
 ///
 /// Conforming types can dynamically select and apply values to the SwiftUI environment,
 /// enabling customizable and responsive UI components.
-public protocol PropertyPickerEnvironmentKey<Value>: PropertyPickerValueKey {
+public protocol PropertyPickerEnvironmentKey<Value>: PropertyPickerKey {
     /// The key path to the associated value in the environment.
     static var keyPath: WritableKeyPath<EnvironmentValues, Value> { get }
 }
 
-public protocol PropertyPickerValueKey<Value>: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
+public protocol PropertyPickerKey<Value>: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
     /// The associated value type for the dynamic key.
     associatedtype Value
     /// The default selection case for the key.
@@ -128,9 +165,9 @@ public protocol PropertyPickerValueKey<Value>: CaseIterable, RawRepresentable, H
     var value: Value { get }
 }
 
-/// Provides default implementations for the `PropertyPickerEnvironmentKey` protocol,
+/// Provides default implementations for the `PropertyPickerKey` protocol,
 /// ensuring a minimal configuration is required for conforming types.
-public extension PropertyPickerValueKey {
+public extension PropertyPickerKey {
     /// Returns the first case as the default selection if available, otherwise triggers a runtime error.
     static var defaultCase: Self {
         guard let first = allCases.first else {
@@ -176,9 +213,11 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
 extension PresentationDetent {
     enum PropertyPicker {
         /// A detent representing an expanded menu.
-        static let expanded = PresentationDetent.fraction(1/2)
+        static let expanded = PresentationDetent.fraction(2/3)
+        /// A detent representing the default menu size.
+        static let `default` = PresentationDetent.fraction(1/2)
         /// A detent representing a compact menu.
-        static let compact = PresentationDetent.fraction(1/4)
+        static let compact = PresentationDetent.fraction(1/3)
     }
 }
 
@@ -195,10 +234,12 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.content
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .topTrailing) {
-                if !configuration.isEmpty {
-                    HStack(spacing: .zero) {
+            .safeAreaInset(edge: .bottom) {
+                Spacer().frame(height: presenting ? UIScreen.main.bounds.midY : 0)
+            }
+            .toolbar(content: {
+                ToolbarItem {
+                    if !configuration.isEmpty {
                         Button {
                             withAnimation(.interactiveSpring) {
                                 presenting.toggle()
@@ -206,13 +247,10 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                         } label: {
                             Image(systemName: presenting ? "xmark.circle" : "gear")
                                 .rotationEffect(.degrees(presenting ? 180 : 0))
-                                .font(.title2)
-                                .frame(width: 24, height: 24)
                         }
                     }
-                    .padding()
                 }
-            }
+            })
             .animation(.snappy, value: presenting)
             .overlay(
                 Spacer().sheet(isPresented: $presenting) {
@@ -390,7 +428,7 @@ extension EnvironmentValues {
  struct ContentView: View {
      var body: some View {
      Text("Hello, Dynamic World!")
-         .environmentPicker(MyDynamicKey.self)
+         .propertyPicker(MyDynamicKey.self)
      }
  }
  ```
@@ -496,9 +534,9 @@ struct PropertyPickerContent: Identifiable, Equatable {
     /// Initializes a new dynamic value entry with the specified parameters.
     ///
     /// - Parameters:
-    ///   - key: The dynamic value key type.
+    ///   - key: The property picker key type.
     ///   - selection: A binding to the currently selected key.
-    init<Key: PropertyPickerValueKey>(_ key: Key.Type = Key.self, selection: Binding<Key>) {
+    init<Key: PropertyPickerKey>(_ key: Key.Type = Key.self, selection: Binding<Key>) {
         self.options = Key.allCases.map(\.rawValue)
         self.title = Key.defaultDescription
         self.selection = Binding {
@@ -543,11 +581,12 @@ private extension View {
         if #available(iOS 16.4, macOS 13.3, *) {
             presentationDetents([
                 .PropertyPicker.compact,
+                .PropertyPicker.default,
                 .PropertyPicker.expanded
             ])
             .presentationBackgroundInteraction(.enabled)
             .presentationContentInteraction(.scrolls)
-            .presentationCornerRadius(24)
+            .presentationCornerRadius(20)
             .presentationBackground(.ultraThinMaterial)
         } else {
             self
@@ -586,8 +625,8 @@ struct Example: PreviewProvider {
                     .buttonStyle(.bordered)
                 }
             }
-            .propertyPickerOption(UserInteractionOptions.self)
-            .propertyPickerOption(ColorSchemeOptions.self)
+            .propertyPicker(UserInteractionOptions.self)
+            .propertyPicker(ColorSchemeOptions.self)
         }
     }
 
