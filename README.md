@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![SPM Compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-brightgreen.svg)
 
-The `swiftui-environment-picker` is a comprehensive SwiftUI package designed to enhance dynamic property selection and application within your SwiftUI views. By leveraging the power of property pickers, you can offer a richer, more interactive user experience that adapts on the fly.
+The `swiftui-property-picker` is a comprehensive SwiftUI package designed to enhance dynamic property selection and application within your SwiftUI views. By leveraging the power of property pickers, you can offer a richer, more interactive user experience that adapts on the fly.
 
 ## Features
 
@@ -18,7 +18,7 @@ The `swiftui-environment-picker` is a comprehensive SwiftUI package designed to 
 
 ### Swift Package Manager
 
-Add `swiftui-environment-picker` to your project by including it in your `Package.swift` file:
+Add `swiftui-property-picker` to your project by including it in your `Package.swift` file:
 
 ```swift
 dependencies: [
@@ -26,7 +26,7 @@ dependencies: [
 ]
 ```
 
-Then, import `swiftui-environment-picker` in your SwiftUI views to start using it.
+Then, import `swiftui-property-picker` in your SwiftUI views to start using it.
 
 ## Usage
 
@@ -314,7 +314,7 @@ struct CustomizedPickerView: View {
 }
 ```
 
-These examples should provide a comprehensive understanding of how to leverage the various capabilities of the `swiftui-environment-picker` package. By incorporating these dynamic and customizable property pickers into your SwiftUI views, you can create more interactive and responsive applications.
+These examples should provide a comprehensive understanding of how to leverage the various capabilities of the `swiftui-property-picker` package. By incorporating these dynamic and customizable property pickers into your SwiftUI views, you can create more interactive and responsive applications.
 
 ## Contributing
 
@@ -322,4 +322,4 @@ We welcome contributions! If you'd like to contribute, please fork the repositor
 
 ## License
 
-The `swiftui-environment-picker` package is released under the MIT License. See [LICENSE](LICENSE) for details.
+The `swiftui-property-picker` package is released under the MIT License. See [LICENSE](LICENSE) for details.
