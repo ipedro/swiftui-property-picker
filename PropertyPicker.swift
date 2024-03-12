@@ -239,7 +239,7 @@ struct PropertyPickerContentView<Key, Content>: View where Key: PropertyPickerKe
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var selectedValue: PropertyPickerItem {
-        .init(selection: $store.selection)
+        PropertyPickerItem(selection: $store.selection)
     }
 
     /// Initializes a `PropertyPickerContentView` with the specified key and content closure.
@@ -610,12 +610,12 @@ struct Example: PreviewProvider {
                     .buttonStyle(.bordered)
                 }
             }
-            .propertyPicker(UserInteractionOptions.self, \.isEnabled)
-            .propertyPicker(ColorSchemeOptions.self, \.colorScheme)
+            .propertyPicker(UserInteractionKey.self, \.isEnabled)
+            .propertyPicker(ColorSchemeKey.self, \.colorScheme)
         }
     }
 
-    enum UserInteractionOptions: String, PropertyPickerKey {
+    enum UserInteractionKey: String, PropertyPickerKey {
         case Enabled, Disabled
 
         var value: Bool {
@@ -626,7 +626,7 @@ struct Example: PreviewProvider {
         }
     }
 
-    enum ColorSchemeOptions: String, PropertyPickerKey {
+    enum ColorSchemeKey: String, PropertyPickerKey {
         case Light, Dark
 
         var value: ColorScheme {
