@@ -19,8 +19,5 @@ let package = Package(
             path: ".",
             sources: ["PropertyPicker.swift"]
         ),
-        .testTarget(
-            name: "PropertyPickerTests",
-            dependencies: ["PropertyPicker"]),
     ]
 )
