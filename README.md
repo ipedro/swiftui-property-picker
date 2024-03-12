@@ -42,9 +42,12 @@ import PropertyPicker
 
 // Define a custom view that users can adjust using property pickers
 struct AdjustablePreviewView: View {
-    @State private var fontSize: Double = FontSizeKey.defaultCase.value
-    @State private var colorScheme: ColorScheme = ColorSchemeKey.defaultCase.value
-    @State private var isButtonDisabled: Bool = DisabledStateKey.defaultCase.value
+    @PropertyPickerState(FontSizeKey.self)
+    private var fontSize
+    @PropertyPickerState(ColorSchemeKey.self)
+    private var colorScheme
+    @PropertyPickerState(DisabledStateKey.self)
+    private var isButtonDisabled
     
     var body: some View {
         PropertyPicker {
@@ -63,9 +66,9 @@ struct AdjustablePreviewView: View {
             }
             .padding()
             // Apply dynamic property pickers for adjusting settings
-            .propertyPicker(FontSizeKey.self, $fontSize)
-            .propertyPicker(ColorSchemeKey.self, $colorScheme)
-            .propertyPicker(DisabledStateKey.self, $isButtonDisabled)
+            .propertyPicker($fontSize)
+            .propertyPicker($colorScheme)
+            .propertyPicker($isButtonDisabled)
         }
         // Optional: Apply a custom style to the PropertyPicker if needed
         .propertyPickerStyle(.inline) // This is just an example; choose the style as per your design.
