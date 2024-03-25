@@ -163,12 +163,6 @@ public struct PropertyPicker<Content: View>: View {
     }
 }
 
-public extension View {
-    func propertyPicker(_ title: String? = nil) -> some View {
-        PropertyPicker(title) { self }
-    }
-}
-
 // MARK: - Property Picker State
 
 /// A property wrapper that holds the state of a property to be adjusted using the property picker.
