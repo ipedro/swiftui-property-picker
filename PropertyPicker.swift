@@ -127,17 +127,27 @@ public struct PropertyPicker<Content: View>: View {
     @Environment(\.propertyPickerStyle)
     private var style
 
+    let title: String?
+
     /// Initializes the dynamic value selector with the specified content and optional title.
     ///
     /// - Parameters:
     ///   - content: A closure returning the content to be presented.
-    public init(@ViewBuilder content: () -> Content) {
+    public init(
+        _ title: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
         self.content = content()
     }
 
     /// Creates the configuration for the selector style and presents the content accordingly.
     private var configuration: PropertyPickerStyle.Configuration {
         .init(
+            title: {
+                if let title { return Text(title).bold() }
+                return nil
+            }(),
             content: .init(content),
             isEmpty: data.isEmpty,
             pickers: .init(data: data)
@@ -150,6 +160,12 @@ public struct PropertyPicker<Content: View>: View {
             .onPreferenceChange(PropertyPickerPreferenceKey.self) { newValue in
                 data = newValue
             }
+    }
+}
+
+public extension View {
+    func propertyPicker(_ title: String? = nil) -> some View {
+        PropertyPicker(title) { self }
     }
 }
 
@@ -273,11 +289,11 @@ struct PropertyPickerContentView<Key, Content>: View where Key: PropertyPickerKe
 
 /// Defines the requirements for a type to act as a key in the property picker system.
 /// Each key represents a property that can be dynamically adjusted within a SwiftUI view.
-public protocol PropertyPickerKey: CaseIterable, RawRepresentable, Hashable where AllCases == [Self], RawValue == String {
+public protocol PropertyPickerKey: RawRepresentable, CaseIterable, Hashable where AllCases.Element: RawRepresentable<String> {
     /// The associated value type that the key controls.
     associatedtype Value
     /// The default case to use when no other value is specified.
-    static var defaultCase: Self { get }
+    static var defaultCase: AllCases.Element { get }
     /// A user-friendly description of the key. Used in UI elements like labels.
     static var defaultDescription: String { get }
     /// The current value associated with the key. This value is used to update the view's state.
@@ -361,6 +377,8 @@ extension EnvironmentValues {
 public struct PropertyPickerStyleConfiguration {
     /// The content to be presented alongside the dynamic value entries.
     public typealias Content = AnyView
+    /// The optional text
+    public let title: Text?
     /// The actual content view.
     public let content: Content
     /// A boolean indicating if there are no dynamic value entries.
@@ -390,6 +408,7 @@ public struct PropertyPickerStyleConfiguration {
 
 // MARK: - Sheet Style
 
+@available(iOS 16.0, *)
 public extension PropertyPickerStyle where Self == SheetPropertyPicker {
     static func sheet(isPresented: Binding<Bool>) -> Self {
         .init(isPresenting: isPresented)
@@ -412,36 +431,39 @@ extension PresentationDetent {
 /// A view modifier that adds a custom expandable menu to a SwiftUI view.
 /// This modifier tracks and displays menu items dynamically added to the view,
 /// providing a customizable and interactive menu experience.
+@available(iOS 16.0, *)
 public struct SheetPropertyPicker: PropertyPickerStyle {
     /// Indicates whether the menu is expanded.
-    @Binding var presenting: Bool
+    @Binding var isPresented: Bool
 
     public init(isPresenting: Binding<Bool>) {
-        _presenting = isPresenting
+        _isPresented = isPresenting
     }
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.content
             .safeAreaInset(edge: .bottom) {
-                Spacer().frame(height: presenting ? UIScreen.main.bounds.midY : 0)
+                if isPresented {
+                    Spacer().frame(height: UIScreen.main.bounds.midY)
+                }
             }
             .toolbar(content: {
                 ToolbarItem {
                     if !configuration.isEmpty {
                         Button {
                             withAnimation(.interactiveSpring) {
-                                presenting.toggle()
+                                isPresented.toggle()
                             }
                         } label: {
-                            Image(systemName: presenting ? "xmark.circle" : "gear")
-                                .rotationEffect(.degrees(presenting ? 180 : 0))
+                            Image(systemName: isPresented ? "xmark.circle" : "gear")
+                                .rotationEffect(.degrees(isPresented ? 180 : 0))
                         }
                     }
                 }
             })
-            .animation(.snappy, value: presenting)
+            .animation(.snappy, value: isPresented)
             .overlay(
-                Spacer().sheet(isPresented: $presenting) {
+                Spacer().sheet(isPresented: $isPresented) {
                     makePickerList(configuration: configuration)
                 }
             )
@@ -449,11 +471,17 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
 
     private func makePickerList(configuration: Configuration) -> some View {
         List {
-            configuration.pickers
+            Section {
+                configuration.pickers.listRowBackground(Color.clear)
+            } header: {
+                configuration.title
+                    .bold()
+                    .padding(EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0))
+                    .font(.title2)
+                    .foregroundStyle(.primary)
+            }
         }
-        .padding([.top, .horizontal])
         .listStyle(.plain)
-        .blendMode(.multiply)
         .menuPresentationDetents()
         .hideScrollContentBackground()
     }
@@ -572,7 +600,7 @@ private extension View {
             .presentationBackgroundInteraction(.enabled)
             .presentationContentInteraction(.scrolls)
             .presentationCornerRadius(20)
-            .presentationBackground(.ultraThinMaterial)
+            .presentationBackground(Material.thinMaterial)
         } else {
             self
         }
