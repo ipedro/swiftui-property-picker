@@ -439,7 +439,15 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     let presentationDetents: Set<PresentationDetent>
 
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.content
+        Group {
+            if isPresented {
+                ZStack {
+                    configuration.content
+                }
+            } else {
+                configuration.content
+            }
+        }
             .safeAreaInset(edge: .bottom) {
                 Spacer().frame(
                     height: adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
