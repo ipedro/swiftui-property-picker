@@ -109,6 +109,10 @@ public extension View {
     func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
         environment(\.propertyPickerStyle, style)
     }
+
+    func propertyPickerSheetAdjustsBottomInset(_ flag: Bool) -> some View {
+        environment(\.propertyPickerSheetAdjustsBottomInset, flag)
+    }
 }
 
 // MARK: PropertyPicker View
@@ -356,12 +360,21 @@ private struct PropertyPickerStyleKey: EnvironmentKey {
     static let defaultValue: any PropertyPickerStyle = InlinePropertyPicker()
 }
 
+private struct PropertyPickerSheetAdjustsBottomInsetKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
 /// Extends `EnvironmentValues` to include a property for accessing the dynamic value selector style.
 extension EnvironmentValues {
     /// The current dynamic value selector style within the environment.
     var propertyPickerStyle: any PropertyPickerStyle {
         get { self[PropertyPickerStyleKey.self] }
         set { self[PropertyPickerStyleKey.self] = newValue }
+    }
+
+    var propertyPickerSheetAdjustsBottomInset: Bool {
+        get { self[PropertyPickerSheetAdjustsBottomInsetKey.self] }
+        set { self[PropertyPickerSheetAdjustsBottomInsetKey.self] = newValue }
     }
 }
 
@@ -402,44 +415,47 @@ public struct PropertyPickerStyleConfiguration {
 
 // MARK: - Sheet Style
 
-@available(iOS 16.0, *)
+@available(iOS 16.4, *)
 public extension PropertyPickerStyle where Self == SheetPropertyPicker {
-    static func sheet(isPresented: Binding<Bool>) -> Self {
-        .init(isPresenting: isPresented)
-    }
-}
-
-/// Defines static presentation detents for menu sizes.
-@available(iOS 16.4, macOS 13.0, *)
-extension PresentationDetent {
-    enum PropertyPicker {
-        /// A detent representing an expanded menu.
-        static let expanded = PresentationDetent.fraction(2/3)
-        /// A detent representing the default menu size.
-        static let `default` = PresentationDetent.fraction(1/2)
-        /// A detent representing a compact menu.
-        static let compact = PresentationDetent.fraction(1/3)
+    static func sheet(
+        isPresented: Binding<Bool>,
+        detent: PresentationDetent = .fraction(2/3),
+        presentationDetents: Set<PresentationDetent> = [
+            .fraction(1/3),
+            .fraction(2/3),
+            .large
+        ]
+    ) -> Self {
+        .init(
+            isPresented: isPresented,
+            detent: detent,
+            presentationDetents: presentationDetents
+        )
     }
 }
 
 /// A view modifier that adds a custom expandable menu to a SwiftUI view.
 /// This modifier tracks and displays menu items dynamically added to the view,
 /// providing a customizable and interactive menu experience.
-@available(iOS 16.0, *)
+@available(iOS 16.4, *)
 public struct SheetPropertyPicker: PropertyPickerStyle {
-    /// Indicates whether the menu is expanded.
-    @Binding var isPresented: Bool
+    @Environment(\.propertyPickerSheetAdjustsBottomInset)
+    private var adjustsBottomInset
 
-    public init(isPresenting: Binding<Bool>) {
-        _isPresented = isPresenting
-    }
+    @Binding
+    var isPresented: Bool
+
+    @State
+    var detent: PresentationDetent
+
+    let presentationDetents: Set<PresentationDetent>
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.content
             .safeAreaInset(edge: .bottom) {
-                if isPresented {
-                    Spacer().frame(height: UIScreen.main.bounds.midY)
-                }
+                Spacer().frame(
+                    height: adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
+                )
             }
             .toolbar(content: {
                 ToolbarItem {
@@ -476,8 +492,14 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
             }
         }
         .listStyle(.plain)
-        .menuPresentationDetents()
-        .hideScrollContentBackground()
+        .presentationDetents(presentationDetents, selection: $detent)
+        .presentationBackgroundInteraction(.enabled)
+        .presentationContentInteraction(.scrolls)
+        .presentationCornerRadius(20)
+        .presentationBackground(Material.thinMaterial)
+        .edgesIgnoringSafeArea(.top)
+        .listRowBackground(Color.clear)
+        .scrollContentBackground(.hidden)
     }
 }
 
@@ -578,40 +600,6 @@ private extension String {
     /// - Returns: A new string with spaces added before each uppercase letter.
     func addingSpacesToCamelCase() -> String {
         self.replacingOccurrences(of: "(?<=[a-z])(?=[A-Z])", with: " $0", options: .regularExpression, range: self.range(of: self))
-    }
-}
-
-/// A private extension to View for customizing the presentation detents of a menu.
-private extension View {
-    /// Applies presentation detents to the view for iOS 16.4 and later; otherwise, does nothing.
-    @ViewBuilder func menuPresentationDetents() -> some View {
-        if #available(iOS 16.4, macOS 13.3, *) {
-            presentationDetents([
-                .PropertyPicker.compact,
-                .PropertyPicker.default,
-                .PropertyPicker.expanded
-            ])
-            .presentationBackgroundInteraction(.enabled)
-            .presentationContentInteraction(.scrolls)
-            .presentationCornerRadius(20)
-            .presentationBackground(Material.thinMaterial)
-        } else {
-            self
-        }
-    }
-}
-
-/// A private extension to View for hiding the scroll content background.
-private extension View {
-    /// Hides the scroll content background for iOS 16.0 and later; otherwise, does nothing.
-    @ViewBuilder func hideScrollContentBackground() -> some View {
-        if #available(iOS 16.0, macOS 13.0, *) {
-            self.edgesIgnoringSafeArea(.top)
-                .listRowBackground(EmptyView())
-                .scrollContentBackground(.hidden)
-        } else {
-            self
-        }
     }
 }
 
