@@ -109,10 +109,6 @@ public extension View {
     func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
         environment(\.propertyPickerStyle, style)
     }
-
-    func propertyPickerSheetAdjustsBottomInset(_ flag: Bool) -> some View {
-        environment(\.propertyPickerSheetAdjustsBottomInset, flag)
-    }
 }
 
 // MARK: PropertyPicker View
