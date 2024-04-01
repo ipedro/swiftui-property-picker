@@ -360,21 +360,12 @@ private struct PropertyPickerStyleKey: EnvironmentKey {
     static let defaultValue: any PropertyPickerStyle = InlinePropertyPicker()
 }
 
-private struct PropertyPickerSheetAdjustsBottomInsetKey: EnvironmentKey {
-    static let defaultValue = true
-}
-
 /// Extends `EnvironmentValues` to include a property for accessing the dynamic value selector style.
 extension EnvironmentValues {
     /// The current dynamic value selector style within the environment.
     var propertyPickerStyle: any PropertyPickerStyle {
         get { self[PropertyPickerStyleKey.self] }
         set { self[PropertyPickerStyleKey.self] = newValue }
-    }
-
-    var propertyPickerSheetAdjustsBottomInset: Bool {
-        get { self[PropertyPickerSheetAdjustsBottomInsetKey.self] }
-        set { self[PropertyPickerSheetAdjustsBottomInsetKey.self] = newValue }
     }
 }
 
@@ -419,6 +410,7 @@ public struct PropertyPickerStyleConfiguration {
 public extension PropertyPickerStyle where Self == SheetPropertyPicker {
     static func sheet(
         isPresented: Binding<Bool>,
+        adjustsBottomInset: Bool = true,
         detent: PresentationDetent = .fraction(2/3),
         presentationDetents: Set<PresentationDetent> = [
             .fraction(1/3),
@@ -428,6 +420,7 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
     ) -> Self {
         .init(
             isPresented: isPresented,
+            adjustsBottomInset: adjustsBottomInset,
             detent: detent,
             presentationDetents: presentationDetents
         )
@@ -439,11 +432,10 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
 /// providing a customizable and interactive menu experience.
 @available(iOS 16.4, *)
 public struct SheetPropertyPicker: PropertyPickerStyle {
-    @Environment(\.propertyPickerSheetAdjustsBottomInset)
-    private var adjustsBottomInset
-
     @Binding
     var isPresented: Bool
+
+    let adjustsBottomInset: Bool
 
     @State
     var detent: PresentationDetent
