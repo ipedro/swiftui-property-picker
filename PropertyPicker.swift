@@ -160,7 +160,7 @@ public struct PropertyPicker<Content: View>: View {
 
     /// The body of the dynamic value selector, presenting the content using the current selector style.
     public var body: some View {
-        AnyView(style.makeBody(configuration: configuration))
+        AnyView(style.resolve(configuration: configuration))
             .safeAreaInset(edge: .bottom) {
                 Spacer().frame(height: bottomInset)
             }
@@ -350,7 +350,7 @@ struct PropertyPickerPreferenceKey: PreferenceKey {
 // MARK: - ## Styles ##
 
 /// A protocol for defining custom styles for presenting dynamic value selectors.
-public protocol PropertyPickerStyle {
+public protocol PropertyPickerStyle: DynamicProperty {
     /// The associated type representing the body of the selector style.
     associatedtype Body: View
 
@@ -362,6 +362,21 @@ public protocol PropertyPickerStyle {
     /// - Parameter configuration: The configuration for the selector style.
     /// - Returns: A view representing the body of the selector style.
     @ViewBuilder func makeBody(configuration: Configuration) -> Body
+}
+
+struct ResolvedPropertyPickerStyle<Style: PropertyPickerStyle>: View {
+    var configuration: PropertyPickerStyleConfiguration
+    var style: Style
+
+    var body: some View {
+        style.makeBody(configuration: configuration)
+    }
+}
+
+extension PropertyPickerStyle {
+    func resolve(configuration: Configuration) -> some View {
+        ResolvedPropertyPickerStyle(configuration: configuration, style: self)
+    }
 }
 
 // MARK: - Environment Key for Picker Styles
@@ -488,11 +503,14 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     private func makePickerList(configuration: Configuration) -> some View {
         List {
             Section {
-                configuration.pickers.listRowBackground(Color.clear)
+                configuration.pickers
+                    .listRowBackground(Color.clear)
             } header: {
                 configuration.title
                     .bold()
-                    .padding(EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0))
+                    .padding(
+                        EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)
+                    )
                     .font(.title2)
                     .foregroundStyle(.primary)
             }
