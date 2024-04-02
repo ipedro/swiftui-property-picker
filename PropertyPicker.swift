@@ -123,6 +123,10 @@ public struct PropertyPicker<Content: View>: View {
     /// The state holding the dynamic value entries.
     @State
     private var data: [PropertyPickerItem] = []
+
+    @State
+    private var bottomInset: Double = 0
+
     /// The current dynamic value selector style from the environment.
     @Environment(\.propertyPickerStyle)
     private var style
@@ -157,9 +161,16 @@ public struct PropertyPicker<Content: View>: View {
     /// The body of the dynamic value selector, presenting the content using the current selector style.
     public var body: some View {
         AnyView(style.makeBody(configuration: configuration))
+            .safeAreaInset(edge: .bottom) {
+                Spacer().frame(height: bottomInset)
+            }
             .onPreferenceChange(PropertyPickerPreferenceKey.self) { newValue in
                 data = newValue
             }
+            .onPreferenceChange(PropertyPickerBottomInsetKey.self) { newValue in
+                bottomInset = newValue
+            }
+            .animation(.snappy, value: bottomInset)
     }
 }
 
@@ -311,7 +322,12 @@ public extension PropertyPickerKey {
     }
 }
 
-// MARK: - Preference Key
+// MARK: - Preference Keys
+
+struct PropertyPickerBottomInsetKey: PreferenceKey {
+    static var defaultValue: Double = 0
+    static func reduce(value: inout Double, nextValue: () -> Double) {}
+}
 
 /// A preference key for storing dynamic value entries.
 ///
@@ -407,7 +423,7 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
     static func sheet(
         isPresented: Binding<Bool>,
         adjustsBottomInset: Bool = true,
-        detent: PresentationDetent = .fraction(2/3),
+        detent: PresentationDetent = .fraction(1/3),
         presentationDetents: Set<PresentationDetent> = [
             .fraction(1/3),
             .fraction(2/3),
@@ -438,20 +454,14 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
 
     let presentationDetents: Set<PresentationDetent>
 
+    private var bottomInset: Double {
+        adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
-        Group {
-            if isPresented {
-                ZStack {
-                    configuration.content
-                }
-            } else {
-                configuration.content
-            }
-        }
+        configuration.content
             .safeAreaInset(edge: .bottom) {
-                Spacer().frame(
-                    height: adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
-                )
+                Spacer().frame(height: bottomInset)
             }
             .toolbar(content: {
                 ToolbarItem {
