@@ -634,44 +634,113 @@ private extension String {
 }
 
 
-public extension PropertyPickerStyle where Self == ShowcasePropertyPicker {
-    static var showcase: Self {
-        .init(title: nil)
+public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListStyle, Color> {
+    static var list: Self { .list() }
+
+    static func list(
+        title: LocalizedStringKey? = nil,
+        rowBackground: Color = .init(uiColor: .systemBackground)
+    ) -> Self {
+        .init(
+            title: {
+                if let title { return Text(title) }
+                return nil
+            }(),
+            listStyle: .init(),
+            listRowBackground: rowBackground
+        )
     }
 
-    static func showcase(title: LocalizedStringKey) -> Self {
-        .init(title: Text(title))
-    }
-
-    static func showcase(title: String) -> Self {
-        .init(title: Text(verbatim: title))
+    @_disfavoredOverload
+    static func list(
+        title: String? = nil,
+        rowBackground: Color = .init(uiColor: .systemBackground)
+    ) -> Self {
+        .init(
+            title: {
+                if let title { return Text(verbatim: title) }
+                return nil
+            }(),
+            listStyle: .init(),
+            listRowBackground: rowBackground
+        )
     }
 }
 
-// MARK: - Showcase Style
+public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedListStyle, Color> {
+    static var groupedList: Self { .groupedList() }
 
-public struct ShowcasePropertyPicker: PropertyPickerStyle {
+    static func groupedList(
+        title: LocalizedStringKey? = nil,
+        rowBackground: Color = .init(uiColor: .systemGroupedBackground)
+    ) -> Self {
+        .init(
+            title: {
+                if let title { return Text(title) }
+                return nil
+            }(),
+            listStyle: .init(),
+            listRowBackground: rowBackground
+        )
+    }
+
+    @_disfavoredOverload
+    static func groupedList(
+        title: String? = nil,
+        rowBackground: Color = .init(uiColor: .systemGroupedBackground)
+    ) -> Self {
+        .init(
+            title: {
+                if let title { return Text(verbatim: title) }
+                return nil
+            }(),
+            listStyle: .init(),
+            listRowBackground: rowBackground
+        )
+    }
+}
+
+// MARK: - List Style
+
+public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let title: Text?
+    let listStyle: S
+    let listRowBackground: B
 
     public func makeBody(configuration: Configuration) -> some View {
-        VStack {
-            GroupBox {
-                configuration.content
-            } label: {
-                title
-            }
+        List {
+            Section {
+                configuration.rows
+                    .listRowBackground(listRowBackground)
+            } header: {
+                VStack {
+                    GroupBox {
+                        configuration.content.frame(maxWidth: .infinity)
+                    } label: {
+                        title?.bold().font(.footnote)
+                    }
+                    .ios16_backgroundStyle(.regularMaterial)
+                    .environment(\.textCase, nil)
 
-            List {
-                Section {
-                    configuration.rows
-                        .listRowBackground(Color.clear)
-                } header: {
                     configuration.title
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top)
                 }
             }
         }
-        .listStyle(.plain)
-        .padding(.horizontal)
+        .listStyle(listStyle)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func ios16_backgroundStyle<S: ShapeStyle>(_ style: S) -> some View {
+        if #available(iOS 16.0, *) {
+            backgroundStyle(style)
+        } else {
+            self
+        }
     }
 }
 // MARK: - Preview
@@ -690,7 +759,7 @@ struct Example: PreviewProvider {
             .propertyPicker(UserInteractionKey.self, \.isEnabled)
             .propertyPicker(ColorSchemeKey.self, \.colorScheme)
         }
-        .propertyPickerStyle(.showcase)
+        .propertyPickerStyle(.list)
     }
 
     enum UserInteractionKey: String, PropertyPickerKey {
