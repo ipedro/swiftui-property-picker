@@ -20,15 +20,7 @@
 
 import SwiftUI
 
-// MARK: - Property Picker Package
-
-import SwiftUI
-
-// MARK: Public View Extensions
-
-/// Extends `View` to support dynamic property selection and application using the Property Picker.
 public extension View {
-
     /// Adds a dynamic property selection capability to the view using a `PropertyPickerState`.
     ///
     /// This allows the view to update its state based on user selection from a set of predefined options.
@@ -40,9 +32,9 @@ public extension View {
     func propertyPicker<Key: PropertyPickerKey>(
         _ pickerState: PropertyPickerState<Key>
     ) -> some View where Key.Value: Equatable {
-        PropertyPickerContentView(pickerState.key) { initialValue in
+        PickerSelectionReader(pickerState.key) { initialValue in
             onChange(of: initialValue) { newValue in
-                pickerState.state.wrappedValue = newValue
+                pickerState.state = newValue
             }
         }
     }
@@ -58,7 +50,7 @@ public extension View {
     func propertyPicker<Key: PropertyPickerKey>(
         _ pickerEnvironment: PropertyPickerEnvironment<Key>
     ) -> some View where Key.Value: Equatable {
-        PropertyPickerContentView(pickerEnvironment.key) { value in
+        PickerSelectionReader(pickerEnvironment.key) { value in
             environment(pickerEnvironment.keyPath, value)
         }
     }
@@ -76,7 +68,7 @@ public extension View {
         _ key: Key.Type,
         _ value: Binding<Key.Value>
     ) -> some View where Key.Value: Equatable {
-        PropertyPickerContentView(key) { initialValue in
+        PickerSelectionReader(key) { initialValue in
             onChange(of: initialValue) { newValue in
                 value.wrappedValue = newValue
             }
@@ -96,7 +88,7 @@ public extension View {
         _ key: Key.Type,
         _ environmentKeyPath: WritableKeyPath<EnvironmentValues, Key.Value>
     ) -> some View {
-        PropertyPickerContentView(key) { value in
+        PickerSelectionReader(key) { value in
             environment(environmentKeyPath, value)
         }
     }
@@ -113,6 +105,16 @@ public extension View {
 
 // MARK: PropertyPicker View
 
+private final class Storage: ObservableObject {
+    @Published
+    var properties: [Property] = []
+
+    @Published
+    var bottomInset: Double = 0
+
+    var isEmpty: Bool { properties.isEmpty }
+}
+
 /// A SwiftUI view that enables dynamic property selection.
 ///
 /// This view acts as a container that integrates with the property picker system to allow users
@@ -121,11 +123,9 @@ public struct PropertyPicker<Content: View>: View {
     /// The content to be presented alongside the dynamic value selector.
     let content: Content
     /// The state holding the dynamic value entries.
-    @State
-    private var data: [PropertyPickerItem] = []
 
-    @State
-    private var bottomInset: Double = 0
+    @StateObject
+    private var data = Storage()
 
     /// The current dynamic value selector style from the environment.
     @Environment(\.propertyPickerStyle)
@@ -146,15 +146,14 @@ public struct PropertyPicker<Content: View>: View {
     }
 
     /// Creates the configuration for the selector style and presents the content accordingly.
-    private var configuration: PropertyPickerStyle.Configuration {
-        .init(
+    private var configuration: PropertyPickerStyleConfiguration {
+        PropertyPickerStyleConfiguration(
             title: {
                 if let title { return Text(title).bold() }
                 return nil
             }(),
-            content: .init(content),
-            isEmpty: data.isEmpty,
-            pickers: .init(data: data)
+            content: AnyView(content),
+            isEmpty: data.isEmpty
         )
     }
 
@@ -162,15 +161,16 @@ public struct PropertyPicker<Content: View>: View {
     public var body: some View {
         AnyView(style.resolve(configuration: configuration))
             .safeAreaInset(edge: .bottom) {
-                Spacer().frame(height: bottomInset)
+                Spacer().frame(height: data.bottomInset)
             }
-            .onPreferenceChange(PropertyPickerPreferenceKey.self) { newValue in
-                data = newValue
+            .onPreferenceChange(PropertyPreference.self) { newValue in
+                data.properties = newValue
             }
-            .onPreferenceChange(PropertyPickerBottomInsetKey.self) { newValue in
-                bottomInset = newValue
+            .onPreferenceChange(BottomInsetPreference.self) { newValue in
+                data.bottomInset = newValue
             }
-            .animation(.snappy, value: bottomInset)
+            .animation(.snappy, value: data.bottomInset)
+            .environmentObject(data)
     }
 }
 
@@ -181,19 +181,19 @@ public struct PropertyPicker<Content: View>: View {
 @propertyWrapper
 public struct PropertyPickerState<Key: PropertyPickerKey>: DynamicProperty {
     let key: Key.Type
-    let state: State<Key.Value>
+    @State<Key.Value> var state: Key.Value
 
     /// Initializes the state with the specified key.
     ///
     /// - Parameter key: The type of the key that represents the property being adjusted.
     public init(_ key: Key.Type) {
         self.key = key
-        self.state = State(initialValue: key.defaultCase.value)
+        self._state = State(initialValue: key.defaultCase.value)
     }
 
     /// The current value of the property being adjusted.
     public var wrappedValue: Key.Value {
-        state.wrappedValue
+        state
     }
 
     /// The projected value, providing access to the binding of the state.
@@ -230,71 +230,11 @@ public struct PropertyPickerEnvironment<Key: PropertyPickerKey>: DynamicProperty
 
 }
 
-// MARK: - Content View
-
-// MARK: - PropertyPickerContentView
-
-/// `PropertyPickerContentView` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
-/// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
-/// updates the UI accordingly when a new selection is made.
-///
-/// This view serves as the foundation for integrating property picker functionality into SwiftUI views, enabling dynamic configuration
-/// of view properties based on user selection.
-///
-/// - Parameters:
-///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
-///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyPickerContentView<Key, Content>: View where Key: PropertyPickerKey, Content: View {
-
-    /// Internal ObservableObject for managing the dynamic selection state.
-    private class Store: ObservableObject {
-        @Published var selection = Key.defaultCase
-    }
-
-    /// The current selection state of the dynamic value, observed for changes to update the view.
-    @StateObject private var store = Store()
-
-    /// A view builder closure that creates the content view based on the current selection.
-    /// This allows the view to reactively update in response to changes in the selection.
-    @ViewBuilder private var content: (Key.Value) -> Content
-
-    /// The item representing the currently selected value, used for updating the UI and storing preferences.
-    private var selectedValue: PropertyPickerItem {
-        PropertyPickerItem(selection: $store.selection)
-    }
-
-    /// Initializes a `PropertyPickerContentView` with the specified key and content closure.
-    ///
-    /// - Parameters:
-    ///   - key: The type of the property picker key. Defaults to the key type itself if not specified.
-    ///   - content: A view builder closure that takes the current selection's value and returns the content view.
-    init(
-        _ key: Key.Type = Key.self,
-        @ViewBuilder content: @escaping (Key.Value) -> Content
-    ) {
-        self.content = content
-    }
-
-    /// The body of the `PropertyPickerContentView`, rendering the content based on the current selection.
-    /// It uses a clear background view to capture preference changes, allowing the dynamic property picker system to react.
-    var body: some View {
-        content(store.selection.value).background(background)
-    }
-
-    /// A helper view for capturing and forwarding preference changes without altering the main content's appearance.
-    private var background: some View {
-        Color.clear.preference(
-            key: PropertyPickerPreferenceKey.self,
-            value: [selectedValue]
-        )
-    }
-}
-
 // MARK: - PropertyPickerKey Protocol
 
 /// Defines the requirements for a type to act as a key in the property picker system.
 /// Each key represents a property that can be dynamically adjusted within a SwiftUI view.
-public protocol PropertyPickerKey: RawRepresentable, CaseIterable, Hashable where AllCases.Element: RawRepresentable<String> {
+public protocol PropertyPickerKey<Value>: RawRepresentable, CaseIterable, Hashable where AllCases.Element: RawRepresentable<String> {
     /// The associated value type that the key controls.
     associatedtype Value
     /// The default case to use when no other value is specified.
@@ -303,6 +243,10 @@ public protocol PropertyPickerKey: RawRepresentable, CaseIterable, Hashable wher
     static var defaultDescription: String { get }
     /// The current value associated with the key. This value is used to update the view's state.
     var value: Value { get }
+}
+
+public extension PropertyPickerKey where Value == Self {
+    var value: Self { self }
 }
 
 /// Provides default implementations for the `PropertyPickerKey` protocol,
@@ -322,116 +266,7 @@ public extension PropertyPickerKey {
     }
 }
 
-// MARK: - Preference Keys
-
-struct PropertyPickerBottomInsetKey: PreferenceKey {
-    static var defaultValue: Double = 0
-    static func reduce(value: inout Double, nextValue: () -> Double) {}
-}
-
-/// A preference key for storing dynamic value entries.
-///
-/// This key aggregates values to be displayed in a custom selection menu, allowing
-/// for dynamic updates and customization of menu content based on user selection.
-struct PropertyPickerPreferenceKey: PreferenceKey {
-    /// The default value for the dynamic value entries.
-    static var defaultValue: [PropertyPickerItem] = []
-
-    /// Combines the current value with the next value.
-    ///
-    /// - Parameters:
-    ///   - value: The current value of dynamic value entries.
-    ///   - nextValue: A closure that returns the next set of dynamic value entries.
-    static func reduce(value: inout [PropertyPickerItem], nextValue: () -> [PropertyPickerItem]) {
-        value = nextValue() + value
-    }
-}
-
 // MARK: - ## Styles ##
-
-/// A protocol for defining custom styles for presenting dynamic value selectors.
-public protocol PropertyPickerStyle: DynamicProperty {
-    /// The associated type representing the body of the selector style.
-    associatedtype Body: View
-
-    /// A typealias for the configuration used by the selector style.
-    typealias Configuration = PropertyPickerStyleConfiguration
-
-    /// Creates the body of the selector style using the provided configuration.
-    ///
-    /// - Parameter configuration: The configuration for the selector style.
-    /// - Returns: A view representing the body of the selector style.
-    @ViewBuilder func makeBody(configuration: Configuration) -> Body
-}
-
-struct ResolvedPropertyPickerStyle<Style: PropertyPickerStyle>: View {
-    var configuration: PropertyPickerStyleConfiguration
-    var style: Style
-
-    var body: some View {
-        style.makeBody(configuration: configuration)
-    }
-}
-
-extension PropertyPickerStyle {
-    func resolve(configuration: Configuration) -> some View {
-        ResolvedPropertyPickerStyle(configuration: configuration, style: self)
-    }
-}
-
-// MARK: - Environment Key for Picker Styles
-
-/// An environment key for storing the current dynamic value selector style.
-private struct PropertyPickerStyleKey: EnvironmentKey {
-    /// The default value for the selector style, using `PropertyPickerInlineStyle` as the default.
-    static let defaultValue: any PropertyPickerStyle = InlinePropertyPicker()
-}
-
-/// Extends `EnvironmentValues` to include a property for accessing the dynamic value selector style.
-extension EnvironmentValues {
-    /// The current dynamic value selector style within the environment.
-    var propertyPickerStyle: any PropertyPickerStyle {
-        get { self[PropertyPickerStyleKey.self] }
-        set { self[PropertyPickerStyleKey.self] = newValue }
-    }
-}
-
-// MARK: - Configuration for Picker Styles
-
-/// Represents the configuration for dynamic value selector styles, encapsulating the content and dynamic value entries.
-public struct PropertyPickerStyleConfiguration {
-    /// The content to be presented alongside the dynamic value entries.
-    public typealias Content = AnyView
-    /// The optional text
-    public let title: Text?
-    /// The actual content view.
-    public let content: Content
-    /// A boolean indicating if there are no dynamic value entries.
-    public let isEmpty: Bool
-    /// The dynamic value entries to be presented.
-    public let pickers: PickerEntries
-
-    /// Represents the dynamic value entries within the selector.
-    public struct PickerEntries: View {
-        /// The data for each dynamic value entry.
-        let data: [PropertyPickerItem]
-
-        /// Creates the view for each dynamic value entry, typically as a picker.
-        public var body: some View {
-            ForEach(data, content: picker(_:))
-        }
-
-        private func picker(_ item: PropertyPickerItem) -> some View {
-            Picker(item.title, selection: item.selection) {
-                ForEach(item.options, id: \.self) { item in
-                    Text(item).tag(item)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Sheet Style
 
 @available(iOS 16.4, *)
 public extension PropertyPickerStyle where Self == SheetPropertyPicker {
@@ -453,6 +288,72 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
         )
     }
 }
+
+/// Provides a convenient static property for accessing the inline selector style.
+public extension PropertyPickerStyle where Self == InlinePropertyPicker {
+    /// A style that presents dynamic value options inline within the view hierarchy.
+    static var inline: Self { .init() }
+}
+
+// MARK: - Context Menu Style
+
+/// Provides a convenient static property for accessing the context menu selector style.
+public extension PropertyPickerStyle where Self == ContextMenuPropertyPicker {
+    /// A static property to access a context menu selector style instance.
+    static var contextMenu: Self { .init() }
+}
+
+/// A protocol for defining custom styles for presenting dynamic value selectors.
+public protocol PropertyPickerStyle: DynamicProperty {
+    /// The associated type representing the body of the selector style.
+    associatedtype Body: View
+
+    /// A typealias for the configuration used by the selector style.
+    typealias Configuration = PropertyPickerStyleConfiguration
+
+    /// Creates the body of the selector style using the provided configuration.
+    ///
+    /// - Parameter configuration: The configuration for the selector style.
+    /// - Returns: A view representing the body of the selector style.
+    @ViewBuilder func makeBody(configuration: Configuration) -> Body
+}
+
+// MARK: - Configuration for Picker Styles
+
+/// Represents the configuration for dynamic value selector styles, encapsulating the content and dynamic value entries.
+public struct PropertyPickerStyleConfiguration {
+    /// The content to be presented alongside the dynamic value entries.
+    public typealias Content = AnyView
+    /// The optional text
+    public let title: Text?
+    /// The actual content view.
+    public let content: Content
+    /// A boolean indicating if there are no dynamic value entries.
+    public let isEmpty: Bool
+    /// The dynamic value entries to be presented.
+    public let rows = PropertyPickerRows()
+}
+
+/// Represents the dynamic value entries within the selector.
+public struct PropertyPickerRows: View {
+    @EnvironmentObject
+    private var data: Storage
+
+    public var body: some View {
+        ForEach(data.properties) { property in
+            Picker(property.title, selection: property.selection) {
+                ForEach(property.options, id: \.self) { item in
+                    Text(item).tag(item)
+                }
+            }
+        }
+        .onChange(of: data.properties) { newValue in
+            print("⚙️ properties", newValue)
+        }
+    }
+}
+
+// MARK: - Sheet Style
 
 /// A view modifier that adds a custom expandable menu to a SwiftUI view.
 /// This modifier tracks and displays menu items dynamically added to the view,
@@ -503,7 +404,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     private func makePickerList(configuration: Configuration) -> some View {
         List {
             Section {
-                configuration.pickers
+                configuration.rows
                     .listRowBackground(Color.clear)
             } header: {
                 configuration.title
@@ -529,12 +430,6 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
 
 // MARK: - Inline Style
 
-/// Provides a convenient static property for accessing the inline selector style.
-public extension PropertyPickerStyle where Self == InlinePropertyPicker {
-    /// A style that presents dynamic value options inline within the view hierarchy.
-    static var inline: Self { .init() }
-}
-
 /// A style that presents dynamic value options inline within the view hierarchy.
 public struct InlinePropertyPicker: PropertyPickerStyle {
     /// Creates the view for the inline style, embedding the dynamic value options directly within a scrollable area.
@@ -545,17 +440,9 @@ public struct InlinePropertyPicker: PropertyPickerStyle {
         VStack(spacing: .zero) {
             configuration.content
             Divider().padding(.horizontal)
-            configuration.pickers.padding(.top, 8)
+            configuration.rows.padding(.top, 8)
         }
     }
-}
-
-// MARK: - Context Menu Style
-
-/// Provides a convenient static property for accessing the context menu selector style.
-public extension PropertyPickerStyle where Self == ContextMenuPropertyPicker {
-    /// A static property to access a context menu selector style instance.
-    static var contextMenu: Self { .init() }
 }
 
 /// A style that presents dynamic value options within a context menu.
@@ -566,15 +453,134 @@ public struct ContextMenuPropertyPicker: PropertyPickerStyle {
     /// - Returns: A view displaying the dynamic value options in a context menu.
     public func makeBody(configuration: Configuration) -> some View {
         configuration.content.contextMenu {
-            configuration.pickers
+            configuration.rows
         }
+    }
+}
+
+struct ResolvedStyle<Style: PropertyPickerStyle>: View {
+    var configuration: PropertyPickerStyleConfiguration
+    var style: Style
+
+    var body: some View {
+        style.makeBody(configuration: configuration)
+    }
+}
+
+extension PropertyPickerStyle {
+    func resolve(configuration: Configuration) -> some View {
+        ResolvedStyle(configuration: configuration, style: self)
+    }
+}
+
+// MARK: - SelectionReader
+
+/// `SelectionReader` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
+/// updates the UI accordingly when a new selection is made.
+///
+/// This view serves as the foundation for integrating property picker functionality into SwiftUI views, enabling dynamic configuration
+/// of view properties based on user selection.
+///
+/// - Parameters:
+///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
+///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
+private struct PickerSelectionReader<Key, Content>: View where Key: PropertyPickerKey, Content: View {
+
+    /// Internal ObservableObject for managing the dynamic selection state.
+    private class Store: ObservableObject {
+        @Published var selection = Key.defaultCase
+    }
+
+    /// The current selection state of the dynamic value, observed for changes to update the view.
+    @StateObject private var store = Store()
+
+    /// A view builder closure that creates the content view based on the current selection.
+    /// This allows the view to reactively update in response to changes in the selection.
+    @ViewBuilder private var content: (Key.Value) -> Content
+
+    /// The item representing the currently selected value, used for updating the UI and storing preferences.
+    private var data: Property {
+        Property(selection: $store.selection)
+    }
+
+    /// Initializes a `PropertyPickerContentView` with the specified key and content closure.
+    ///
+    /// - Parameters:
+    ///   - key: The type of the property picker key. Defaults to the key type itself if not specified.
+    ///   - content: A view builder closure that takes the current selection's value and returns the content view.
+    init(
+        _ key: Key.Type = Key.self,
+        @ViewBuilder content: @escaping (Key.Value) -> Content
+    ) {
+        self.content = content
+    }
+
+    private var selectedValue: Key.Value {
+        store.selection.value
+    }
+    /// The body of the `PropertyPickerContentView`, rendering the content based on the current selection.
+    /// It uses a clear background view to capture preference changes, allowing the dynamic property picker system to react.
+    var body: some View {
+        content(selectedValue)
+            .background(background)
+    }
+
+    /// A helper view for capturing and forwarding preference changes without altering the main content's appearance.
+    private var background: some View {
+        Color.clear.preference(
+            key: PropertyPreference.self,
+            value: [data]
+        )
+    }
+}
+
+// MARK: - Preference Keys
+
+private struct BottomInsetPreference: PreferenceKey {
+    static var defaultValue: Double = 0
+    static func reduce(value: inout Double, nextValue: () -> Double) {}
+}
+
+/// A preference key for storing dynamic value entries.
+///
+/// This key aggregates values to be displayed in a custom selection menu, allowing
+/// for dynamic updates and customization of menu content based on user selection.
+private struct PropertyPreference: PreferenceKey {
+    /// The default value for the dynamic value entries.
+    static var defaultValue: [Property] = []
+
+    /// Combines the current value with the next value.
+    ///
+    /// - Parameters:
+    ///   - value: The current value of dynamic value entries.
+    ///   - nextValue: A closure that returns the next set of dynamic value entries.
+    static func reduce(value: inout [Property], nextValue: () -> [Property]) {
+        value = nextValue() + value
+    }
+}
+
+// MARK: - Environment Key for Picker Styles
+
+/// An environment key for storing the current dynamic value selector style.
+private struct StyleKey: EnvironmentKey {
+    /// The default value for the selector style, using `PropertyPickerInlineStyle` as the default.
+    static let defaultValue: any PropertyPickerStyle = InlinePropertyPicker()
+}
+
+/// Extends `EnvironmentValues` to include a property for accessing the dynamic value selector style.
+extension EnvironmentValues {
+    /// The current dynamic value selector style within the environment.
+    var propertyPickerStyle: any PropertyPickerStyle {
+        get { self[StyleKey.self] }
+        set { self[StyleKey.self] = newValue }
     }
 }
 
 // MARK: - Content
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable options.
-struct PropertyPickerItem: Identifiable, Equatable {
+struct Property: Identifiable, Equatable {
     /// A unique identifier for the entry.
     let id = UUID()
     /// The title of the entry, used as a label in the UI.
@@ -602,7 +608,7 @@ struct PropertyPickerItem: Identifiable, Equatable {
     }
 
     /// Determines if two entries are equal based on their identifiers.
-    static func == (lhs: PropertyPickerItem, rhs: PropertyPickerItem) -> Bool {
+    static func == (lhs: Property, rhs: Property) -> Bool {
         lhs.id == rhs.id
     }
 }
@@ -627,6 +633,47 @@ private extension String {
     }
 }
 
+
+public extension PropertyPickerStyle where Self == ShowcasePropertyPicker {
+    static var showcase: Self {
+        .init(title: nil)
+    }
+
+    static func showcase(title: LocalizedStringKey) -> Self {
+        .init(title: Text(title))
+    }
+
+    static func showcase(title: String) -> Self {
+        .init(title: Text(verbatim: title))
+    }
+}
+
+// MARK: - Showcase Style
+
+public struct ShowcasePropertyPicker: PropertyPickerStyle {
+    let title: Text?
+
+    public func makeBody(configuration: Configuration) -> some View {
+        VStack {
+            GroupBox {
+                configuration.content
+            } label: {
+                title
+            }
+
+            List {
+                Section {
+                    configuration.rows
+                        .listRowBackground(Color.clear)
+                } header: {
+                    configuration.title
+                }
+            }
+        }
+        .listStyle(.plain)
+        .padding(.horizontal)
+    }
+}
 // MARK: - Preview
 
 #if DEBUG
@@ -634,19 +681,16 @@ struct Example: PreviewProvider {
 
     static var previews: some View {
         PropertyPicker {
-            NavigationView {
-                VStack {
-                    Button {
-                        //
-                    } label: {
-                        Text("Button")
-                    }
-                    .buttonStyle(.bordered)
-                }
+            Button {
+                //
+            } label: {
+                Text("Button")
             }
+            .buttonStyle(.bordered)
             .propertyPicker(UserInteractionKey.self, \.isEnabled)
             .propertyPicker(ColorSchemeKey.self, \.colorScheme)
         }
+        .propertyPickerStyle(.showcase)
     }
 
     enum UserInteractionKey: String, PropertyPickerKey {
