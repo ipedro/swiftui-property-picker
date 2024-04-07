@@ -382,9 +382,6 @@ public struct PropertyPickerRows: View {
                 }
             }
         }
-        .onChange(of: data.properties) { newValue in
-            print("⚙️ properties", newValue)
-        }
     }
 }
 
