@@ -21,6 +21,34 @@
 import SwiftUI
 
 public extension View {
+
+    @available(iOS 16.0, *)
+    func propertyPickerListContentBackground<S: ShapeStyle>(_ background: S?) -> some View {
+        modifier(
+            PreferenceModifier<ListStyleContentBackgroundPreference>({
+                if let background { return Box(value: AnyShapeStyle(background)) }
+                return nil
+            }())
+        )
+    }
+
+    func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
+        modifier(
+            PreferenceModifier<TitlePreference>({
+                if let title { return Text(title) }
+                return nil
+            }())
+        )
+    }
+
+    func propertyPickerTitle(_ title: String?) -> some View {
+        modifier(
+            PreferenceModifier<TitlePreference>({
+                if let title { return Text(verbatim: title) }
+                return nil
+            }())
+        )
+    }
     /// Adds a dynamic property selection capability to the view using a `PropertyPickerState`.
     ///
     /// This allows the view to update its state based on user selection from a set of predefined options.
@@ -110,6 +138,9 @@ private final class Storage: ObservableObject {
     var properties: [Property] = []
 
     @Published
+    var title = TitlePreference.defaultValue
+
+    @Published
     var bottomInset: Double = 0
 
     var isEmpty: Bool { properties.isEmpty }
@@ -131,28 +162,19 @@ public struct PropertyPicker<Content: View>: View {
     @Environment(\.propertyPickerStyle)
     private var style
 
-    let title: String?
-
     /// Initializes the dynamic value selector with the specified content and optional title.
     ///
     /// - Parameters:
     ///   - content: A closure returning the content to be presented.
-    public init(
-        _ title: String? = nil,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.title = title
+    public init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
 
     /// Creates the configuration for the selector style and presents the content accordingly.
     private var configuration: PropertyPickerStyleConfiguration {
         PropertyPickerStyleConfiguration(
-            title: {
-                if let title { return Text(title).bold() }
-                return nil
-            }(),
-            content: AnyView(content),
+            title: data.title,
+            content: PropertyPickerContent(content),
             isEmpty: data.isEmpty
         )
     }
@@ -162,12 +184,6 @@ public struct PropertyPicker<Content: View>: View {
         AnyView(style.resolve(configuration: configuration))
             .safeAreaInset(edge: .bottom) {
                 Spacer().frame(height: data.bottomInset)
-            }
-            .onPreferenceChange(PropertyPreference.self) { newValue in
-                data.properties = newValue
-            }
-            .onPreferenceChange(BottomInsetPreference.self) { newValue in
-                data.bottomInset = newValue
             }
             .animation(.snappy, value: data.bottomInset)
             .environmentObject(data)
@@ -324,16 +340,33 @@ public protocol PropertyPickerStyle: DynamicProperty {
 
 /// Represents the configuration for dynamic value selector styles, encapsulating the content and dynamic value entries.
 public struct PropertyPickerStyleConfiguration {
-    /// The content to be presented alongside the dynamic value entries.
-    public typealias Content = AnyView
     /// The optional text
     public let title: Text?
     /// The actual content view.
-    public let content: Content
+    public let content: PropertyPickerContent
     /// A boolean indicating if there are no dynamic value entries.
     public let isEmpty: Bool
     /// The dynamic value entries to be presented.
     public let rows = PropertyPickerRows()
+}
+
+/// The content to be presented alongside the dynamic value entries.
+public struct PropertyPickerContent: View {
+    let content: AnyView
+
+    init<V: View>(_ content: V) {
+        self.content = AnyView(content)
+    }
+
+    @EnvironmentObject
+    private var data: Storage
+
+    public var body: some View {
+        content
+            .onPreferenceChange(PropertyPreference.self) { data.properties = $0 }
+            .onPreferenceChange(BottomInsetPreference.self) { data.bottomInset = $0 }
+            .onPreferenceChange(TitlePreference.self) { data.title = $0 }
+    }
 }
 
 /// Represents the dynamic value entries within the selector.
@@ -353,6 +386,19 @@ public struct PropertyPickerRows: View {
             print("⚙️ properties", newValue)
         }
     }
+}
+
+private struct Box<Value>: Identifiable, Hashable {
+    static func == (lhs: Box<Value>, rhs: Box<Value>) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    let id = UUID()
+    let value: Value
 }
 
 // MARK: - Sheet Style
@@ -460,7 +506,7 @@ public struct ContextMenuPropertyPicker: PropertyPickerStyle {
     }
 }
 
-struct ResolvedStyle<Style: PropertyPickerStyle>: View {
+private struct ResolvedStyle<Style: PropertyPickerStyle>: View {
     var configuration: PropertyPickerStyleConfiguration
     var style: Style
 
@@ -469,7 +515,7 @@ struct ResolvedStyle<Style: PropertyPickerStyle>: View {
     }
 }
 
-extension PropertyPickerStyle {
+private extension PropertyPickerStyle {
     func resolve(configuration: Configuration) -> some View {
         ResolvedStyle(configuration: configuration, style: self)
     }
@@ -544,6 +590,16 @@ private struct BottomInsetPreference: PreferenceKey {
     static func reduce(value: inout Double, nextValue: () -> Double) {}
 }
 
+private struct TitlePreference: PreferenceKey {
+    static var defaultValue: Text?
+    static func reduce(value: inout Text?, nextValue: () -> Text?) {}
+}
+
+private struct ListStyleContentBackgroundPreference: PreferenceKey {
+    static var defaultValue: Box<AnyShapeStyle>?
+    static func reduce(value: inout Box<AnyShapeStyle>?, nextValue: () -> Box<AnyShapeStyle>?) {}
+}
+
 /// A preference key for storing dynamic value entries.
 ///
 /// This key aggregates values to be displayed in a custom selection menu, allowing
@@ -566,12 +622,12 @@ private struct PropertyPreference: PreferenceKey {
 
 /// An environment key for storing the current dynamic value selector style.
 private struct StyleKey: EnvironmentKey {
-    /// The default value for the selector style, using `PropertyPickerInlineStyle` as the default.
-    static let defaultValue: any PropertyPickerStyle = InlinePropertyPicker()
+    /// The default value for the selector style, using `ListPropertyPicker` as the default.
+    static let defaultValue: any PropertyPickerStyle = ListPropertyPicker.list
 }
 
 /// Extends `EnvironmentValues` to include a property for accessing the dynamic value selector style.
-extension EnvironmentValues {
+private extension EnvironmentValues {
     /// The current dynamic value selector style within the environment.
     var propertyPickerStyle: any PropertyPickerStyle {
         get { self[StyleKey.self] }
@@ -579,10 +635,25 @@ extension EnvironmentValues {
     }
 }
 
+/// A modifier that you apply to a view or another view modifier to set a value for any given preference key.
+private struct PreferenceModifier<K: PreferenceKey>: ViewModifier {
+    let value: K.Value
+
+    init(_ value: K.Value) {
+        self.value = value
+    }
+
+    func body(content: Content) -> some View {
+        content.background(
+            Spacer().preference(key: K.self, value: value)
+        )
+    }
+}
+
 // MARK: - Content
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable options.
-struct Property: Identifiable, Equatable {
+private struct Property: Identifiable, Equatable {
     /// A unique identifier for the entry.
     let id = UUID()
     /// The title of the entry, used as a label in the UI.
@@ -693,25 +764,55 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listStyle: S
     let listRowBackground: B
 
+    @State
+    private var contentBackground: Box<AnyShapeStyle>?
+
     public func makeBody(configuration: Configuration) -> some View {
         List {
             Section {
-                configuration.rows
-                    .listRowBackground(listRowBackground)
+                configuration.rows.listRowBackground(listRowBackground)
             } header: {
                 VStack(spacing: .zero) {
-                    configuration.content
-                        .environment(\.textCase, nil)
-                        .padding(.vertical)
-                        .padding(.vertical)
+                    ZStack {
+                        GroupBox {
+                            Spacer().frame(maxWidth: .infinity)
+                        }
+                        .ios16_backgroundStyle(contentBackground?.value ?? AnyShapeStyle(.background))
+                        .animation(.default, value: contentBackground)
+
+                        configuration.content
+                            .padding()
+                            .onPreferenceChange(ListStyleContentBackgroundPreference.self) {
+                                contentBackground = $0
+                            }
+                    }
+                    .environment(\.textCase, nil)
+                    .padding(.vertical)
 
                     configuration.title
-                        .frame(maxWidth: .infinity, alignment: .leading)
                         .multilineTextAlignment(.leading)
+                        .padding(.top)
+                        .frame(
+                            maxWidth: .infinity,
+                            alignment: .leading
+                        )
                 }
+                .frame(maxWidth: .infinity)
             }
         }
         .listStyle(listStyle)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func ios16_backgroundStyle<S: ShapeStyle>(_ background: S) -> some View {
+        if #available(iOS 16.0, *) {
+            backgroundStyle(background)
+        } else {
+            // Fallback on earlier versions
+            self
+        }
     }
 }
 
