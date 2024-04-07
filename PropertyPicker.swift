@@ -186,14 +186,15 @@ public struct PropertyPickerState<Key: PropertyPickerKey>: DynamicProperty {
     /// Initializes the state with the specified key.
     ///
     /// - Parameter key: The type of the key that represents the property being adjusted.
-    public init(_ key: Key.Type) {
+    public init(_ key: Key.Type, initialValue: Key.Value = Key.defaultCase.value) {
         self.key = key
-        self._state = State(initialValue: key.defaultCase.value)
+        self._state = State(initialValue: initialValue)
     }
 
     /// The current value of the property being adjusted.
     public var wrappedValue: Key.Value {
-        state
+        get { state }
+        nonmutating set { state = newValue }
     }
 
     /// The projected value, providing access to the binding of the state.
@@ -273,9 +274,10 @@ public extension PropertyPickerStyle where Self == SheetPropertyPicker {
     static func sheet(
         isPresented: Binding<Bool>,
         adjustsBottomInset: Bool = true,
-        detent: PresentationDetent = .fraction(1/3),
+        detent: PresentationDetent = .fraction(1/4),
         presentationDetents: Set<PresentationDetent> = [
-            .fraction(1/3),
+            .fraction(1/4),
+            .medium,
             .fraction(2/3),
             .large
         ]
@@ -601,7 +603,7 @@ struct Property: Identifiable, Equatable {
         self.selection = Binding {
             selection.wrappedValue.rawValue
         } set: { rawValue in
-            if let newValue = Key(rawValue: rawValue) {
+            if let newValue = Key(rawValue: rawValue), selection.wrappedValue != newValue {
                 selection.wrappedValue = newValue
             }
         }
@@ -633,34 +635,26 @@ private extension String {
     }
 }
 
-
 public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListStyle, Color> {
     static var list: Self { .list() }
 
     static func list(
-        title: LocalizedStringKey? = nil,
-        rowBackground: Color = .init(uiColor: .systemBackground)
+        rowBackground: Color = Color(uiColor: .systemBackground)
     ) -> Self {
         .init(
-            title: {
-                if let title { return Text(title) }
-                return nil
-            }(),
             listStyle: .init(),
             listRowBackground: rowBackground
         )
     }
+}
 
-    @_disfavoredOverload
-    static func list(
-        title: String? = nil,
-        rowBackground: Color = .init(uiColor: .systemBackground)
+public extension PropertyPickerStyle where Self == ListPropertyPicker<InsetGroupedListStyle, Color> {
+    static var insetGroupedList: Self { .insetGroupedList() }
+
+    static func insetGroupedList(
+        rowBackground: Color = Color(uiColor: .systemBackground)
     ) -> Self {
         .init(
-            title: {
-                if let title { return Text(verbatim: title) }
-                return nil
-            }(),
             listStyle: .init(),
             listRowBackground: rowBackground
         )
@@ -671,29 +665,22 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedLis
     static var groupedList: Self { .groupedList() }
 
     static func groupedList(
-        title: LocalizedStringKey? = nil,
-        rowBackground: Color = .init(uiColor: .systemGroupedBackground)
+        rowBackground: Color = Color(uiColor: .systemBackground)
     ) -> Self {
         .init(
-            title: {
-                if let title { return Text(title) }
-                return nil
-            }(),
             listStyle: .init(),
             listRowBackground: rowBackground
         )
     }
+}
 
-    @_disfavoredOverload
-    static func groupedList(
-        title: String? = nil,
-        rowBackground: Color = .init(uiColor: .systemGroupedBackground)
+public extension PropertyPickerStyle where Self == ListPropertyPicker<SidebarListStyle, Color> {
+    static var sidebarList: Self { .sidebarList() }
+
+    static func sidebarList(
+        rowBackground: Color = Color(uiColor: .systemBackground)
     ) -> Self {
         .init(
-            title: {
-                if let title { return Text(verbatim: title) }
-                return nil
-            }(),
             listStyle: .init(),
             listRowBackground: rowBackground
         )
@@ -703,7 +690,6 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedLis
 // MARK: - List Style
 
 public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
-    let title: Text?
     let listStyle: S
     let listRowBackground: B
 
@@ -713,19 +699,15 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                 configuration.rows
                     .listRowBackground(listRowBackground)
             } header: {
-                VStack {
-                    GroupBox {
-                        configuration.content.frame(maxWidth: .infinity)
-                    } label: {
-                        title?.bold().font(.footnote)
-                    }
-                    .ios16_backgroundStyle(.regularMaterial)
-                    .environment(\.textCase, nil)
+                VStack(spacing: .zero) {
+                    configuration.content
+                        .environment(\.textCase, nil)
+                        .padding(.vertical)
+                        .padding(.vertical)
 
                     configuration.title
-                        .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top)
+                        .multilineTextAlignment(.leading)
                 }
             }
         }
@@ -733,16 +715,6 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     }
 }
 
-private extension View {
-    @ViewBuilder
-    func ios16_backgroundStyle<S: ShapeStyle>(_ style: S) -> some View {
-        if #available(iOS 16.0, *) {
-            backgroundStyle(style)
-        } else {
-            self
-        }
-    }
-}
 // MARK: - Preview
 
 #if DEBUG
