@@ -21,7 +21,6 @@
 import SwiftUI
 
 public extension View {
-
     @available(iOS 16.0, *)
     func propertyPickerListContentBackground<S: ShapeStyle>(_ background: S?) -> some View {
         modifier(
@@ -190,7 +189,7 @@ public struct PropertyPicker<Content: View>: View {
     }
 }
 
-// MARK: - Property Picker State
+// MARK: - State Picker
 
 /// A property wrapper that holds the state of a property to be adjusted using the property picker.
 /// It automatically updates the view when the selection changes.
@@ -567,15 +566,8 @@ private struct PickerSelectionReader<Key, Content>: View where Key: PropertyPick
     /// The body of the `PropertyPickerContentView`, rendering the content based on the current selection.
     /// It uses a clear background view to capture preference changes, allowing the dynamic property picker system to react.
     var body: some View {
-        content(selectedValue)
-            .background(background)
-    }
-
-    /// A helper view for capturing and forwarding preference changes without altering the main content's appearance.
-    private var background: some View {
-        Color.clear.preference(
-            key: PropertyPreference.self,
-            value: [data]
+        content(selectedValue).modifier(
+            PreferenceModifier<PropertyPreference>([data])
         )
     }
 }
@@ -775,7 +767,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                             Spacer().frame(maxWidth: .infinity)
                         }
                         .ios16_backgroundStyle(contentBackground?.value ?? AnyShapeStyle(.background))
-                        .animation(.default, value: contentBackground)
+                        .animation(.smooth, value: contentBackground)
 
                         configuration.content
                             .padding()
