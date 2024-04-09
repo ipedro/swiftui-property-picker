@@ -586,7 +586,9 @@ private struct TitlePreference: PreferenceKey {
 
 private struct ListStyleContentBackgroundPreference: PreferenceKey {
     static var defaultValue: Box<AnyShapeStyle>?
-    static func reduce(value: inout Box<AnyShapeStyle>?, nextValue: () -> Box<AnyShapeStyle>?) {}
+    static func reduce(value: inout Box<AnyShapeStyle>?, nextValue: () -> Box<AnyShapeStyle>?) {
+        value = nextValue()
+    }
 }
 
 /// A preference key for storing dynamic value entries.
