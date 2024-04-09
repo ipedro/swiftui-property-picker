@@ -741,7 +741,11 @@ public struct Property: Identifiable, Equatable {
     /// - Parameters:
     ///   - key: The property picker key type.
     ///   - selection: A binding to the currently selected key.
-    init<Key: PropertyPickerKey>(_ key: Key.Type = Key.self, id: UUID, selection: Binding<Key>) {
+    init<Key: PropertyPickerKey>(
+        _ key: Key.Type = Key.self,
+        id: UUID = UUID(),
+        selection: Binding<Key>
+    ) {
         self.id = id
         self.keyType = String(describing: key)
         self.options = Key.allCases.map(\.rawValue)
