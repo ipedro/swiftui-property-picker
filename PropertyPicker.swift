@@ -25,7 +25,7 @@ public extension View {
     func propertyPickerListContentBackground<S: ShapeStyle>(_ background: S?) -> some View {
         modifier(
             PreferenceModifier<ListStyleContentBackgroundPreference>({
-                if let background { return Box(value: AnyShapeStyle(background)) }
+                if let background { return HashableBox(value: AnyShapeStyle(background)) }
                 return nil
             }())
         )
@@ -384,8 +384,8 @@ public struct PropertyPickerRows: View {
     }
 }
 
-private struct Box<Value>: Identifiable, Hashable {
-    static func == (lhs: Box<Value>, rhs: Box<Value>) -> Bool {
+private struct HashableBox<Value>: Identifiable, Hashable, CustomStringConvertible {
+    static func == (lhs: HashableBox<Value>, rhs: HashableBox<Value>) -> Bool {
         lhs.id == rhs.id
     }
 
@@ -393,8 +393,16 @@ private struct Box<Value>: Identifiable, Hashable {
         hasher.combine(id)
     }
 
-    let id = UUID()
+    var id: String { description }
+
     let value: Value
+
+    let description: String
+
+    init(value: Value) {
+        self.value = value
+        self.description = String(describing: value)
+    }
 }
 
 // MARK: - Sheet Style
@@ -585,9 +593,11 @@ private struct TitlePreference: PreferenceKey {
 }
 
 private struct ListStyleContentBackgroundPreference: PreferenceKey {
-    static var defaultValue: Box<AnyShapeStyle>?
-    static func reduce(value: inout Box<AnyShapeStyle>?, nextValue: () -> Box<AnyShapeStyle>?) {
-        value = nextValue()
+    static var defaultValue: HashableBox<AnyShapeStyle>?
+    static func reduce(value: inout HashableBox<AnyShapeStyle>?, nextValue: () -> HashableBox<AnyShapeStyle>?) {
+        if let nextValue = nextValue() {
+            value = nextValue
+        }
     }
 }
 
@@ -756,7 +766,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listRowBackground: B
 
     @State
-    private var contentBackground: Box<AnyShapeStyle>?
+    private var contentBackground: HashableBox<AnyShapeStyle>?
 
     public func makeBody(configuration: Configuration) -> some View {
         List {
@@ -810,6 +820,7 @@ private extension View {
 // MARK: - Preview
 
 #if DEBUG
+@available(iOS 16.0, *)
 struct Example: PreviewProvider {
 
     static var previews: some View {
@@ -822,6 +833,8 @@ struct Example: PreviewProvider {
             .buttonStyle(.bordered)
             .propertyPicker(UserInteractionKey.self, \.isEnabled)
             .propertyPicker(ColorSchemeKey.self, \.colorScheme)
+            .propertyPickerListContentBackground(Color.blue)
+            .propertyPickerListContentBackground(Color.red)
         }
         .propertyPickerStyle(.list)
     }
