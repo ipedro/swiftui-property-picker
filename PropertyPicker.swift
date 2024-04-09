@@ -22,32 +22,51 @@ import SwiftUI
 
 public extension View {
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S: ShapeStyle>(_ background: S?) -> some View {
-        modifier(
-            PreferenceModifier<ListStyleContentBackgroundPreference>({
-                if let background { return HashableBox(value: AnyShapeStyle(background)) }
-                return nil
-            }())
+    func propertyPickerListContentBackground(_ background: Color?) -> some View {
+        setPreferenceChange(
+            ListStyleContentBackgroundPreference.self,
+            value: background
+        )
+    }
+
+    func propertyPicker<K: PropertyPickerKey, Row: View>(
+        for key: K.Type = K.self,
+        @ViewBuilder body: @escaping (_ property: Property) -> Row
+    ) -> some View {
+        let keyType = String(describing: key)
+        let viewBuilder = PropertyViewBuilder { someProp in
+            if someProp.keyType == String(describing: key) {
+                return AnyView(body(someProp))
+            }
+            return nil
+        }
+        let value = [keyType: viewBuilder]
+        return setPreferenceChange(
+            ViewBuilderPreference.self,
+            value: value
         )
     }
 
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        modifier(
-            PreferenceModifier<TitlePreference>({
+        setPreferenceChange(
+            TitlePreference.self,
+            value: {
                 if let title { return Text(title) }
                 return nil
-            }())
+            }()
         )
     }
 
     func propertyPickerTitle(_ title: String?) -> some View {
-        modifier(
-            PreferenceModifier<TitlePreference>({
+        setPreferenceChange(
+            TitlePreference.self,
+            value: {
                 if let title { return Text(verbatim: title) }
                 return nil
-            }())
+            }()
         )
     }
+
     /// Adds a dynamic property selection capability to the view using a `PropertyPickerState`.
     ///
     /// This allows the view to update its state based on user selection from a set of predefined options.
@@ -142,6 +161,9 @@ private final class Storage: ObservableObject {
     @Published
     var bottomInset: Double = 0
 
+    @Published
+    var viewBuilders = [String: PropertyViewBuilder]()
+
     var isEmpty: Bool { properties.isEmpty }
 }
 
@@ -217,6 +239,7 @@ public struct PropertyPickerState<Key: PropertyPickerKey>: DynamicProperty {
         self
     }
 
+    public var binding: Binding<Key.Value> { $state }
 }
 
 // MARK: - Property Picker Environment
@@ -365,6 +388,7 @@ public struct PropertyPickerContent: View {
             .onPreferenceChange(PropertyPreference.self) { data.properties = $0 }
             .onPreferenceChange(BottomInsetPreference.self) { data.bottomInset = $0 }
             .onPreferenceChange(TitlePreference.self) { data.title = $0 }
+            .onPreferenceChange(ViewBuilderPreference.self) { data.viewBuilders = $0 }
     }
 }
 
@@ -375,14 +399,57 @@ public struct PropertyPickerRows: View {
 
     public var body: some View {
         ForEach(data.properties) { property in
-            Picker(property.title, selection: property.selection) {
-                ForEach(property.options, id: \.self) { item in
-                    Text(item).tag(item)
-                }
+            if let customPicker = makeBody(configuration: (property, data.viewBuilders)) {
+                customPicker
+            } else {
+                defaultPicker(configuration: property)
+            }
+        }
+    }
+    
+    private var emptyMessage: String {
+        "Nothing yet"
+    }
+
+    private func makeBody(configuration: (item: Property, source: [String: PropertyViewBuilder])) -> AnyView? {
+        for key in configuration.source.keys where key == configuration.item.keyType {
+            if let view = configuration.source[key]?.view(configuration.item) {
+                return view
+            }
+        }
+        return nil
+    }
+
+    // TODO: move to view builder
+    private func defaultPicker(configuration property: Property) -> some View {
+        Picker(property.title, selection: property.selection) {
+            ForEach(property.options, id: \.self) { item in
+                Text(item).tag(item)
             }
         }
     }
 }
+
+private struct ViewBuilderPreference: PreferenceKey {
+    static let defaultValue = [String: PropertyViewBuilder]()
+    static func reduce(value: inout [String: PropertyViewBuilder], nextValue: () -> [String: PropertyViewBuilder]) {
+        value.merge(nextValue()) { content, _ in
+            content
+        }
+    }
+}
+
+// MARK: - Row Builder
+
+private struct PropertyViewBuilder: Equatable, Identifiable {
+    let id = UUID()
+    let view: (Property) -> AnyView?
+
+    static func == (lhs: PropertyViewBuilder, rhs: PropertyViewBuilder) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
 
 private struct HashableBox<Value>: Identifiable, Hashable, CustomStringConvertible {
     static func == (lhs: HashableBox<Value>, rhs: HashableBox<Value>) -> Bool {
@@ -541,7 +608,10 @@ private struct PickerSelectionReader<Key, Content>: View where Key: PropertyPick
 
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Store: ObservableObject {
-        @Published var selection = Key.defaultCase
+        private(set) var id = UUID()
+        @Published var selection = Key.defaultCase {
+            willSet { id = UUID() }
+        }
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
@@ -553,7 +623,7 @@ private struct PickerSelectionReader<Key, Content>: View where Key: PropertyPick
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
-        Property(selection: $store.selection)
+        Property(id: store.id, selection: $store.selection)
     }
 
     /// Initializes a `PropertyPickerContentView` with the specified key and content closure.
@@ -575,7 +645,7 @@ private struct PickerSelectionReader<Key, Content>: View where Key: PropertyPick
     /// It uses a clear background view to capture preference changes, allowing the dynamic property picker system to react.
     var body: some View {
         content(selectedValue).modifier(
-            PreferenceModifier<PropertyPreference>([data])
+            PreferenceValueModifier<PropertyPreference>([data])
         )
     }
 }
@@ -593,8 +663,8 @@ private struct TitlePreference: PreferenceKey {
 }
 
 private struct ListStyleContentBackgroundPreference: PreferenceKey {
-    static var defaultValue: HashableBox<AnyShapeStyle>?
-    static func reduce(value: inout HashableBox<AnyShapeStyle>?, nextValue: () -> HashableBox<AnyShapeStyle>?) {
+    static var defaultValue: Color?
+    static func reduce(value: inout Color?, nextValue: () -> Color?) {
         if let nextValue = nextValue() {
             value = nextValue
         }
@@ -637,7 +707,7 @@ private extension EnvironmentValues {
 }
 
 /// A modifier that you apply to a view or another view modifier to set a value for any given preference key.
-private struct PreferenceModifier<K: PreferenceKey>: ViewModifier {
+private struct PreferenceValueModifier<K: PreferenceKey>: ViewModifier {
     let value: K.Value
 
     init(_ value: K.Value) {
@@ -654,22 +724,26 @@ private struct PreferenceModifier<K: PreferenceKey>: ViewModifier {
 // MARK: - Content
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable options.
-private struct Property: Identifiable, Equatable {
+public struct Property: Identifiable, Equatable {
     /// A unique identifier for the entry.
-    let id = UUID()
+    public let id: UUID
     /// The title of the entry, used as a label in the UI.
-    let title: String
+    public let title: String
     /// A binding to the currently selected option.
-    let selection: Binding<String>
+    public let selection: Binding<String>
     /// The options available for selection.
-    let options: [String]
+    public let options: [String]
+
+    let keyType: String
 
     /// Initializes a new dynamic value entry with the specified parameters.
     ///
     /// - Parameters:
     ///   - key: The property picker key type.
     ///   - selection: A binding to the currently selected key.
-    init<Key: PropertyPickerKey>(_ key: Key.Type = Key.self, selection: Binding<Key>) {
+    init<Key: PropertyPickerKey>(_ key: Key.Type = Key.self, id: UUID, selection: Binding<Key>) {
+        self.id = id
+        self.keyType = String(describing: key)
         self.options = Key.allCases.map(\.rawValue)
         self.title = Key.defaultDescription
         self.selection = Binding {
@@ -682,7 +756,7 @@ private struct Property: Identifiable, Equatable {
     }
 
     /// Determines if two entries are equal based on their identifiers.
-    static func == (lhs: Property, rhs: Property) -> Bool {
+    public static func == (lhs: Property, rhs: Property) -> Bool {
         lhs.id == rhs.id
     }
 }
@@ -766,7 +840,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listRowBackground: B
 
     @State
-    private var contentBackground: HashableBox<AnyShapeStyle>?
+    private var contentBackground: Color?
 
     public func makeBody(configuration: Configuration) -> some View {
         List {
@@ -778,7 +852,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                         GroupBox {
                             Spacer().frame(maxWidth: .infinity)
                         }
-                        .ios16_backgroundStyle(contentBackground?.value ?? AnyShapeStyle(.background))
+                        .ios16_backgroundStyle(contentBackground ?? Color(uiColor: .systemBackground))
                         .animation(.smooth, value: contentBackground)
 
                         configuration.content
@@ -815,6 +889,28 @@ private extension View {
             self
         }
     }
+
+    func setPreferenceChange<K: PreferenceKey>(
+        _ key: K.Type,
+        value: K.Value
+    ) -> some View {
+        modifier(PreferenceValueModifier<K>(value))
+    }
+
+//    func setPreferenceChange<K: PreferenceKey, C: View, T>(
+//        _ key: K.Type,
+//        @ViewBuilder content: @escaping (T) -> C
+//    ) -> some View where K.Value == [String: RowViewBuilder] {
+//        let dataType = String(describing: T.self)
+//        let viewBuilder = RowViewBuilder { value in
+//            if let castedValue = value as? T {
+//                return AnyView(content(castedValue))
+//            }
+//            return nil
+//        }
+//        let value = [dataType: viewBuilder]
+//        return modifier(PreferenceValueModifier<K>(value))
+//    }
 }
 
 // MARK: - Preview
