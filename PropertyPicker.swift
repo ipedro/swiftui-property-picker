@@ -900,21 +900,6 @@ private extension View {
     ) -> some View {
         modifier(PreferenceValueModifier<K>(value))
     }
-
-//    func setPreferenceChange<K: PreferenceKey, C: View, T>(
-//        _ key: K.Type,
-//        @ViewBuilder content: @escaping (T) -> C
-//    ) -> some View where K.Value == [String: RowViewBuilder] {
-//        let dataType = String(describing: T.self)
-//        let viewBuilder = RowViewBuilder { value in
-//            if let castedValue = value as? T {
-//                return AnyView(content(castedValue))
-//            }
-//            return nil
-//        }
-//        let value = [dataType: viewBuilder]
-//        return modifier(PreferenceValueModifier<K>(value))
-//    }
 }
 
 // MARK: - Preview
