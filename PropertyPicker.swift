@@ -22,10 +22,16 @@ import SwiftUI
 
 public extension View {
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground(_ background: Color?) -> some View {
+    func propertyPickerListContentBackground<S: ShapeStyle>(
+        _ style: S?,
+        _ animation: Animation? = nil
+    ) -> some View {
         setPreferenceChange(
-            ListStyleContentBackgroundPreference.self,
-            value: background
+            ContentBackgroundPreference.self,
+            value: {
+                guard let style else { return nil }
+                return ContentBackgroundContext(animation, style)
+            }()
         )
     }
 
@@ -662,12 +668,34 @@ private struct TitlePreference: PreferenceKey {
     static func reduce(value: inout Text?, nextValue: () -> Text?) {}
 }
 
-private struct ListStyleContentBackgroundPreference: PreferenceKey {
-    static var defaultValue: Color?
-    static func reduce(value: inout Color?, nextValue: () -> Color?) {
+private struct ContentBackgroundPreference: PreferenceKey {
+    static var defaultValue: ContentBackgroundContext?
+
+    static func reduce(value: inout ContentBackgroundContext?, nextValue: () -> ContentBackgroundContext?) {
         if let nextValue = nextValue() {
             value = nextValue
         }
+    }
+}
+
+private struct ContentBackgroundContext: Equatable, Identifiable, CustomStringConvertible {
+    static func == (lhs: ContentBackgroundContext, rhs: ContentBackgroundContext) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    let id = UUID()
+    let animation: Animation?
+    let style: AnyShapeStyle
+    let styleType: Any.Type
+
+    init<S: ShapeStyle>(_ animation: Animation?, _ style: S) {
+        self.styleType = S.self
+        self.animation = animation
+        self.style = AnyShapeStyle(style)
+    }
+
+    var description: String {
+        "<ContentBackgroundContext<\(styleType)> animation: \(String(describing: animation))>"
     }
 }
 
@@ -844,7 +872,13 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listRowBackground: B
 
     @State
-    private var contentBackground: Color?
+    private var backgroundPreference = ContentBackgroundPreference.defaultValue {
+        didSet { print(backgroundPreference) }
+    }
+
+    private var contentBackground: some ShapeStyle {
+        backgroundPreference?.style ?? AnyShapeStyle(.background)
+    }
 
     public func makeBody(configuration: Configuration) -> some View {
         List {
@@ -856,13 +890,13 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                         GroupBox {
                             Spacer().frame(maxWidth: .infinity)
                         }
-                        .ios16_backgroundStyle(contentBackground ?? Color(uiColor: .systemBackground))
-                        .animation(.smooth, value: contentBackground)
+                        .ios16_backgroundStyle(contentBackground)
+                        .animation(backgroundPreference?.animation, value: backgroundPreference)
 
                         configuration.content
                             .padding()
-                            .onPreferenceChange(ListStyleContentBackgroundPreference.self) {
-                                contentBackground = $0
+                            .onPreferenceChange(ContentBackgroundPreference.self) {
+                                backgroundPreference = $0
                             }
                     }
                     .environment(\.textCase, nil)
