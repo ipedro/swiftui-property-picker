@@ -872,9 +872,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listRowBackground: B
 
     @State
-    private var backgroundPreference = ContentBackgroundPreference.defaultValue {
-        didSet { print(backgroundPreference) }
-    }
+    private var backgroundPreference = ContentBackgroundPreference.defaultValue
 
     private var contentBackground: some ShapeStyle {
         backgroundPreference?.style ?? AnyShapeStyle(.background)
