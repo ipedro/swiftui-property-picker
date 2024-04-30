@@ -44,7 +44,9 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable, Ident
 public extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
     static var title: String {
-        String(describing: Self.self).addingSpacesToCamelCase()
+        String(describing: Self.self)
+            .removingSuffix("Key")
+            .addingSpacesToCamelCase()
     }
 }
 
@@ -62,18 +64,8 @@ public extension PropertyPickerKey where Value == Self {
 
 // MARK: - Private Helpers
 
-/// Extension to `String` for improving readability of camelCase strings by adding spaces.
 private extension String {
     /// Adds spaces before each uppercase letter in a camelCase string.
-    ///
-    /// Usage:
-    ///
-    /// ```swift
-    /// let camelCaseString = "propertyPickerKey"
-    /// let readableString = camelCaseString.addingSpacesToCamelCase()
-    /// // readableString is "dynamic Value Key"
-    /// ```
-    ///
     /// - Returns: A new string with spaces added before each uppercase letter.
     func addingSpacesToCamelCase() -> String {
         replacingOccurrences(
@@ -82,5 +74,14 @@ private extension String {
             options: .regularExpression,
             range: range(of: self)
         )
+    }
+
+    /// Removes a specified suffix from the string if it ends with that suffix.
+    ///
+    /// - Parameter suffix: The suffix to remove from the string.
+    /// - Returns: The string after the specified suffix has been removed if it was present at the end.
+    func removingSuffix(_ suffix: String) -> String {
+        guard self.hasSuffix(suffix) else { return self }
+        return String(self.dropLast(suffix.count))
     }
 }
