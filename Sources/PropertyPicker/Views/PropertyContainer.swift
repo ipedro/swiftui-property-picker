@@ -52,9 +52,7 @@ struct PropertyContainer<Key, Content>: View where Key: PropertyPickerKey & Equa
     var body: some View {
         content(key).modifier(
             PreferenceKeyModifier<PropertyPreference>([data])
-        ).onChange(of: key, perform: { _ in
-            changes += 1
-        })
+        )
     }
 
     private var key: Key {
@@ -75,6 +73,7 @@ struct PropertyContainer<Key, Content>: View where Key: PropertyPickerKey & Equa
                 set: { rawValue in
                     if let key = Key(rawValue: rawValue) {
                         selection.currentValue = key
+                        changes += 1
                     }
                 }
             )
