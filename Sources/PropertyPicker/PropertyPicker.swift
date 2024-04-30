@@ -60,7 +60,7 @@ struct Example: View {
     @PropertyPickerState<ContentKey>
     private var content
 
-    @State private var presented = true
+    @State private var presented = false
 
     var body: some View {
         PropertyPicker(isPresented: $presented) {
@@ -68,9 +68,9 @@ struct Example: View {
                 presented.toggle()
             } label: {
                 switch content {
-                case .image:
+                case .Image:
                     Image(systemName: "circle")
-                case .text:
+                case .Text:
                     Text("Button")
                 }
             }
@@ -85,9 +85,8 @@ struct Example: View {
     }
 
     enum ContentKey: String, PropertyPickerKey {
-        static var defaultValue: Example.ContentKey = .text
-
-        case text, image
+        static var defaultValue: Example.ContentKey = .Text
+        case Text, Image
     }
 
     enum UserInteractionKey: String, PropertyPickerKey {
