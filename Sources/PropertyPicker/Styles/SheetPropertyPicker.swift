@@ -32,7 +32,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     var isPresented: Bool
 
     @State
-    private var __detent = PresentationDetentsKey.defaultValue.first!
+    private var _selection = PresentationDetentsKey.defaultValue.first!
 
     @Environment(\.safeAreaAdjustment)
     private var safeAreaAdjustment
@@ -44,7 +44,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     private var presentationDetents
 
     @Environment(\.selectedDetent)
-    private var detent
+    private var customSelection
 
     @State
     private var contentHeight: Double = 0
@@ -103,7 +103,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                 presentationDetents,
                 selection: Binding(
                     get: {
-                        let value = detent?.wrappedValue ?? __detent
+                        let value = customSelection?.wrappedValue ?? _selection
                         if presentationDetents.contains(value) {
                             return value
                         } else if let first = presentationDetents.first {
@@ -112,10 +112,10 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                         fatalError("A valid detent must be provided")
                     },
                     set: { newValue in
-                        if let detent {
-                            detent.wrappedValue = newValue
+                        if let customSelection {
+                            customSelection.wrappedValue = newValue
                         } else {
-                            __detent = newValue
+                            _selection = newValue
                         }
                     }
                 )

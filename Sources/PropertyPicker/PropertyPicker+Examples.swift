@@ -22,19 +22,25 @@ import Foundation
 import SwiftUI
 
 #if DEBUG
-// MARK: - Example
+// MARK: - Sheet Example
 
 @available(iOS 16.4, *)
 #Preview(body: {
     NavigationView(content: {
-       Example()
+       SheetExample()
     })
 })
 
 @available(iOS 16.4, *)
-struct Example: View {
+struct SheetExample: View {
     @PropertyPickerState<ContentKey>
     private var content
+
+    @PropertyPickerEnvironment<InteractionKey>(\.isEnabled)
+    private var interaction
+
+    @PropertyPickerEnvironment<ColorSchemeKey>(\.colorScheme)
+    private var colorScheme
 
     @State private var presented = false
 
@@ -51,44 +57,41 @@ struct Example: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPicker(\.isEnabled, UserInteractionKey.self)
-            .propertyPicker(\.colorScheme, ColorSchemeKey.self)
+            .propertyPicker($interaction)
+            .propertyPicker($colorScheme)
             .propertyPicker($content)
-            //.propertyPickerTitle(nil)
-            //.propertyPickerListContentBackground(Color.blue)
-            //.propertyPickerListContentBackground(Color.red)
-        }
-    }
-
-    enum ContentKey: String, PropertyPickerKey {
-        static var defaultValue: Example.ContentKey = .Text
-        case Text, Image
-    }
-
-    enum UserInteractionKey: String, PropertyPickerKey {
-        static var defaultValue: Example.UserInteractionKey = .Enabled
-
-        case Enabled, Disabled
-
-        var value: Bool {
-            switch self {
-            case .Enabled: true
-            case .Disabled: false
-            }
-        }
-    }
-
-    enum ColorSchemeKey: String, PropertyPickerKey {
-        static var defaultValue: Example.ColorSchemeKey = .Light
-
-        case Light, Dark
-
-        var value: ColorScheme {
-            switch self {
-            case .Light: .light
-            case .Dark: .dark
-            }
+            .propertyPickerTitle("Example")
+            .propertyPickerListContentBackground(.bar)
         }
     }
 }
+
+enum ContentKey: String, PropertyPickerKey {
+    case Text, Image
+}
+
+enum InteractionKey: String, PropertyPickerKey {
+    static var defaultValue: InteractionKey = .Enabled
+    case Disabled, Enabled
+
+    var value: Bool {
+        switch self {
+        case .Disabled: false
+        case .Enabled: true
+        }
+    }
+}
+
+enum ColorSchemeKey: String, PropertyPickerKey {
+    case Light, Dark
+
+    var value: ColorScheme {
+        switch self {
+        case .Light: .light
+        case .Dark: .dark
+        }
+    }
+}
+
+
 #endif

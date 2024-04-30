@@ -38,8 +38,27 @@ public extension View {
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
-                return AnimatableBox<AnyShapeStyle>(animation, AnyShapeStyle(style))
+                return AnimatableBox(animation, AnyShapeStyle(style))
             }()
+        )
+    }
+
+    /// Applies a background style to the list content of a property picker with optional animation.
+    ///
+    /// Use this method to specify a custom background for the list content within a property picker view.
+    /// An optional animation parameter allows the background appearance change to be animated.
+    ///
+    /// - Parameters:
+    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
+    ///   - animation: Optional animation to apply when the background style changes.
+    @available(iOS 16.0, *)
+    func propertyPickerListContentBackground<S: ShapeStyle>(
+        _ style: S,
+        _ animation: Animation? = nil
+    ) -> some View {
+        self.setPreference(
+            ContentBackgroundStylePreference.self,
+            value: AnimatableBox(animation, AnyShapeStyle(style))
         )
     }
 
