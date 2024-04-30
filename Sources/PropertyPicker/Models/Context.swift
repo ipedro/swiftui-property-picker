@@ -28,9 +28,6 @@ final class Context: ObservableObject {
     var title = TitlePreference.defaultValue
 
     @Published
-    var bottomInset: Double = 0
-
-    @Published
     var viewBuilders = [ObjectIdentifier: PropertyViewBuilder]()
 
     var isEmpty: Bool { properties.isEmpty }
@@ -44,11 +41,6 @@ struct ContextObserving: ViewModifier {
         content.onPreferenceChange(PropertyPreference.self) { newValue in
             if context.properties != newValue {
                 context.properties = newValue
-            }
-        }
-        .onPreferenceChange(BottomInsetPreference.self) { newValue in
-            if context.bottomInset != newValue {
-                context.bottomInset = newValue
             }
         }
         .onPreferenceChange(TitlePreference.self) { newValue in

@@ -35,19 +35,25 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
 
     let presentationDetents: Set<PresentationDetent>
 
-    private var bottomInset: Double {
-        adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
-    }
+    @State
+    private var bottomInset: Double = 0
 
     public func body(content: Content) -> some View {
         content
-            .safeAreaInset(edge: .bottom) {
+            .onChange(of: isPresented, perform: { value in
+                if value == false {
+                    withAnimation(.interactiveSpring) {
+                        bottomInset = 0
+                    }
+                }
+            })
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 Spacer().frame(height: bottomInset)
             }
             .toolbar(content: {
                 ToolbarItem {
                     Button {
-                        withAnimation(.interactiveSpring) {
+                        withAnimation(.snappy) {
                             isPresented.toggle()
                         }
                     } label: {
@@ -56,7 +62,6 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                     }
                 }
             })
-            .animation(.snappy, value: isPresented)
             .overlay(
                 Spacer().sheet(isPresented: $isPresented) {
                     configureList(
@@ -90,5 +95,14 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
             .edgesIgnoringSafeArea(.top)
             .listRowBackground(Color.clear)
             .scrollContentBackground(.hidden)
+            .background {
+                GeometryReader(content: { geometry in
+                    Color.clear.onChange(of: geometry.frame(in: .global), perform: { frame in
+                        withAnimation(.interactiveSpring) {
+                            bottomInset = frame.maxY - frame.minY
+                        }
+                    })
+                })
+            }
     }
 }

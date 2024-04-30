@@ -20,11 +20,6 @@
 
 import SwiftUI
 
-struct BottomInsetPreference: PreferenceKey {
-    static var defaultValue: Double = 0
-    static func reduce(value: inout Double, nextValue: () -> Double) {}
-}
-
 struct TitlePreference: PreferenceKey {
     static var defaultValue: Text? = Text(verbatim: "Properties")
     static func reduce(value: inout Text?, nextValue: () -> Text?) {}

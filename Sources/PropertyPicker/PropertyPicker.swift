@@ -26,9 +26,11 @@ import SwiftUI
 /// to dynamically select properties and apply them to the enclosed content.
 public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
     /// The content to be presented alongside the dynamic value selector.
-    let content: Content
+    var content: Content
     /// The presentation style
-    let style: Style
+    var style: Style
+
+    private var observer = ContextObserving()
 
     /// The state holding the dynamic value entries.
     @StateObject
@@ -38,11 +40,7 @@ public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
     public var body: some View {
         content
             .modifier(style)
-            .modifier(ContextObserving())
-            .safeAreaInset(edge: .bottom) {
-                Spacer().frame(height: context.bottomInset)
-            }
-            .animation(.snappy, value: context.bottomInset)
+            .modifier(observer)
             .environmentObject(context)
     }
 }
