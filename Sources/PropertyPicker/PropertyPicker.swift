@@ -50,20 +50,22 @@ public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
 #if DEBUG
 // MARK: - Example
 
-@available(iOS 16.0, *)
+@available(iOS 16.4, *)
 #Preview(body: {
     Example()
 })
 
-@available(iOS 16.0, *)
+@available(iOS 16.4, *)
 struct Example: View {
-    @PropertyPickerState<Content>
+    @PropertyPickerState<ContentKey>
     private var content
 
+    @State private var presented = true
+
     var body: some View {
-        PropertyPicker(listStyle: .groupedList) {
+        PropertyPicker(isPresented: $presented) {
             Button {
-                //
+                presented.toggle()
             } label: {
                 switch content {
                 case .image:
@@ -73,17 +75,17 @@ struct Example: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPicker(UserInteractionKey.self, \.isEnabled)
-            .propertyPicker(ColorSchemeKey.self, \.colorScheme)
+            .propertyPicker(\.isEnabled, UserInteractionKey.self)
+            .propertyPicker(\.colorScheme, ColorSchemeKey.self)
             .propertyPicker($content)
+//            .propertyPickerTitle(nil)
 //            .propertyPickerListContentBackground(Color.blue)
 //            .propertyPickerListContentBackground(Color.red)
         }
-        .propertyPickerStyle(.list)
     }
 
-    enum Content: String, PropertyPickerKey {
-        static var defaultValue: Example.Content = .text
+    enum ContentKey: String, PropertyPickerKey {
+        static var defaultValue: Example.ContentKey = .text
 
         case text, image
     }

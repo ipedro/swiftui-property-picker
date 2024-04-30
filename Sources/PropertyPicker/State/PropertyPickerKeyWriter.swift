@@ -30,19 +30,16 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyPickerKeyWriter<K, C>: View where K: PropertyPickerKey, C: View {
+struct PropertyPickerKeyWriter<Key, Content>: View where Key: PropertyPickerKey, Content: View {
+    let `type`: Key.Type
 
     /// A view builder closure that creates the content view based on the current selection.
     /// This allows the view to reactively update in response to changes in the selection.
-    @ViewBuilder var content: (K) -> C
-
-    init(_ key: K.Type, content: @escaping (K) -> C) {
-        self.content = content
-    }
+    @ViewBuilder var content: (Key) -> Content
     
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Context: ObservableObject {
-        @Published var selection: K = K.defaultValue
+        @Published var selection = String()
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
@@ -50,24 +47,22 @@ struct PropertyPickerKeyWriter<K, C>: View where K: PropertyPickerKey, C: View {
     private var context = Context()
     
     var body: some View {
-        content(context.selection).modifier(
+        content(key).modifier(
             PreferenceValueModifier<PropertyPreference>([data])
         )
+    }
+
+    private var key: Key {
+        Key(rawValue: context.selection) ?? Key.defaultValue
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
         Property(
-            id: ObjectIdentifier(K.self),
-            title: K.title,
-            selection: Binding {
-                context.selection.rawValue
-            } set: { newValue in
-                if newValue != context.selection.rawValue, let newValue = K(rawValue: newValue) {
-                    context.selection = newValue
-                }
-            },
-            options: K.allCases.map(\.rawValue)
+            key: ObjectIdentifier(Key.self),
+            title: Key.title,
+            selection: $context.selection,
+            options: Key.allCases.map(\.rawValue)
         )
     }
 }

@@ -26,7 +26,7 @@ struct BottomInsetPreference: PreferenceKey {
 }
 
 struct TitlePreference: PreferenceKey {
-    static var defaultValue: Text?
+    static var defaultValue: Text? = Text(verbatim: "Properties")
     static func reduce(value: inout Text?, nextValue: () -> Text?) {}
 }
 
@@ -54,14 +54,14 @@ struct ViewBuilderPreference: PreferenceKey {
 /// for dynamic updates and customization of menu content based on user selection.
 struct PropertyPreference: PreferenceKey {
     /// The default value for the dynamic value entries.
-    static var defaultValue: [Property] = []
+    static var defaultValue: Set<Property> = []
 
     /// Combines the current value with the next value.
     ///
     /// - Parameters:
     ///   - value: The current value of dynamic value entries.
     ///   - nextValue: A closure that returns the next set of dynamic value entries.
-    static func reduce(value: inout [Property], nextValue: () -> [Property]) {
-        value = nextValue() + value
+    static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
+        value = nextValue().union(value)
     }
 }

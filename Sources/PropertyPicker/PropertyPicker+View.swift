@@ -57,7 +57,7 @@ public extension View {
     ) -> some View {
         let id = ObjectIdentifier(key)
         let viewBuilder = PropertyViewBuilder { someProp in
-            if someProp.id == id {
+            if someProp.key == id {
                 return AnyView(body(someProp))
             }
             return nil
@@ -89,6 +89,7 @@ public extension View {
     /// This version allows you to specify a title using a non-localized string.
     ///
     /// - Parameter title: The string to use as the title. If nil, no title is set.
+    @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
         setPreferenceChange(
             TitlePreference.self,
@@ -109,7 +110,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
-        PropertyPickerKeyWriter(K.self) { value in
+        PropertyPickerKeyWriter(type: K.self) { value in
             onChange(of: value) { newValue in
                 if state.selection != newValue {
                     state.selection = newValue
@@ -127,21 +128,9 @@ public extension View {
     ///   - key: The `PropertyPickerKey` type specifying which property is being manipulated.
     ///   - keyPath: A writable key path pointing to an environment value of the same type as the picker's value.
     /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
-    func propertyPicker<K: PropertyPickerKey>(_ key: K.Type, _ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) -> some View {
-        PropertyPickerKeyWriter(key) { value in
+    func propertyPicker<K: PropertyPickerKey>(_ keyPath: WritableKeyPath<EnvironmentValues, K.Value>, _ key: K.Type = K.self) -> some View {
+        PropertyPickerKeyWriter(type: key) { value in
             environment(keyPath, value.value)
         }
     }
-
-
-    /// Applies a custom style to a property picker.
-    ///
-    /// This method sets a custom style defined by conforming to the `PropertyPickerStyle` protocol.
-    /// It affects all aspects of how the property picker is rendered, allowing for extensive customization.
-    ///
-    /// - Parameter style: The custom style to apply to the property picker.
-    func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
-        environment(\.propertyPickerStyle, style)
-    }
-
 }

@@ -26,7 +26,7 @@ public struct PropertyPickerRows: View {
     private var context: Context
 
     public var body: some View {
-        ForEach(context.properties) { property in
+        ForEach(context.properties.sorted()) { property in
             if let customPicker = makeBody(configuration: (property, context.viewBuilders)) {
                 customPicker
             } else {
@@ -40,7 +40,7 @@ public struct PropertyPickerRows: View {
     }
 
     private func makeBody(configuration: (item: Property, source: [ObjectIdentifier: PropertyViewBuilder])) -> AnyView? {
-        for key in configuration.source.keys where key == configuration.item.id {
+        for key in configuration.source.keys where key == configuration.item.key {
             if let view = configuration.source[key]?.view(configuration.item) {
                 return view
             }
