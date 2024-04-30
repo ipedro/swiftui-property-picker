@@ -21,13 +21,14 @@
 import SwiftUI
 
 extension View {
-    func setPreferenceChange<K>(_ key: K.Type, value: K.Value) -> some View where K: PreferenceKey {
-        modifier(PreferenceValueModifier<K>(value))
+    /// Sets a value for the given preference in a persistent background view.
+    func setPreference<K>(_ key: K.Type, value: K.Value) -> some View where K: PreferenceKey {
+        modifier(PreferenceKeyModifier<K>(value))
     }
 }
 
 /// A modifier that you apply to a view or another view modifier to set a value for any given preference key.
-struct PreferenceValueModifier<K>: ViewModifier where K: PreferenceKey {
+struct PreferenceKeyModifier<K>: ViewModifier where K: PreferenceKey {
     let value: K.Value
 
     init(_ value: K.Value) {

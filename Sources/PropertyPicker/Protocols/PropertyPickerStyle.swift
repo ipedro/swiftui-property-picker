@@ -34,12 +34,12 @@ public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
     /// Provides a view representing the rows of the property picker.
     /// These rows typically display selectable options or properties within the picker.
     var rows: some View {
-        PropertyPickerRows()
+        Rows()
     }
 
     /// Provides a view representing the title of the property picker.
     /// This view is generally used to display a header or title for the picker section.
     var title: some View {
-        PropertyPickerTitle()
+        Title()
     }
 }

@@ -34,7 +34,7 @@ public extension View {
         _ style: S?,
         _ animation: Animation? = nil
     ) -> some View {
-        self.setPreferenceChange(
+        self.setPreference(
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
@@ -63,7 +63,7 @@ public extension View {
             return nil
         }
         let value = [id: viewBuilder]
-        return self.setPreferenceChange(
+        return self.setPreference(
             ViewBuilderPreference.self,
             value: value
         )
@@ -75,7 +75,7 @@ public extension View {
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        self.setPreferenceChange(
+        self.setPreference(
             TitlePreference.self,
             value: {
                 if let title { return Text(title) }
@@ -91,7 +91,7 @@ public extension View {
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
-        self.setPreferenceChange(
+        self.setPreference(
             TitlePreference.self,
             value: {
                 if let title { return Text(verbatim: title) }
@@ -110,7 +110,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
-        PropertyPickerKeyWriter(type: K.self) { value in
+        PropertyPickerKeyReader(type: K.self) { value in
             self.onChange(of: value) { newValue in
                 if state.selection != newValue {
                     state.selection = newValue
@@ -129,7 +129,7 @@ public extension View {
     ///   - keyPath: A writable key path pointing to an environment value of the same type as the picker's value.
     /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
     func propertyPicker<K: PropertyPickerKey>(_ keyPath: WritableKeyPath<EnvironmentValues, K.Value>, _ key: K.Type = K.self) -> some View {
-        PropertyPickerKeyWriter(type: key) { value in
+        PropertyPickerKeyReader(type: key) { value in
             self.environment(keyPath, value.value)
         }
     }

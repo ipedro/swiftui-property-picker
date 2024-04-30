@@ -21,11 +21,11 @@
 import SwiftUI
 
 /// Represents the dynamic value entries within the selector.
-public struct PropertyPickerRows: View {
+struct Rows: View {
     @EnvironmentObject
     private var context: Context
 
-    public var body: some View {
+    var body: some View {
         ForEach(context.rows.sorted()) { property in
             if let custom = makeCustom(configuration: property) {
                 custom

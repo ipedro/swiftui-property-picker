@@ -20,11 +20,11 @@
 
 import SwiftUI
 
-public struct PropertyPickerTitle: View {
+struct Title: View {
     @EnvironmentObject
     private var context: Context
 
-    public var body: some View {
+    var body: some View {
         context.title
     }
 }

@@ -39,7 +39,7 @@ struct Example: View {
     @State private var presented = false
 
     var body: some View {
-        PropertyPicker/*(isPresented: $presented)*/ {
+        PropertyPicker(isPresented: $presented) {
             Button {
                 presented.toggle()
             } label: {

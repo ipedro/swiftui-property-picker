@@ -55,24 +55,16 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
         case .automatic, .never: .zero
         }
     }
-
+    
     public func body(content: Content) -> some View {
         content
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                Spacer().frame(height: safeAreaInset)
-            }
-            .animation(animation, value: safeAreaInset)
-            .toolbar(content: {
-                ToolbarItem {
-                    Button {
-                        withAnimation(animation) {
-                            isPresented.toggle()
-                        }
-                    } label: {
-                        Image(systemName: isPresented ? "xmark.circle" : "gear")
-                            .rotationEffect(.degrees(isPresented ? 180 : 0))
-                    }
+                Spacer().frame(height: safeAreaInset).transaction { transaction in
+                    transaction.animation = transaction.animation ?? animation
                 }
+            }
+            .toolbar(content: {
+                ToolbarButton(isPresented: $isPresented)
             })
             .overlay(
                 Spacer().sheet(isPresented: $isPresented) {
@@ -81,18 +73,27 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                             Section {
                                 content.rows.listRowBackground(Color.clear)
                             } header: {
-                                content.title
-                                    .bold()
-                                    .padding(
-                                        EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)
-                                    )
-                                    .font(.title2)
-                                    .foregroundStyle(.primary)
+                                configureTitle(content.title)
                             }
                         }
                     )
                 }
             )
+    }
+
+    private func configureTitle(_ title: some View) -> some View {
+        title
+            .bold()
+            .padding(
+                EdgeInsets(
+                    top: 16,
+                    leading: 0,
+                    bottom: 8,
+                    trailing: 0
+                )
+            )
+            .font(.title2)
+            .foregroundStyle(.primary)
     }
 
     private func configureList(_ list: some View) -> some View {
@@ -133,5 +134,28 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                     })
                 })
             }
+    }
+
+    private struct ToolbarButton: View {
+        @Binding
+        var isPresented: Bool
+
+        @Environment(\.animation)
+        private var animation
+
+        var body: some View {
+            Button {
+                withAnimation(animation) {
+                    isPresented.toggle()
+                }
+            } label: {
+                ZStack {
+                    Image(systemName: "xmark.circle.fill").opacity(isPresented ? 1 : 0)
+                    Image(systemName: "gear").opacity(isPresented ? 0 : 1)
+                }
+                .rotationEffect(.degrees(isPresented ? -180 : 0))
+            }
+            .animation(animation, value: isPresented)
+        }
     }
 }

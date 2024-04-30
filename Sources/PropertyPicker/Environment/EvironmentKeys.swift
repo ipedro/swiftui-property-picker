@@ -26,7 +26,7 @@ struct SafeAreaAdjustmentKey: EnvironmentKey {
 }
 
 struct AnimationKey: EnvironmentKey {
-    static var defaultValue: Animation? = .snappy(duration: 0.35)
+    static var defaultValue: Animation? = .easeOut
 }
 
 @available(iOS 16.0, *)
