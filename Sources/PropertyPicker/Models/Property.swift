@@ -23,7 +23,7 @@ import SwiftUI
 /// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
 public struct Property: Identifiable {
     /// A unique identifier for the entry.
-    public let id = UUID()
+    public var id: String
     /// The object identifier of the key this property represents.
     public let key: ObjectIdentifier
     /// The title of the entry, used as a label in the UI.
@@ -37,9 +37,7 @@ public struct Property: Identifiable {
 extension Property: Equatable {
     /// Determines if two entries are equal based on their identifiers.
     public static func == (lhs: Property, rhs: Property) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.key == rhs.key &&
-        lhs.selection == rhs.selection
+        lhs.id == rhs.id
     }
 }
 

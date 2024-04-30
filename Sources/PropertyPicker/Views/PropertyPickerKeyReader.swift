@@ -59,6 +59,7 @@ struct PropertyPickerKeyReader<Key, Content>: View where Key: PropertyPickerKey,
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
         Property(
+            id: String(describing: Key.self) + context.selection,
             key: ObjectIdentifier(Key.self),
             title: Key.title,
             selection: $context.selection,
