@@ -20,20 +20,21 @@
 
 import SwiftUI
 
-// MARK: - State Picker
-
-/// A property wrapper that holds the state of a property to be adjusted using the property picker.
-/// It automatically updates the view when the selection changes.
 @propertyWrapper
-public struct PropertyPickerState<K: PropertyPickerKey>: DynamicProperty {
-    @State<K> var selection: K = K.defaultValue
+public struct PropertyPickerEnvironment<K: PropertyPickerKey>: DynamicProperty {
+    @Environment private var selection: K.Value
+
+    let keyPath: WritableKeyPath<EnvironmentValues, K.Value>
 
     /// Initializes the state with the specified key.
-    public init() {}
+    public init(_ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) {
+        self.keyPath = keyPath
+        self._selection = Environment(keyPath)
+    }
 
     /// The current value of the property being adjusted.
     public var wrappedValue: K.Value {
-        selection.value
+        selection
     }
 
     /// The projected value, providing access to the binding of the state.

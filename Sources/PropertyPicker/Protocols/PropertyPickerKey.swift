@@ -50,6 +50,18 @@ public extension PropertyPickerKey {
     }
 }
 
+// MARK: - Default Value
+
+public extension PropertyPickerKey {
+    /// Generates a user-friendly description by adding spaces before capital letters in the type name.
+    static var defaultValue: Self {
+        guard let first = allCases.first else {
+            fatalError("Keys should have at least one valid option")
+        }
+        return first
+    }
+}
+
 // MARK: - Default Identifier
 
 public extension PropertyPickerKey {

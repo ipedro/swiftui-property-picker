@@ -105,7 +105,7 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter state: A `PropertyPickerState` instance which holds the current selection state and is used to update
+    /// - Parameter state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
@@ -125,12 +125,12 @@ public extension View {
     /// to write the picker's current value to the environment, allowing other views in the hierarchy to react to changes.
     ///
     /// - Parameters:
-    ///   - key: The `PropertyPickerKey` type specifying which property is being manipulated.
-    ///   - keyPath: A writable key path pointing to an environment value of the same type as the picker's value.
+    /// - Parameter environmentValue: A ``PropertyPickerEnvironment`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
-    func propertyPicker<K: PropertyPickerKey>(_ keyPath: WritableKeyPath<EnvironmentValues, K.Value>, _ key: K.Type = K.self) -> some View {
+    func propertyPicker<K: PropertyPickerKey>(_ environmentValue: PropertyPickerEnvironment<K>, _ key: K.Type = K.self) -> some View {
         PropertyPickerKeyReader(type: key) { value in
-            self.environment(keyPath, value.value)
+            self.environment(environmentValue.keyPath, value.value)
         }
     }
 

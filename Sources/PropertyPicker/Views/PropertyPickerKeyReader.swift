@@ -39,7 +39,7 @@ struct PropertyPickerKeyReader<Key, Content>: View where Key: PropertyPickerKey,
     
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Context: ObservableObject {
-        @Published var selection = String()
+        @Published var selection = Key.defaultValue.rawValue
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
@@ -58,12 +58,14 @@ struct PropertyPickerKeyReader<Key, Content>: View where Key: PropertyPickerKey,
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
-        Property(
-            id: String(describing: Key.self) + context.selection,
-            key: ObjectIdentifier(Key.self),
+        let key = ObjectIdentifier(Key.self)
+        let prop = Property(
+            id: String(describing: key) + "." + context.selection,
+            key: key,
             title: Key.title,
             selection: $context.selection,
             options: Key.allCases.map(\.rawValue)
         )
+        return prop
     }
 }

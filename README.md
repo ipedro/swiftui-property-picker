@@ -81,7 +81,7 @@ struct AdjustablePreviewView: View {
 enum FontSizeKey: String, PropertyPickerKey {
     case small, medium, large
     
-    static var defaultCase: Self { .medium }
+    static var defaultValue: Self { .medium }
     
     var value: Double {
         switch self {
@@ -95,7 +95,7 @@ enum FontSizeKey: String, PropertyPickerKey {
 enum ColorSchemeKey: String, PropertyPickerKey {
     case light, dark
     
-    static var defaultCase: Self { .light }
+    static var defaultValue: Self { .light }
     
     var value: ColorScheme {
         switch self {
@@ -108,7 +108,7 @@ enum ColorSchemeKey: String, PropertyPickerKey {
 enum DisabledStateKey: String, PropertyPickerKey {
     case enabled, disabled
     
-    static var defaultCase: Self { .enabled }
+    static var defaultValue: Self { .enabled }
     
     var value: Bool {
         self == .disabled
@@ -125,7 +125,7 @@ enum YourPickerKey: String, PropertyPickerKey {
     case optionOne = "Option One"
     case optionTwo = "Option Two"
     
-    static var defaultCase: Self { .optionOne }
+    static var defaultValue: Self { .optionOne }
     
     var value: SomeType {
         switch self {
@@ -216,7 +216,7 @@ struct DynamicFontSizeView: View {
 enum FontSizeKey: String, PropertyPickerKey {
     case small, medium, large
     
-    static var defaultCase: Self { .medium }
+    static var defaultValue: Self { .medium }
     
     var value: CGFloat {
         switch self {
@@ -251,7 +251,7 @@ struct ThemeSwitcherView: View {
 enum ColorSchemeKey: String, PropertyPickerKey {
     case light, dark
     
-    static var defaultCase: Self { .light }
+    static var defaultValue: Self { .light }
     
     var value: ColorScheme {
         switch self {
@@ -285,7 +285,7 @@ struct ContentView: View {
 enum DisabledStateKey: String, PropertyPickerKey {
     case enabled, disabled
     
-    static var defaultCase: Self { .enabled }
+    static var defaultValue: Self { .enabled }
     
     var value: Bool {
         switch self {
