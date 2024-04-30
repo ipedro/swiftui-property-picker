@@ -22,6 +22,15 @@ import SwiftUI
 
 // MARK: - List Style
 
+/// A `PropertyPickerStyle` for displaying property picker content within a styled list.
+///
+/// This style component wraps property picker content in a SwiftUI List, applying a specified list style
+/// and optional row background. It integrates additional UI adjustments like content background styling,
+/// animations based on user interactions, and custom headers to enhance the visual presentation.
+///
+/// - Parameters:
+///   - S: A `ListStyle` type that defines the appearance of the list.
+///   - B: A `View` type used for the background of each list row.
 public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listStyle: S
     let listRowBackground: B?

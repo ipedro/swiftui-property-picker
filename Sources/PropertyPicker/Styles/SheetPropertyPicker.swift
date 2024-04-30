@@ -20,9 +20,12 @@
 
 import SwiftUI
 
-/// A view modifier that adds a custom expandable menu to a SwiftUI view.
-/// This modifier tracks and displays menu items dynamically added to the view,
-/// providing a customizable and interactive menu experience.
+/// A property picker style that presents content in a sheet overlay, with additional customizations for presentation and dismissal.
+///
+/// This style encapsulates the behavior necessary to present and manage a modal sheet that contains property picker content.
+/// It includes custom animations, toolbar adjustments, and dynamic insets based on interaction states.
+///
+/// - Requires: iOS 16.4 or newer for certain APIs used in this struct.
 @available(iOS 16.4, *)
 public struct SheetPropertyPicker: PropertyPickerStyle {
     @Binding
