@@ -29,13 +29,14 @@ public struct InlinePropertyPicker: PropertyPickerStyle {
     /// The implementation arranges the picker's standard content and its rows in a `VStack` to ensure they are
     /// displayed inline with appropriate spacing and structural divisions.
     ///
-    /// - Parameter configuration: The configuration containing the dynamic value options and content.
+    /// - Parameter content: The dynamic value options and content.
     /// - Returns: A view displaying the dynamic value options inline, enhanced with custom spacing and dividers.
     public func body(content: Content) -> some View {
-        VStack(spacing: .zero) {
-            content
-            Divider().padding(.horizontal)
-            content.rows.padding(.top, 8)
+        content.safeAreaInset(edge: .bottom) {
+            LazyVStack {
+                Divider().padding()
+                content.rows
+            }
         }
     }
 }

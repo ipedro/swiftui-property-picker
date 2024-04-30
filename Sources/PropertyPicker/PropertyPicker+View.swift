@@ -34,7 +34,7 @@ public extension View {
         _ style: S?,
         _ animation: Animation? = nil
     ) -> some View {
-        setPreferenceChange(
+        self.setPreferenceChange(
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
@@ -63,7 +63,7 @@ public extension View {
             return nil
         }
         let value = [id: viewBuilder]
-        return setPreferenceChange(
+        return self.setPreferenceChange(
             ViewBuilderPreference.self,
             value: value
         )
@@ -75,7 +75,7 @@ public extension View {
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        setPreferenceChange(
+        self.setPreferenceChange(
             TitlePreference.self,
             value: {
                 if let title { return Text(title) }
@@ -91,7 +91,7 @@ public extension View {
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
-        setPreferenceChange(
+        self.setPreferenceChange(
             TitlePreference.self,
             value: {
                 if let title { return Text(verbatim: title) }
@@ -111,7 +111,7 @@ public extension View {
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
         PropertyPickerKeyWriter(type: K.self) { value in
-            onChange(of: value) { newValue in
+            self.onChange(of: value) { newValue in
                 if state.selection != newValue {
                     state.selection = newValue
                 }
@@ -130,7 +130,7 @@ public extension View {
     /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
     func propertyPicker<K: PropertyPickerKey>(_ keyPath: WritableKeyPath<EnvironmentValues, K.Value>, _ key: K.Type = K.self) -> some View {
         PropertyPickerKeyWriter(type: key) { value in
-            environment(keyPath, value.value)
+            self.environment(keyPath, value.value)
         }
     }
 
@@ -143,7 +143,7 @@ public extension View {
     /// - Parameter style: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
     /// - Returns: A view modified with the specified safe area adjustment style.
     func propertyPickerSafeAreaAdjustmentStyle(_ style: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
-        environment(\.safeAreaAdjustment, style)
+        self.environment(\.safeAreaAdjustment, style)
     }
 
     /// Sets the available detents for the picker when presented as a sheet.
@@ -153,8 +153,7 @@ public extension View {
     ///   to resize it.
     @available(iOS 16.0, *)
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
-        self
-            .environment(\.presentationDetents, detents)
+        self.environment(\.presentationDetents, detents)
             .environment(\.selectedDetent, nil)
     }
 
@@ -173,8 +172,7 @@ public extension View {
         _ detents: Set<PresentationDetent>,
         selection: Binding<PresentationDetent>
     ) -> some View {
-        self
-            .environment(\.presentationDetents, detents)
+        self.environment(\.presentationDetents, detents)
             .environment(\.selectedDetent, selection)
     }
 }
