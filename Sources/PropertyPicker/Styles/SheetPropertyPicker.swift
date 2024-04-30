@@ -20,28 +20,6 @@
 
 import SwiftUI
 
-//@available(iOS 16.4, *)
-//public extension PropertyPickerStyle where Self == SheetPropertyPicker {
-//    static func sheet(
-//        isPresented: Binding<Bool>,
-//        adjustsBottomInset: Bool = true,
-//        detent: PresentationDetent = .fraction(1/4),
-//        presentationDetents: Set<PresentationDetent> = [
-//            .fraction(1/4),
-//            .medium,
-//            .fraction(2/3),
-//            .large
-//        ]
-//    ) -> Self {
-//        .init(
-//            isPresented: isPresented,
-//            adjustsBottomInset: adjustsBottomInset,
-//            detent: detent,
-//            presentationDetents: presentationDetents
-//        )
-//    }
-//}
-
 /// A view modifier that adds a custom expandable menu to a SwiftUI view.
 /// This modifier tracks and displays menu items dynamically added to the view,
 /// providing a customizable and interactive menu experience.
@@ -81,34 +59,36 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
             .animation(.snappy, value: isPresented)
             .overlay(
                 Spacer().sheet(isPresented: $isPresented) {
-                    makePickerList(content: content)
+                    configureList(
+                        List {
+                            Section {
+                                content.rows
+                                    .listRowBackground(Color.clear)
+                            } header: {
+                                content.title
+                                    .bold()
+                                    .padding(
+                                        EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)
+                                    )
+                                    .font(.title2)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                    )
                 }
             )
     }
 
-    private func makePickerList(content: Content) -> some View {
-        List {
-            Section {
-                content.rows
-                    .listRowBackground(Color.clear)
-            } header: {
-                content.title
-                    .bold()
-                    .padding(
-                        EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)
-                    )
-                    .font(.title2)
-                    .foregroundStyle(.primary)
-            }
-        }
-        .listStyle(.plain)
-        .presentationDetents(presentationDetents, selection: $detent)
-        .presentationBackgroundInteraction(.enabled)
-        .presentationContentInteraction(.scrolls)
-        .presentationCornerRadius(20)
-        .presentationBackground(Material.thinMaterial)
-        .edgesIgnoringSafeArea(.top)
-        .listRowBackground(Color.clear)
-        .scrollContentBackground(.hidden)
+    private func configureList(_ list: some View) -> some View {
+        list
+            .listStyle(.plain)
+            .presentationDetents(presentationDetents, selection: $detent)
+            .presentationBackgroundInteraction(.enabled)
+            .presentationContentInteraction(.scrolls)
+            .presentationCornerRadius(20)
+            .presentationBackground(Material.thinMaterial)
+            .edgesIgnoringSafeArea(.top)
+            .listRowBackground(Color.clear)
+            .scrollContentBackground(.hidden)
     }
 }

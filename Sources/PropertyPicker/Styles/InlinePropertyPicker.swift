@@ -20,12 +20,6 @@
 
 import SwiftUI
 
-/// Provides a convenient static property for accessing the inline selector style.
-public extension PropertyPickerStyle where Self == InlinePropertyPicker {
-    /// A style that presents dynamic value options inline within the view hierarchy.
-    static var inline: Self { .init() }
-}
-
 /// A style that presents dynamic value options inline within the view hierarchy of a property picker.
 /// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
 /// to display additional picker options below the main content.

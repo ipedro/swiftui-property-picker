@@ -22,7 +22,7 @@ import SwiftUI
 
 final class Context: ObservableObject {
     @Published
-    var properties: [Property] = []
+    var properties: Set<Property> = []
 
     @Published
     var title = TitlePreference.defaultValue
@@ -41,10 +41,25 @@ struct ContextObserving: ViewModifier {
     private var context: Context
 
     func body(content: Content) -> some View {
-        content
-            .onPreferenceChange(PropertyPreference.self) { context.properties = $0 }
-            .onPreferenceChange(BottomInsetPreference.self) { context.bottomInset = $0 }
-            .onPreferenceChange(TitlePreference.self) { context.title = $0 }
-            .onPreferenceChange(ViewBuilderPreference.self) { context.viewBuilders = $0 }
+        content.onPreferenceChange(PropertyPreference.self) { newValue in
+            if context.properties != newValue {
+                context.properties = newValue
+            }
+        }
+        .onPreferenceChange(BottomInsetPreference.self) { newValue in
+            if context.bottomInset != newValue {
+                context.bottomInset = newValue
+            }
+        }
+        .onPreferenceChange(TitlePreference.self) { newValue in
+            if context.title != newValue {
+                context.title = newValue
+            }
+        }
+        .onPreferenceChange(ViewBuilderPreference.self) { newValue in
+            if context.viewBuilders != newValue {
+                context.viewBuilders = newValue
+            }
+        }
     }
 }

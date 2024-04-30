@@ -21,17 +21,36 @@
 import SwiftUI
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
-public struct Property: Identifiable, Equatable {
+public struct Property: Identifiable {
     /// A unique identifier for the entry.
-    public let id: ObjectIdentifier
+    public let id = UUID()
+    /// The object identifier of the key this property represents.
+    public let key: ObjectIdentifier
     /// The title of the entry, used as a label in the UI.
     public let title: String
     /// A binding to the currently selected option.
     @Binding public var selection: String
     /// The options available for selection.
     public let options: [String]
+}
+
+extension Property: Equatable {
     /// Determines if two entries are equal based on their identifiers.
     public static func == (lhs: Property, rhs: Property) -> Bool {
-        lhs.id == rhs.id && lhs.selection == rhs.selection
+        lhs.id == rhs.id &&
+        lhs.key == rhs.key &&
+        lhs.selection == rhs.selection
+    }
+}
+
+extension Property: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+extension Property: Comparable {
+    public static func < (lhs: Property, rhs: Property) -> Bool {
+        lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
     }
 }

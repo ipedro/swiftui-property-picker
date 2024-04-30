@@ -20,63 +20,11 @@
 
 import SwiftUI
 
-public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListStyle> {
-    static var list: Self { .list() }
-
-    static func list(
-        rowBackground: Color = Color(uiColor: .systemBackground)
-    ) -> Self {
-        .init(
-            listStyle: .init(),
-            listRowBackground: rowBackground
-        )
-    }
-}
-
-public extension PropertyPickerStyle where Self == ListPropertyPicker<InsetGroupedListStyle> {
-    static var insetGroupedList: Self { .insetGroupedList() }
-
-    static func insetGroupedList(
-        rowBackground: Color = Color(uiColor: .systemBackground)
-    ) -> Self {
-        .init(
-            listStyle: .init(),
-            listRowBackground: rowBackground
-        )
-    }
-}
-
-public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedListStyle> {
-    static var groupedList: Self { .groupedList() }
-
-    static func groupedList(
-        rowBackground: Color = Color(uiColor: .systemBackground)
-    ) -> Self {
-        .init(
-            listStyle: .init(),
-            listRowBackground: rowBackground
-        )
-    }
-}
-
-public extension PropertyPickerStyle where Self == ListPropertyPicker<SidebarListStyle> {
-    static var sidebarList: Self { .sidebarList() }
-
-    static func sidebarList(
-        rowBackground: Color = Color(uiColor: .systemBackground)
-    ) -> Self {
-        .init(
-            listStyle: .init(),
-            listRowBackground: rowBackground
-        )
-    }
-}
-
 // MARK: - List Style
 
-public struct ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
+public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listStyle: S
-    let listRowBackground: Color?
+    let listRowBackground: B?
 
     @State
     private var backgroundPreference = ContentBackgroundPreference.defaultValue
