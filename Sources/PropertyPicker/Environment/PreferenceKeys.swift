@@ -21,7 +21,7 @@
 import SwiftUI
 
 struct TitlePreference: PreferenceKey {
-    static var defaultValue: Text? = Text(verbatim: "Properties")
+    static var defaultValue: Text? = Text("Properties")
     static func reduce(value: inout Text?, nextValue: () -> Text?) {}
 }
 
