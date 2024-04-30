@@ -27,25 +27,25 @@ import SwiftUI
 @available(iOS 16.4, *)
 #Preview(body: {
     NavigationView(content: {
-       SheetExample()
+       ExampleSheet()
     })
 })
 
 @available(iOS 16.4, *)
-struct SheetExample: View {
-    @PropertyPickerState<ContentKey>
+struct ExampleSheet: View {
+    @PropertyPicker(ContentKey.self)
     private var content
 
-    @PropertyPickerState<InteractionKey>(\.isEnabled)
+    @PropertyPicker(\.isEnabled, InteractionKey.self)
     private var interaction
 
-    @PropertyPickerState<ColorSchemeKey>(\.colorScheme)
+    @PropertyPicker(\.colorScheme, ColorSchemeKey.self)
     private var colorScheme
 
     @State private var presented = false
 
     var body: some View {
-        PropertyPicker(isPresented: $presented) {
+        PropertyPickerView(isPresented: $presented) {
             Button {
                 presented.toggle()
             } label: {

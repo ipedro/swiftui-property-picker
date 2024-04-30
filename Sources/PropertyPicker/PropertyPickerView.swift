@@ -24,23 +24,24 @@ import SwiftUI
 ///
 /// This view acts as a container that integrates with the property picker system to allow users
 /// to dynamically select properties and apply them to the enclosed content.
-public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
+public struct PropertyPickerView<Content: View, Style: PropertyPickerStyle>: View {
     /// The content to be presented alongside the dynamic value selector.
     var content: Content
+
     /// The presentation style
     var style: Style
 
-    private var observer = ContextModifier()
+    /// A view modifier that updates a shared context with changes from preference keys.
+    private var updater = ContextUpdater()
 
-    /// The state holding the dynamic value entries.
-    @StateObject
-    private var context = Context()
+    /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
+    @StateObject private var context = Context()
 
     /// The body of the dynamic value selector, presenting the content using the current selector style.
     public var body: some View {
         content
             .modifier(style)
-            .modifier(observer)
+            .modifier(updater)
             .environmentObject(context)
     }
 }

@@ -27,30 +27,31 @@ struct Rows: View {
 
     var body: some View {
         ForEach(context.rows.sorted()) { property in
-            if let custom = makeCustom(configuration: property) {
+            if let custom = makeBody(configuration: property) {
                 custom
             } else {
-                makeDefault(configuration: property)
+                Row(data: property)
             }
         }
     }
 
-    private var emptyMessage: String {
-        "Nothing yet"
-    }
-
-    private func makeCustom(configuration property: Property) -> AnyView? {
-        for key in context.rowBuilders.keys where key == property.key {
-            if let view = context.rowBuilders[key]?.body(property) {
-                return view
+    private func makeBody(configuration property: Property) -> AnyView? {
+        for key in context.rowBuilders.keys where key == property.id {
+            if let body = context.rowBuilders[key]?.body(property) {
+                return body
             }
         }
         return nil
     }
+}
 
-    private func makeDefault(configuration property: Property) -> Picker<Text, String, ForEach<[String], String, Text>> {
-        Picker(property.title, selection: property.$selection) {
-            ForEach(property.options, id: \.self) { option in
+struct Row: View {
+    var data: Property
+
+    var body: some View {
+        Row._printChanges()
+        return Picker(data.title, selection: data.$selection) {
+            ForEach(data.options, id: \.self) { option in
                 Text(option)
             }
         }

@@ -30,7 +30,7 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyPickerKeyReader<Key, Content>: View where Key: PropertyPickerKey, Content: View {
+struct PropertyContainer<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
     let `type`: Key.Type
 
     /// A view builder closure that creates the content view based on the current selection.
@@ -38,34 +38,46 @@ struct PropertyPickerKeyReader<Key, Content>: View where Key: PropertyPickerKey,
     @ViewBuilder var content: (Key) -> Content
     
     /// Internal ObservableObject for managing the dynamic selection state.
-    private class Context: ObservableObject {
-        @Published var selection = Key.defaultValue.rawValue
+    private class Selection: ObservableObject {
+        @Published var currentValue = Key.defaultValue
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
     @StateObject
-    private var context = Context()
-    
+    private var selection = Selection()
+
+    @State
+    private var changes = 0
+
     var body: some View {
         content(key).modifier(
             PreferenceKeyModifier<PropertyPreference>([data])
-        )
+        ).onChange(of: key, perform: { _ in
+            changes += 1
+        })
     }
 
     private var key: Key {
-        Key(rawValue: context.selection) ?? Key.defaultValue
+        selection.currentValue
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
-        let key = ObjectIdentifier(Key.self)
-        let prop = Property(
-            id: String(describing: key) + "." + context.selection,
-            key: key,
+        Property(
+            id: PropertyPickerID(Key.self),
             title: Key.title,
-            selection: $context.selection,
-            options: Key.allCases.map(\.rawValue)
+            options: Key.allCases.map(\.rawValue),
+            changeToken: changes,
+            selection: Binding(
+                get: {
+                    selection.currentValue.rawValue
+                },
+                set: { rawValue in
+                    if let key = Key(rawValue: rawValue) {
+                        selection.currentValue = key
+                    }
+                }
+            )
         )
-        return prop
     }
 }

@@ -42,13 +42,13 @@ import PropertyPicker
 
 // Define a custom view that users can adjust using property pickers
 struct AdjustablePreviewView: View {
-    @PropertyPickerState<FontSizeKey>
+    @PropertyPicker<FontSizeKey>
     private var fontSize
 
-    @PropertyPickerState<ColorSchemeKey>
+    @PropertyPicker<ColorSchemeKey>
     private var colorScheme
 
-    @PropertyPickerState<DisabledStateKey>
+    @PropertyPicker<DisabledStateKey>
     private var isButtonDisabled
     
     var body: some View {
@@ -136,14 +136,14 @@ enum YourPickerKey: String, PropertyPickerKey {
 }
 ```
 
-#### Using PropertyPickerState
+#### Using PropertyPicker
 
 ```swift
 import SwiftUI
 import PropertyPicker
 
 struct ContentView: View {
-    @PropertyPickerState<YourPickerKey>
+    @PropertyPicker<YourPickerKey>
     private var myValue
     
     var body: some View {
@@ -160,7 +160,7 @@ import SwiftUI
 import PropertyPicker
 
 struct ContentView: View {
-    @PropertyPickerState(YourPickerKey.self, \.myEnvironmentValue)
+    @PropertyPicker(YourPickerKey.self, \.myEnvironmentValue)
     private var myEnvironmentValue
     
     var body: some View {
@@ -194,16 +194,16 @@ You can customize the presentation of your property pickers by applying differen
 
 ### Advanced Customization
 
-#### Using `PropertyPickerState` for Local State Management
+#### Using `PropertyPicker` for Local State Management
 
-The `PropertyPickerState` property wrapper can be used to manage a local state that dynamically updates based on user selection. Here's an example demonstrating its usage:
+The `PropertyPicker` property wrapper can be used to manage a local state that dynamically updates based on user selection. Here's an example demonstrating its usage:
 
 ```swift
 import SwiftUI
 import PropertyPicker
 
 struct DynamicFontSizeView: View {
-    @PropertyPickerState<FontSizeKey>
+    @PropertyPicker<FontSizeKey>
     private var fontSize
     
     var body: some View {

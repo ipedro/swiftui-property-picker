@@ -18,6 +18,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
+import Combine
 import SwiftUI
 
 /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
@@ -26,18 +27,68 @@ import SwiftUI
 /// property pickers. It uses `@Published` properties to ensure that views observing this context will
 /// update automatically in response to changes, supporting reactive UI updates.
 final class Context: ObservableObject {
-    /// The current title of the property picker, with a default value provided by `TitlePreference`.
-    /// This title is observed by the UI components for updates.
-    @Published
-    var title: Text?
+    private var cancellables = Set<AnyCancellable>()
 
-    /// A collection of `Property` objects that are currently active or selected in the UI.
-    /// Changes to this set trigger UI updates where this context is observed.
-    @Published
-    var rows: Set<Property> = []
+    // Properties
+    private var _title: Text? = TitlePreference.defaultValue
+    private var _rows: Set<Property> = []
+    private var _rowBuilders: [PropertyPickerID: PropertyPickerBuilder] = [:]
 
-    /// A dictionary mapping object identifiers to `PropertyPickerBuilder` instances.
-    /// These builders are used to dynamically construct views for different types of properties.
-    @Published
-    var rowBuilders = [ObjectIdentifier: PropertyPickerBuilder]()
+    // Public facing properties
+    var title: Text? {
+        get { _title }
+        set {
+            guard _title != newValue else { return }
+            objectWillChange.send()
+            print(#function, "changed")
+            _title = newValue
+        }
+    }
+
+    var rows: Set<Property> {
+        get { _rows }
+        set {
+            guard _rows != newValue else { return }
+            objectWillChange.send()
+            print(#function, "changed")
+            _rows = newValue
+        }
+    }
+
+    var rowBuilders: [PropertyPickerID: PropertyPickerBuilder] {
+        get { _rowBuilders }
+        set {
+            guard _rowBuilders != newValue else { return }
+            objectWillChange.send()
+            print(#function, "changed")
+            _rowBuilders = newValue
+        }
+    }
+
+    init() {
+        setupDebouncing()
+    }
+
+    private func setupDebouncing() {
+        let oneFrame = Int((1 / UIScreen.main.maximumFramesPerSecond) * 1000)
+
+        // Title debouncing
+        Just(_title)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .sink { [weak self] in self?.title = $0 }
+            .store(in: &cancellables)
+
+        // Rows debouncing
+        Just(_rows)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .sink { [weak self] in self?.rows = $0 }
+            .store(in: &cancellables)
+
+        // RowBuilders debouncing
+        Just(_rowBuilders)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .sink { [weak self] in self?.rowBuilders = $0 }
+            .store(in: &cancellables)
+    }
 }
+

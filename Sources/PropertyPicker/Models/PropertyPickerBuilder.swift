@@ -21,7 +21,7 @@
 import SwiftUI
 
 struct PropertyPickerBuilder: Equatable, Identifiable {
-    let id = UUID()
+    let id: PropertyPickerID
     let body: (Property) -> AnyView?
 
     static func == (lhs: PropertyPickerBuilder, rhs: PropertyPickerBuilder) -> Bool {

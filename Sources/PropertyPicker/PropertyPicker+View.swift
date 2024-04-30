@@ -124,21 +124,30 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    /// - Parameter state: A ``PropertyPicker`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
-        PropertyPickerKeyReader(type: K.self) { value in
-            if let keyPath = state.keyPath {
-                self.environment(keyPath, value.value)
-            } else {
-                self.onChange(of: value) { newValue in
-                    if state._state != newValue {
-                        state._state = newValue
-                    }
-                }
+    func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: Equatable {
+        PropertyContainer(type: K.self) { data in
+            self.onChange(of: data) { newValue in
+                picker.storage.state = newValue
             }
+        }
+    }
+
+    /// Integrates a property picker with a view model state to automatically update the selected value.
+    ///
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
+    ///
+    /// - Parameter state: A ``PropertyPicker`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
+    func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: Equatable {
+        PropertyContainer(type: K.self) { data in
+            self.environment(picker.storage.keyPath, data.value)
         }
     }
 
