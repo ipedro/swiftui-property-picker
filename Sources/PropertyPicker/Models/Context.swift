@@ -70,29 +70,26 @@ final class Context: ObservableObject {
     }
 
     private func setupDebouncing() {
-        //let oneFrame = Int((1 / UIScreen.main.maximumFramesPerSecond) * 1000)
+        let oneFrame = Int((1 / UIScreen.main.maximumFramesPerSecond) * 1000)
 
         // Title debouncing
         Just(_title)
             .removeDuplicates()
-            .receive(on: RunLoop.main)
-            //.debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
             .sink { [weak self] in self?.title = $0 }
             .store(in: &cancellables)
 
         // Rows debouncing
         Just(_rows)
             .removeDuplicates()
-            .receive(on: RunLoop.main)
-            //.debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
             .sink { [weak self] in self?.rows = $0 }
             .store(in: &cancellables)
 
         // RowBuilders debouncing
         Just(_rowBuilders)
             .removeDuplicates()
-            .receive(on: RunLoop.main)
-            //.debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
+            .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
             .sink { [weak self] in self?.rowBuilders = $0 }
             .store(in: &cancellables)
     }
