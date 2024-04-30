@@ -36,7 +36,7 @@ final class Context: ObservableObject {
     var isEmpty: Bool { properties.isEmpty }
 }
 
-struct ContextUpdatingModifier: ViewModifier {
+struct ContextObserving: ViewModifier {
     @EnvironmentObject
     private var context: Context
 

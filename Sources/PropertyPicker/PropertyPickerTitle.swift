@@ -20,14 +20,11 @@
 
 import SwiftUI
 
-/// Represents the configuration for dynamic value selector styles, encapsulating the content and dynamic value entries.
-public struct PropertyPickerStyleConfiguration {
-    /// The optional text
-    public let title: Text?
-    /// The actual content view.
-    public let content: AnyView
-    /// A boolean indicating if there are no dynamic value entries.
-    public let isEmpty: Bool
-    /// The dynamic value entries to be presented.
-    public let rows = PropertyPickerRows()
+public struct PropertyPickerTitle: View {
+    @EnvironmentObject
+    private var context: Context
+
+    public var body: some View {
+        context.title
+    }
 }

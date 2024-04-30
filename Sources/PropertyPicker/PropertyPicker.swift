@@ -24,39 +24,21 @@ import SwiftUI
 ///
 /// This view acts as a container that integrates with the property picker system to allow users
 /// to dynamically select properties and apply them to the enclosed content.
-public struct PropertyPicker<Content: View>: View {
+public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
     /// The content to be presented alongside the dynamic value selector.
     let content: Content
-    /// The state holding the dynamic value entries.
+    /// The presentation style
+    let style: Style
 
+    /// The state holding the dynamic value entries.
     @StateObject
     private var context = Context()
 
-    /// The current dynamic value selector style from the environment.
-    @Environment(\.propertyPickerStyle)
-    private var style
-
-    /// Initializes the dynamic value selector with the specified content and optional title.
-    ///
-    /// - Parameters:
-    ///   - content: A closure returning the content to be presented.
-    public init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    /// Creates the configuration for the selector style and presents the content accordingly.
-    private var configuration: PropertyPickerStyleConfiguration {
-        PropertyPickerStyleConfiguration(
-            title: context.title,
-            content: AnyView(content),
-            isEmpty: context.isEmpty
-        )
-    }
-
     /// The body of the dynamic value selector, presenting the content using the current selector style.
     public var body: some View {
-        AnyView(style.resolve(configuration: configuration))
-            .modifier(ContextUpdatingModifier())
+        content
+            .modifier(style)
+            .modifier(ContextObserving())
             .safeAreaInset(edge: .bottom) {
                 Spacer().frame(height: context.bottomInset)
             }
@@ -65,21 +47,21 @@ public struct PropertyPicker<Content: View>: View {
     }
 }
 
-// MARK: - Preview
+#if DEBUG
+// MARK: - Example
 
 @available(iOS 16.0, *)
 #Preview(body: {
     Example()
 })
 
-#if DEBUG
 @available(iOS 16.0, *)
 struct Example: View {
     @PropertyPickerState<Content>
     private var content
 
     var body: some View {
-        PropertyPicker {
+        PropertyPicker(listStyle: .groupedList) {
             Button {
                 //
             } label: {

@@ -20,27 +20,27 @@
 
 import SwiftUI
 
-@available(iOS 16.4, *)
-public extension PropertyPickerStyle where Self == SheetPropertyPicker {
-    static func sheet(
-        isPresented: Binding<Bool>,
-        adjustsBottomInset: Bool = true,
-        detent: PresentationDetent = .fraction(1/4),
-        presentationDetents: Set<PresentationDetent> = [
-            .fraction(1/4),
-            .medium,
-            .fraction(2/3),
-            .large
-        ]
-    ) -> Self {
-        .init(
-            isPresented: isPresented,
-            adjustsBottomInset: adjustsBottomInset,
-            detent: detent,
-            presentationDetents: presentationDetents
-        )
-    }
-}
+//@available(iOS 16.4, *)
+//public extension PropertyPickerStyle where Self == SheetPropertyPicker {
+//    static func sheet(
+//        isPresented: Binding<Bool>,
+//        adjustsBottomInset: Bool = true,
+//        detent: PresentationDetent = .fraction(1/4),
+//        presentationDetents: Set<PresentationDetent> = [
+//            .fraction(1/4),
+//            .medium,
+//            .fraction(2/3),
+//            .large
+//        ]
+//    ) -> Self {
+//        .init(
+//            isPresented: isPresented,
+//            adjustsBottomInset: adjustsBottomInset,
+//            detent: detent,
+//            presentationDetents: presentationDetents
+//        )
+//    }
+//}
 
 /// A view modifier that adds a custom expandable menu to a SwiftUI view.
 /// This modifier tracks and displays menu items dynamically added to the view,
@@ -61,40 +61,38 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
         adjustsBottomInset && isPresented ? UIScreen.main.bounds.midY : 0
     }
 
-    public func makeBody(configuration: Configuration) -> some View {
-        configuration.content
+    public func body(content: Content) -> some View {
+        content
             .safeAreaInset(edge: .bottom) {
                 Spacer().frame(height: bottomInset)
             }
             .toolbar(content: {
                 ToolbarItem {
-                    if !configuration.isEmpty {
-                        Button {
-                            withAnimation(.interactiveSpring) {
-                                isPresented.toggle()
-                            }
-                        } label: {
-                            Image(systemName: isPresented ? "xmark.circle" : "gear")
-                                .rotationEffect(.degrees(isPresented ? 180 : 0))
+                    Button {
+                        withAnimation(.interactiveSpring) {
+                            isPresented.toggle()
                         }
+                    } label: {
+                        Image(systemName: isPresented ? "xmark.circle" : "gear")
+                            .rotationEffect(.degrees(isPresented ? 180 : 0))
                     }
                 }
             })
             .animation(.snappy, value: isPresented)
             .overlay(
                 Spacer().sheet(isPresented: $isPresented) {
-                    makePickerList(configuration: configuration)
+                    makePickerList(content: content)
                 }
             )
     }
 
-    private func makePickerList(configuration: Configuration) -> some View {
+    private func makePickerList(content: Content) -> some View {
         List {
             Section {
-                configuration.rows
+                content.rows
                     .listRowBackground(Color.clear)
             } header: {
-                configuration.title
+                content.title
                     .bold()
                     .padding(
                         EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0)

@@ -32,9 +32,9 @@ public struct ContextMenuPropertyPicker: PropertyPickerStyle {
     ///
     /// - Parameter configuration: The configuration containing the dynamic value options and content.
     /// - Returns: A view displaying the dynamic value options in a context menu.
-    public func makeBody(configuration: Configuration) -> some View {
-        configuration.content.contextMenu {
-            configuration.rows
+    public func body(content: Content) -> some View {
+        content.contextMenu {
+            content.rows
         }
     }
 }

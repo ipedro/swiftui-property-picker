@@ -20,7 +20,7 @@
 
 import SwiftUI
 
-public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListStyle, Color> {
+public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListStyle> {
     static var list: Self { .list() }
 
     static func list(
@@ -33,7 +33,7 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<PlainListS
     }
 }
 
-public extension PropertyPickerStyle where Self == ListPropertyPicker<InsetGroupedListStyle, Color> {
+public extension PropertyPickerStyle where Self == ListPropertyPicker<InsetGroupedListStyle> {
     static var insetGroupedList: Self { .insetGroupedList() }
 
     static func insetGroupedList(
@@ -46,7 +46,7 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<InsetGroup
     }
 }
 
-public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedListStyle, Color> {
+public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedListStyle> {
     static var groupedList: Self { .groupedList() }
 
     static func groupedList(
@@ -59,7 +59,7 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<GroupedLis
     }
 }
 
-public extension PropertyPickerStyle where Self == ListPropertyPicker<SidebarListStyle, Color> {
+public extension PropertyPickerStyle where Self == ListPropertyPicker<SidebarListStyle> {
     static var sidebarList: Self { .sidebarList() }
 
     static func sidebarList(
@@ -74,9 +74,9 @@ public extension PropertyPickerStyle where Self == ListPropertyPicker<SidebarLis
 
 // MARK: - List Style
 
-public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
+public struct ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     let listStyle: S
-    let listRowBackground: B
+    let listRowBackground: Color?
 
     @State
     private var backgroundPreference = ContentBackgroundPreference.defaultValue
@@ -85,10 +85,10 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
         backgroundPreference?.style ?? AnyShapeStyle(.background)
     }
 
-    public func makeBody(configuration: Configuration) -> some View {
+    public func body(content: Content) -> some View {
         List {
             Section {
-                configuration.rows.listRowBackground(listRowBackground)
+                content.rows.listRowBackground(listRowBackground)
             } header: {
                 VStack(spacing: .zero) {
                     ZStack {
@@ -98,7 +98,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                         .ios16_backgroundStyle(contentBackground)
                         .animation(backgroundPreference?.animation, value: backgroundPreference)
 
-                        configuration.content
+                        content
                             .padding()
                             .onPreferenceChange(ContentBackgroundPreference.self) {
                                 backgroundPreference = $0
@@ -107,7 +107,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
                     .environment(\.textCase, nil)
                     .padding(.vertical)
 
-                    configuration.title
+                    content.title
                         .multilineTextAlignment(.leading)
                         .padding(.top)
                         .frame(
