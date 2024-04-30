@@ -26,11 +26,11 @@ public struct PropertyPickerRows: View {
     private var context: Context
 
     public var body: some View {
-        ForEach(context.properties.sorted()) { property in
-            if let customPicker = makeBody(configuration: (property, context.viewBuilders)) {
-                customPicker
+        ForEach(context.rows.sorted()) { property in
+            if let custom = makeCustom(configuration: property) {
+                custom
             } else {
-                defaultPicker(configuration: property)
+                makeDefault(configuration: property)
             }
         }
     }
@@ -39,20 +39,19 @@ public struct PropertyPickerRows: View {
         "Nothing yet"
     }
 
-    private func makeBody(configuration: (item: Property, source: [ObjectIdentifier: PropertyPickerBuilder])) -> AnyView? {
-        for key in configuration.source.keys where key == configuration.item.key {
-            if let view = configuration.source[key]?.body(configuration.item) {
+    private func makeCustom(configuration property: Property) -> AnyView? {
+        for key in context.rowBuilders.keys where key == property.key {
+            if let view = context.rowBuilders[key]?.body(property) {
                 return view
             }
         }
         return nil
     }
 
-    // TODO: move to view builder
-    private func defaultPicker(configuration property: Property) -> some View {
+    private func makeDefault(configuration property: Property) -> Picker<Text, String, ForEach<[String], String, Text>> {
         Picker(property.title, selection: property.$selection) {
             ForEach(property.options, id: \.self) { option in
-                Text(option).tag(option)
+                Text(option)
             }
         }
     }

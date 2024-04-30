@@ -26,8 +26,8 @@ struct ContextModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content.onPreferenceChange(PropertyPreference.self) { newValue in
-            if context.properties != newValue {
-                context.properties = newValue
+            if context.rows != newValue {
+                context.rows = newValue
             }
         }
         .onPreferenceChange(TitlePreference.self) { newValue in
@@ -36,8 +36,8 @@ struct ContextModifier: ViewModifier {
             }
         }
         .onPreferenceChange(ViewBuilderPreference.self) { newValue in
-            if context.viewBuilders != newValue {
-                context.viewBuilders = newValue
+            if context.rowBuilders != newValue {
+                context.rowBuilders = newValue
             }
         }
     }
