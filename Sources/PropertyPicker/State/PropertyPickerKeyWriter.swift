@@ -20,7 +20,7 @@
 
 import SwiftUI
 
-/// `PickerSelectionReader` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// `PropertyPickerKeyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
 /// updates the UI accordingly when a new selection is made.
 ///
@@ -30,7 +30,7 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PickerSelectionReader<K, C>: View where K: PropertyPickerKey, C: View {
+struct PropertyPickerKeyWriter<K, C>: View where K: PropertyPickerKey, C: View {
 
     /// A view builder closure that creates the content view based on the current selection.
     /// This allows the view to reactively update in response to changes in the selection.
@@ -61,13 +61,13 @@ struct PickerSelectionReader<K, C>: View where K: PropertyPickerKey, C: View {
             id: ObjectIdentifier(K.self),
             title: K.title,
             selection: Binding {
-                context.selection.label
+                context.selection.rawValue
             } set: { newValue in
-                if newValue != context.selection.label, let newValue = K(label: newValue) {
+                if newValue != context.selection.rawValue, let newValue = K(rawValue: newValue) {
                     context.selection = newValue
                 }
             },
-            options: K.allCases.map(\.label)
+            options: K.allCases.map(\.rawValue)
         )
     }
 }

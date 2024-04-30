@@ -26,16 +26,15 @@ import SwiftUI
 /// It automatically updates the view when the selection changes.
 @propertyWrapper
 public struct PropertyPickerState<K: PropertyPickerKey>: DynamicProperty {
-    @State<K> var _state: K = K.defaultValue
+    @State<K> 
+    var selection: K = K.defaultValue
 
     /// Initializes the state with the specified key.
-    ///
-    /// - Parameter key: The type of the key that represents the property being adjusted.
     public init() {}
 
     /// The current value of the property being adjusted.
     public var wrappedValue: K.Value {
-        _state.value
+        selection.value
     }
 
     /// The projected value, providing access to the binding of the state.

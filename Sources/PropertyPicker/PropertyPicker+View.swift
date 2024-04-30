@@ -82,9 +82,11 @@ public extension View {
     ///
     /// - Returns: A view that updates its state based on the selected property value.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
-        PickerSelectionReader(K.self) { selection in
-            onChange(of: selection) { newValue in
-                state._state = newValue
+        PropertyPickerKeyWriter(K.self) { value in
+            onChange(of: value) { newValue in
+                if state.selection != newValue {
+                    state.selection = newValue
+                }
             }
         }
     }
@@ -99,8 +101,8 @@ public extension View {
     ///
     /// - Returns: A view that modifies an environment value based on the selected property.
     func propertyPicker<K: PropertyPickerKey>( _ key: K.Type, _ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) -> some View {
-        PickerSelectionReader(key) { selection in
-            environment(keyPath, selection.value)
+        PropertyPickerKeyWriter(key) { value in
+            environment(keyPath, value.value)
         }
     }
 
