@@ -38,7 +38,7 @@ public extension View {
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
-                return AnimatableShapeStyle(animation, style)
+                return AnimatableBox<AnyShapeStyle>(animation, AnyShapeStyle(style))
             }()
         )
     }

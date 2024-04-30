@@ -20,23 +20,19 @@
 
 import SwiftUI
 
-struct AnimatableShapeStyle: Equatable, Identifiable, CustomStringConvertible {
-    static func == (lhs: AnimatableShapeStyle, rhs: AnimatableShapeStyle) -> Bool {
+struct AnimatableBox<Data>: Equatable, Identifiable {
+    static func == (lhs: AnimatableBox<Data>, rhs: AnimatableBox<Data>) -> Bool {
         lhs.id == rhs.id
     }
 
     let id = UUID()
     let animation: Animation?
-    let style: AnyShapeStyle
-    let styleType: Any.Type
+    let data: Data
+    let `type`: Any.Type
 
-    init<S: ShapeStyle>(_ animation: Animation?, _ style: S) {
-        self.styleType = S.self
+    init(_ animation: Animation?, _ data: Data) {
+        self.type = Data.self
         self.animation = animation
-        self.style = AnyShapeStyle(style)
-    }
-
-    var description: String {
-        "<ContentBackground<\(styleType)> animation: \(String(describing: animation))>"
+        self.data = data
     }
 }

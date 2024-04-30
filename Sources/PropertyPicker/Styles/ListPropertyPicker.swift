@@ -39,7 +39,7 @@ public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     private var backgroundPreference = ContentBackgroundStylePreference.defaultValue
 
     private var contentBackground: some ShapeStyle {
-        backgroundPreference?.style ?? AnyShapeStyle(.background)
+        backgroundPreference?.data ?? AnyShapeStyle(.background)
     }
 
     public func body(content: Content) -> some View {

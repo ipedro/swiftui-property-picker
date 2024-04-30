@@ -39,10 +39,10 @@ struct TitlePreference: PreferenceKey {
 /// the background style and optional animations. It is useful for applying consistent styling across multiple views.
 struct ContentBackgroundStylePreference: PreferenceKey {
     /// The default value for the background context, initially nil indicating no background is applied.
-    static var defaultValue: AnimatableShapeStyle?
+    static var defaultValue: AnimatableBox<AnyShapeStyle>?
 
     /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
-    static func reduce(value: inout AnimatableShapeStyle?, nextValue: () -> AnimatableShapeStyle?) {
+    static func reduce(value: inout AnimatableBox<AnyShapeStyle>?, nextValue: () -> AnimatableBox<AnyShapeStyle>?) {
         if let nextValue = nextValue() {
             value = nextValue
         }
