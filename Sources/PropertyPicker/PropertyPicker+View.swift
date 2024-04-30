@@ -21,6 +21,14 @@
 import SwiftUI
 
 public extension View {
+    /// Applies a background style to the list content of a property picker with optional animation.
+    ///
+    /// Use this method to specify a custom background for the list content within a property picker view.
+    /// An optional animation parameter allows the background appearance change to be animated.
+    ///
+    /// - Parameters:
+    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
+    ///   - animation: Optional animation to apply when the background style changes.
     @available(iOS 16.0, *)
     func propertyPickerListContentBackground<S: ShapeStyle>(
         _ style: S?,
@@ -35,6 +43,14 @@ public extension View {
         )
     }
 
+    /// Adds a custom view builder to a property picker for a specific property key type.
+    ///
+    /// This method allows customization of the presentation for a specific property within a property picker.
+    /// The provided view builder closure is used to generate the view whenever the specific property is rendered.
+    ///
+    /// - Parameters:
+    ///   - key: The property key type for which the custom view is being provided.
+    ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
     func propertyPicker<K: PropertyPickerKey, Row: View>(
         for key: K.Type = K.self,
         @ViewBuilder body: @escaping (_ property: Property) -> Row
@@ -53,6 +69,11 @@ public extension View {
         )
     }
 
+    /// Sets the title for a property picker using a localized string key.
+    ///
+    /// This method allows you to specify a title for the property picker, supporting localization.
+    ///
+    /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
         setPreferenceChange(
             TitlePreference.self,
@@ -63,6 +84,11 @@ public extension View {
         )
     }
 
+    /// Sets the title for a property picker using a plain string.
+    ///
+    /// This version allows you to specify a title using a non-localized string.
+    ///
+    /// - Parameter title: The string to use as the title. If nil, no title is set.
     func propertyPickerTitle(_ title: String?) -> some View {
         setPreferenceChange(
             TitlePreference.self,
@@ -73,14 +99,15 @@ public extension View {
         )
     }
 
-    /// Adds a dynamic property selection capability to the view using a ``PropertyPickerKey``.
+    /// Integrates a property picker with a view model state to automatically update the selected value.
     ///
-    /// This allows the view to update its state based on user selection from a set of predefined options.
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameters:
-    ///   - state: A ``PropertyPickerState`` instance representing the current selection state.
-    ///
-    /// - Returns: A view that updates its state based on the selected property value.
+    /// - Parameter state: A `PropertyPickerState` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
         PropertyPickerKeyWriter(K.self) { value in
             onChange(of: value) { newValue in
@@ -91,27 +118,30 @@ public extension View {
         }
     }
 
-    /// Adds a dynamic property selector that modifies an environment value.
+    /// Configures a property picker to write its value directly to the SwiftUI environment.
     ///
-    /// This variant allows modifying SwiftUI's environment values dynamically.
+    /// This method creates a property picker that directly modifies a specified environment value. It uses the provided key path
+    /// to write the picker's current value to the environment, allowing other views in the hierarchy to react to changes.
     ///
     /// - Parameters:
-    ///   - key: The type of the property picker key.
-    ///   - keyPath: The key path to the specific environment value to modify.
-    ///
-    /// - Returns: A view that modifies an environment value based on the selected property.
-    func propertyPicker<K: PropertyPickerKey>( _ key: K.Type, _ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) -> some View {
+    ///   - key: The `PropertyPickerKey` type specifying which property is being manipulated.
+    ///   - keyPath: A writable key path pointing to an environment value of the same type as the picker's value.
+    /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
+    func propertyPicker<K: PropertyPickerKey>(_ key: K.Type, _ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) -> some View {
         PropertyPickerKeyWriter(key) { value in
             environment(keyPath, value.value)
         }
     }
 
-    /// Applies a custom style to the property picker presentation.
+
+    /// Applies a custom style to a property picker.
     ///
-    /// - Parameter style: The property picker style to apply.
+    /// This method sets a custom style defined by conforming to the `PropertyPickerStyle` protocol.
+    /// It affects all aspects of how the property picker is rendered, allowing for extensive customization.
     ///
-    /// - Returns: A view modified with the specified property picker style.
+    /// - Parameter style: The custom style to apply to the property picker.
     func propertyPickerStyle<S: PropertyPickerStyle>(_ style: S) -> some View {
         environment(\.propertyPickerStyle, style)
     }
+
 }
