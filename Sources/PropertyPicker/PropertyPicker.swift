@@ -30,7 +30,7 @@ public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
     /// The presentation style
     var style: Style
 
-    private var observer = ContextObserving()
+    private var observer = ContextObserver()
 
     /// The state holding the dynamic value entries.
     @StateObject
