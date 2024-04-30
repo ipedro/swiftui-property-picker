@@ -18,29 +18,21 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-import SwiftUI
+import Foundation
 
-/// A SwiftUI view that enables dynamic property selection.
+/// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
 ///
-/// This view acts as a container that integrates with the property picker system to allow users
-/// to dynamically select properties and apply them to the enclosed content.
-public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
-    /// The content to be presented alongside the dynamic value selector.
-    var content: Content
-    /// The presentation style
-    var style: Style
+/// It specifies how a property picker should adjust its content to accommodate safe area insets,
+/// ensuring that the picker does not obstruct critical parts of the user interface, such as input fields or buttons.
+/// This adjustment is particularly useful in scenarios where property pickers alter the layout dynamically,
+/// such as appearing as overlays or within modal presentations.
+public enum PropertyPickerSafeAreaAdjustmentStyle {
+    /// Adjusts the safe area insets automatically based on system guidelines and the presence of elements like keyboards
+    /// or bottom bars that may overlap the property picker's content.
+    case automatic
 
-    private var observer = ContextModifier()
-
-    /// The state holding the dynamic value entries.
-    @StateObject
-    private var context = Context()
-
-    /// The body of the dynamic value selector, presenting the content using the current selector style.
-    public var body: some View {
-        content
-            .modifier(style)
-            .modifier(observer)
-            .environmentObject(context)
-    }
+    /// Does not make any adjustments to the safe area insets, allowing the content to maintain its layout
+    /// irrespective of environmental changes. This setting is suitable when the UI design specifies that elements
+    /// should not react to overlaying interfaces.
+    case never
 }

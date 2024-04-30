@@ -20,11 +20,11 @@
 
 import SwiftUI
 
-struct PropertyViewBuilder: Equatable, Identifiable {
+struct PropertyPickerBuilder: Equatable, Identifiable {
     let id = UUID()
-    let view: (Property) -> AnyView?
+    let body: (Property) -> AnyView?
 
-    static func == (lhs: PropertyViewBuilder, rhs: PropertyViewBuilder) -> Bool {
+    static func == (lhs: PropertyPickerBuilder, rhs: PropertyPickerBuilder) -> Bool {
         lhs.id == rhs.id
     }
 }

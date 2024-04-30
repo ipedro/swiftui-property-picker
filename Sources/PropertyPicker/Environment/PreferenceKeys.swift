@@ -20,42 +20,60 @@
 
 import SwiftUI
 
+/// A preference key for storing an optional `Text` that represents a title.
+///
+/// This preference key is used to pass a title `Text` view up the view hierarchy. The default value is
+/// set to a `Text` view containing "Properties", which can be overridden by any child views providing
+/// their own title.
 struct TitlePreference: PreferenceKey {
+    /// The default title shown if no other title is specified by child views.
     static var defaultValue: Text? = Text("Properties")
+
+    /// Reduces values along the view hierarchy into a single value, leaving the title unchanged from the first view that sets it.
     static func reduce(value: inout Text?, nextValue: () -> Text?) {}
 }
 
-struct ContentBackgroundPreference: PreferenceKey {
-    static var defaultValue: ContentBackgroundContext?
+/// A preference key for storing context about the background style of content.
+///
+/// This preference key helps in managing background customization of views with context about
+/// the background style and optional animations. It is useful for applying consistent styling across multiple views.
+struct ContentBackgroundStylePreference: PreferenceKey {
+    /// The default value for the background context, initially nil indicating no background is applied.
+    static var defaultValue: AnimatableShapeStyle?
 
-    static func reduce(value: inout ContentBackgroundContext?, nextValue: () -> ContentBackgroundContext?) {
+    /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
+    static func reduce(value: inout AnimatableShapeStyle?, nextValue: () -> AnimatableShapeStyle?) {
         if let nextValue = nextValue() {
             value = nextValue
         }
     }
 }
 
+/// A preference key for storing a dictionary of `PropertyPickerBuilder` instances indexed by `ObjectIdentifier`.
+///
+/// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
+/// It allows different parts of an application to specify custom builders for rendering specific property types.
 struct ViewBuilderPreference: PreferenceKey {
-    static let defaultValue = [ObjectIdentifier: PropertyViewBuilder]()
-    static func reduce(value: inout [ObjectIdentifier: PropertyViewBuilder], nextValue: () -> [ObjectIdentifier: PropertyViewBuilder]) {
+    /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
+    static let defaultValue = [ObjectIdentifier: PropertyPickerBuilder]()
+
+    /// Merges view builders provided by child views, preferring the builder set closest to the root.
+    static func reduce(value: inout [ObjectIdentifier: PropertyPickerBuilder], nextValue: () -> [ObjectIdentifier: PropertyPickerBuilder]) {
         value.merge(nextValue()) { content, _ in
             content
         }
     }
 }
-/// A preference key for storing dynamic value entries.
+
+/// A preference key for storing a set of `Property` objects.
 ///
-/// This key aggregates values to be displayed in a custom selection menu, allowing
-/// for dynamic updates and customization of menu content based on user selection.
+/// This preference key is designed to collect properties from various parts of the view hierarchy into a single set.
+/// It is useful for aggregating properties that need to be accessible at a higher level in the application.
 struct PropertyPreference: PreferenceKey {
-    /// The default value for the dynamic value entries.
+    /// The default value, an empty set, indicates that no properties are collected initially.
     static var defaultValue: Set<Property> = []
 
-    /// Combines the current value with the next value.
-    ///
-    /// - Parameters:
-    ///   - value: The current value of dynamic value entries.
-    ///   - nextValue: A closure that returns the next set of dynamic value entries.
+    /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
     static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
         value = nextValue().union(value)
     }

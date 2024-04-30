@@ -94,27 +94,9 @@ public extension PropertyPicker where Style == SheetPropertyPicker {
     ///
     /// - Parameters:
     ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
-    ///   - adjustsBottomInset: A Boolean value that indicates whether the sheet should adjust its height to account for the bottom safe area.
-    ///   - detent: The default position of the sheet when it appears.
-    ///   - presentationDetents: A set of detents specifying the allowed positions that the sheet can settle into when presented.
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init(
-        isPresented: Binding<Bool>,
-        adjustsBottomInset: Bool = true,
-        detent: PresentationDetent = .fraction(1/3),
-        presentationDetents: Set<PresentationDetent> = [
-            .fraction(1/3),
-            .fraction(2/3),
-            .large
-        ],
-        @ViewBuilder content: () -> Content
-    ) {
+    init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = SheetPropertyPicker(
-            isPresented: isPresented,
-            adjustsBottomInset: adjustsBottomInset,
-            detent: detent,
-            presentationDetents: presentationDetents
-        )
+        self.style = SheetPropertyPicker(isPresented: isPresented)
     }
 }

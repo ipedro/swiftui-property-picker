@@ -35,10 +35,10 @@ public extension View {
         _ animation: Animation? = nil
     ) -> some View {
         setPreferenceChange(
-            ContentBackgroundPreference.self,
+            ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
-                return ContentBackgroundContext(animation, style)
+                return AnimatableShapeStyle(animation, style)
             }()
         )
     }
@@ -56,7 +56,7 @@ public extension View {
         @ViewBuilder body: @escaping (_ property: Property) -> Row
     ) -> some View {
         let id = ObjectIdentifier(key)
-        let viewBuilder = PropertyViewBuilder { someProp in
+        let viewBuilder = PropertyPickerBuilder { someProp in
             if someProp.key == id {
                 return AnyView(body(someProp))
             }
@@ -132,5 +132,49 @@ public extension View {
         PropertyPickerKeyWriter(type: key) { value in
             environment(keyPath, value.value)
         }
+    }
+
+    /// Sets the safe area adjustment style for a property picker within the view.
+    ///
+    /// This method configures how the view should adjust its content relative to the safe area insets,
+    /// which is particularly useful for views like property pickers that might need to dynamically adjust
+    /// their layout in response to on-screen keyboards or other overlaying UI elements.
+    ///
+    /// - Parameter style: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
+    /// - Returns: A view modified with the specified safe area adjustment style.
+    func propertyPickerSafeAreaAdjustmentStyle(_ style: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
+        environment(\.safeAreaAdjustment, style)
+    }
+
+    /// Sets the available detents for the picker when presented as a sheet.
+    ///
+    /// - Parameter detents: A set of supported detents for the sheet.
+    ///   If you provide more that one detent, people can drag the sheet
+    ///   to resize it.
+    @available(iOS 16.0, *)
+    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
+        self
+            .environment(\.presentationDetents, detents)
+            .environment(\.selectedDetent, nil)
+    }
+
+    /// Sets the available detents for the picker when presented as a sheet, giving you
+    /// programmatic control of the currently selected detent.
+    ///
+    /// - Parameters:
+    ///   - detents: A set of supported detents for the sheet.
+    ///     If you provide more that one detent, people can drag the sheet
+    ///     to resize it.
+    ///   - selection: A ``Binding`` to the currently selected detent.
+    ///     Ensure that the value matches one of the detents that you
+    ///     provide for the `detents` parameter.
+    @available(iOS 16.0, *)
+    func propertyPickerPresentationDetents(
+        _ detents: Set<PresentationDetent>,
+        selection: Binding<PresentationDetent>
+    ) -> some View {
+        self
+            .environment(\.presentationDetents, detents)
+            .environment(\.selectedDetent, selection)
     }
 }

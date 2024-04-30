@@ -31,32 +31,41 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     @Binding
     var isPresented: Bool
 
-    let adjustsBottomInset: Bool
+    @State
+    private var __detent = PresentationDetentsKey.defaultValue.first!
+
+    @Environment(\.safeAreaAdjustment)
+    private var safeAreaAdjustment
+
+    @Environment(\.animation)
+    private var animation
+
+    @Environment(\.presentationDetents)
+    private var presentationDetents
+
+    @Environment(\.selectedDetent)
+    private var detent
 
     @State
-    var detent: PresentationDetent
+    private var contentHeight: Double = 0
 
-    let presentationDetents: Set<PresentationDetent>
-
-    @State
-    private var bottomInset: Double = 0
+    private var safeAreaInset: CGFloat {
+        switch safeAreaAdjustment {
+        case .automatic where isPresented: contentHeight
+        case .automatic, .never: .zero
+        }
+    }
 
     public func body(content: Content) -> some View {
         content
-            .onChange(of: isPresented, perform: { value in
-                if value == false {
-                    withAnimation(.interactiveSpring) {
-                        bottomInset = 0
-                    }
-                }
-            })
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                Spacer().frame(height: bottomInset)
+                Spacer().frame(height: safeAreaInset)
             }
+            .animation(animation, value: safeAreaInset)
             .toolbar(content: {
                 ToolbarItem {
                     Button {
-                        withAnimation(.snappy) {
+                        withAnimation(animation) {
                             isPresented.toggle()
                         }
                     } label: {
@@ -70,8 +79,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
                     configureList(
                         List {
                             Section {
-                                content.rows
-                                    .listRowBackground(Color.clear)
+                                content.rows.listRowBackground(Color.clear)
                             } header: {
                                 content.title
                                     .bold()
@@ -90,7 +98,27 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     private func configureList(_ list: some View) -> some View {
         list
             .listStyle(.plain)
-            .presentationDetents(presentationDetents, selection: $detent)
+            .presentationDetents(
+                presentationDetents,
+                selection: Binding(
+                    get: {
+                        let value = detent?.wrappedValue ?? __detent
+                        if presentationDetents.contains(value) {
+                            return value
+                        } else if let first = presentationDetents.first {
+                            return first
+                        }
+                        fatalError("A valid detent must be provided")
+                    },
+                    set: { newValue in
+                        if let detent {
+                            detent.wrappedValue = newValue
+                        } else {
+                            __detent = newValue
+                        }
+                    }
+                )
+            )
             .presentationBackgroundInteraction(.enabled)
             .presentationContentInteraction(.scrolls)
             .presentationCornerRadius(20)
@@ -101,9 +129,7 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
             .background {
                 GeometryReader(content: { geometry in
                     Color.clear.onChange(of: geometry.frame(in: .global), perform: { frame in
-                        withAnimation(.interactiveSpring) {
-                            bottomInset = frame.maxY - frame.minY
-                        }
+                        contentHeight = frame.maxY - frame.minY
                     })
                 })
             }

@@ -39,9 +39,9 @@ public struct PropertyPickerRows: View {
         "Nothing yet"
     }
 
-    private func makeBody(configuration: (item: Property, source: [ObjectIdentifier: PropertyViewBuilder])) -> AnyView? {
+    private func makeBody(configuration: (item: Property, source: [ObjectIdentifier: PropertyPickerBuilder])) -> AnyView? {
         for key in configuration.source.keys where key == configuration.item.key {
-            if let view = configuration.source[key]?.view(configuration.item) {
+            if let view = configuration.source[key]?.body(configuration.item) {
                 return view
             }
         }

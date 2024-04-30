@@ -28,30 +28,7 @@ final class Context: ObservableObject {
     var title = TitlePreference.defaultValue
 
     @Published
-    var viewBuilders = [ObjectIdentifier: PropertyViewBuilder]()
+    var viewBuilders = [ObjectIdentifier: PropertyPickerBuilder]()
 
     var isEmpty: Bool { properties.isEmpty }
-}
-
-struct ContextObserver: ViewModifier {
-    @EnvironmentObject
-    private var context: Context
-
-    func body(content: Content) -> some View {
-        content.onPreferenceChange(PropertyPreference.self) { newValue in
-            if context.properties != newValue {
-                context.properties = newValue
-            }
-        }
-        .onPreferenceChange(TitlePreference.self) { newValue in
-            if context.title != newValue {
-                context.title = newValue
-            }
-        }
-        .onPreferenceChange(ViewBuilderPreference.self) { newValue in
-            if context.viewBuilders != newValue {
-                context.viewBuilders = newValue
-            }
-        }
-    }
 }

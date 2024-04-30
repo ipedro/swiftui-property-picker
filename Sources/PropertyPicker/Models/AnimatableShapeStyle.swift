@@ -20,8 +20,8 @@
 
 import SwiftUI
 
-struct ContentBackgroundContext: Equatable, Identifiable, CustomStringConvertible {
-    static func == (lhs: ContentBackgroundContext, rhs: ContentBackgroundContext) -> Bool {
+struct AnimatableShapeStyle: Equatable, Identifiable, CustomStringConvertible {
+    static func == (lhs: AnimatableShapeStyle, rhs: AnimatableShapeStyle) -> Bool {
         lhs.id == rhs.id
     }
 
@@ -37,6 +37,6 @@ struct ContentBackgroundContext: Equatable, Identifiable, CustomStringConvertibl
     }
 
     var description: String {
-        "<ContentBackgroundContext<\(styleType)> animation: \(String(describing: animation))>"
+        "<ContentBackground<\(styleType)> animation: \(String(describing: animation))>"
     }
 }
