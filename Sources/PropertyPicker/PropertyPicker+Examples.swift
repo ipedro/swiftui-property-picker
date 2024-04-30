@@ -36,10 +36,10 @@ struct SheetExample: View {
     @PropertyPickerState<ContentKey>
     private var content
 
-    @PropertyPickerEnvironment<InteractionKey>(\.isEnabled)
+    @PropertyPickerState<InteractionKey>(\.isEnabled)
     private var interaction
 
-    @PropertyPickerEnvironment<ColorSchemeKey>(\.colorScheme)
+    @PropertyPickerState<ColorSchemeKey>(\.colorScheme)
     private var colorScheme
 
     @State private var presented = false

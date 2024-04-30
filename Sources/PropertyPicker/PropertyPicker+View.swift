@@ -130,26 +130,15 @@ public extension View {
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
         PropertyPickerKeyReader(type: K.self) { value in
-            self.onChange(of: value) { newValue in
-                if state.selection != newValue {
-                    state.selection = newValue
+            if let keyPath = state.keyPath {
+                self.environment(keyPath, value.value)
+            } else {
+                self.onChange(of: value) { newValue in
+                    if state._state != newValue {
+                        state._state = newValue
+                    }
                 }
             }
-        }
-    }
-
-    /// Configures a property picker to write its value directly to the SwiftUI environment.
-    ///
-    /// This method creates a property picker that directly modifies a specified environment value. It uses the provided key path
-    /// to write the picker's current value to the environment, allowing other views in the hierarchy to react to changes.
-    ///
-    /// - Parameters:
-    /// - Parameter environmentValue: A ``PropertyPickerEnvironment`` instance which holds the current selection state and is used to update
-    ///   and react to changes in the property picker's selected value.
-    /// - Returns: A view that updates the environment value at the specified key path whenever the picker's value changes.
-    func propertyPicker<K: PropertyPickerKey>(_ environmentValue: PropertyPickerEnvironment<K>, _ key: K.Type = K.self) -> some View {
-        PropertyPickerKeyReader(type: key) { value in
-            self.environment(environmentValue.keyPath, value.value)
         }
     }
 

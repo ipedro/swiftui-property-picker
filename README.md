@@ -160,7 +160,7 @@ import SwiftUI
 import PropertyPicker
 
 struct ContentView: View {
-    @PropertyPickerEnvironment(YourPickerKey.self, \.myEnvironmentValue)
+    @PropertyPickerState(YourPickerKey.self, \.myEnvironmentValue)
     private var myEnvironmentValue
     
     var body: some View {
