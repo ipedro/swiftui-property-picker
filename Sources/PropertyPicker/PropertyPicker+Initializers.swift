@@ -21,13 +21,29 @@
 import SwiftUI
 
 public extension PropertyPicker where Style == InlinePropertyPicker {
+    /// Initializes a ``PropertyPicker`` with an inline presentation style.
+    ///
+    /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
+    /// rather than in a separate modal or layered interface. The inline style is suitable for contexts where space allows
+    /// for direct embedding of components without the need for additional navigation.
+    ///
+    /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
         self.style = .inline
     }
 }
 
+
 public extension PropertyPicker {
+    /// Initializes a ``PropertyPicker`` using a specific `ListStyle`.
+    ///
+    /// This initializer configures the property picker to display its items as a list styled according to the provided `ListStyle`.
+    /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
+    ///
+    /// - Parameters:
+    ///   - listStyle: A ``ListPropertyPicker`` instance defining the list's style.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init<S: ListStyle>(
         listStyle: ListPropertyPicker<S>,
         @ViewBuilder content: () -> Content
@@ -39,10 +55,17 @@ public extension PropertyPicker {
 
 @available(iOS 16.4, *)
 public extension PropertyPicker where Style == SheetPropertyPicker {
-    /// Initializes the dynamic value selector with the specified content and optional title.
+    /// Initializes a ``PropertyPicker`` with a sheet presentation style.
+    ///
+    /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
+    /// The sheet's size and how it reacts to different device contexts can be customized through various parameters.
     ///
     /// - Parameters:
-    ///   - content: A closure returning the content to be presented.
+    ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
+    ///   - adjustsBottomInset: A Boolean value that indicates whether the sheet should adjust its height to account for the bottom safe area.
+    ///   - detent: The default position of the sheet when it appears.
+    ///   - presentationDetents: A set of detents specifying the allowed positions that the sheet can settle into when presented.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(
         isPresented: Binding<Bool>,
         adjustsBottomInset: Bool = true,
