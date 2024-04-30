@@ -20,44 +20,18 @@
 
 import SwiftUI
 
-/// Represents a dynamic value entry with a unique identifier, title, and selectable options.
+/// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
 public struct Property: Identifiable, Equatable {
     /// A unique identifier for the entry.
-    public let id: UUID
+    public let id: ObjectIdentifier
     /// The title of the entry, used as a label in the UI.
     public let title: String
     /// A binding to the currently selected option.
     @Binding public var selection: String
     /// The options available for selection.
     public let options: [String]
-
-    let keyType: String
-
-    /// Initializes a new dynamic value entry with the specified parameters.
-    ///
-    /// - Parameters:
-    ///   - key: The property picker key type.
-    ///   - selection: A binding to the currently selected key.
-    init<Key: PropertyPickerKey>(
-        _ key: Key.Type = Key.self,
-        id: UUID = UUID(),
-        selection: Binding<Key>
-    ) {
-        self.id = id
-        self.keyType = String(describing: key)
-        self.options = Key.allCases.map(\.rawValue)
-        self.title = Key.defaultDescription
-        self._selection = Binding {
-            selection.wrappedValue.rawValue
-        } set: { rawValue in
-            if let newValue = Key(rawValue: rawValue), selection.wrappedValue != newValue {
-                selection.wrappedValue = newValue
-            }
-        }
-    }
-
     /// Determines if two entries are equal based on their identifiers.
     public static func == (lhs: Property, rhs: Property) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id && lhs.selection == rhs.selection
     }
 }

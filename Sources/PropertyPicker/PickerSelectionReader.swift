@@ -32,46 +32,42 @@ import SwiftUI
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
 struct PickerSelectionReader<K, C>: View where K: PropertyPickerKey, C: View {
 
+    /// A view builder closure that creates the content view based on the current selection.
+    /// This allows the view to reactively update in response to changes in the selection.
+    @ViewBuilder var content: (K) -> C
+
+    init(_ key: K.Type, content: @escaping (K) -> C) {
+        self.content = content
+    }
+    
     /// Internal ObservableObject for managing the dynamic selection state.
-    private class Store: ObservableObject {
-        private(set) var id = UUID()
-        @Published var selection = K.defaultCase {
-            willSet { id = UUID() }
-        }
+    private class Context: ObservableObject {
+        @Published var selection: K = K.defaultValue
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
-    @StateObject private var store = Store()
-
-    /// A view builder closure that creates the content view based on the current selection.
-    /// This allows the view to reactively update in response to changes in the selection.
-    @ViewBuilder private var content: (K.Value) -> C
+    @StateObject
+    private var context = Context()
+    
+    var body: some View {
+        content(context.selection).modifier(
+            PreferenceValueModifier<PropertyPreference>([data])
+        )
+    }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: Property {
-        Property(id: store.id, selection: $store.selection)
-    }
-
-    /// Initializes a `PropertyPickerContentView` with the specified key and content closure.
-    ///
-    /// - Parameters:
-    ///   - key: The type of the property picker key. Defaults to the key type itself if not specified.
-    ///   - content: A view builder closure that takes the current selection's value and returns the content view.
-    init(
-        _ key: K.Type = K.self,
-        @ViewBuilder content: @escaping (K.Value) -> C
-    ) {
-        self.content = content
-    }
-
-    private var selectedValue: K.Value {
-        store.selection.value
-    }
-    /// The body of the `PropertyPickerContentView`, rendering the content based on the current selection.
-    /// It uses a clear background view to capture preference changes, allowing the dynamic property picker system to react.
-    var body: some View {
-        content(selectedValue).modifier(
-            PreferenceValueModifier<PropertyPreference>([data])
+        Property(
+            id: ObjectIdentifier(K.self),
+            title: K.title,
+            selection: Binding {
+                context.selection.label
+            } set: { newValue in
+                if newValue != context.selection.label, let newValue = K(label: newValue) {
+                    context.selection = newValue
+                }
+            },
+            options: K.allCases.map(\.label)
         )
     }
 }

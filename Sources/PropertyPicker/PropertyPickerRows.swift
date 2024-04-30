@@ -39,8 +39,8 @@ public struct PropertyPickerRows: View {
         "Nothing yet"
     }
 
-    private func makeBody(configuration: (item: Property, source: [String: PropertyViewBuilder])) -> AnyView? {
-        for key in configuration.source.keys where key == configuration.item.keyType {
+    private func makeBody(configuration: (item: Property, source: [ObjectIdentifier: PropertyViewBuilder])) -> AnyView? {
+        for key in configuration.source.keys where key == configuration.item.id {
             if let view = configuration.source[key]?.view(configuration.item) {
                 return view
             }
@@ -51,8 +51,8 @@ public struct PropertyPickerRows: View {
     // TODO: move to view builder
     private func defaultPicker(configuration property: Property) -> some View {
         Picker(property.title, selection: property.$selection) {
-            ForEach(property.options, id: \.self) { item in
-                Text(item).tag(item)
+            ForEach(property.options, id: \.self) { option in
+                Text(option).tag(option)
             }
         }
     }

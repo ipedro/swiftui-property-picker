@@ -39,14 +39,14 @@ public extension View {
         for key: K.Type = K.self,
         @ViewBuilder body: @escaping (_ property: Property) -> Row
     ) -> some View {
-        let keyType = String(describing: key)
+        let id = ObjectIdentifier(key)
         let viewBuilder = PropertyViewBuilder { someProp in
-            if someProp.keyType == String(describing: key) {
+            if someProp.id == id {
                 return AnyView(body(someProp))
             }
             return nil
         }
-        let value = [keyType: viewBuilder]
+        let value = [id: viewBuilder]
         return setPreferenceChange(
             ViewBuilderPreference.self,
             value: value
@@ -73,56 +73,18 @@ public extension View {
         )
     }
 
-    /// Adds a dynamic property selection capability to the view using a `PropertyPickerState`.
+    /// Adds a dynamic property selection capability to the view using a ``PropertyPickerKey``.
     ///
     /// This allows the view to update its state based on user selection from a set of predefined options.
     ///
     /// - Parameters:
-    ///   - pickerState: A `PropertyPickerState` instance representing the current selection state.
+    ///   - state: A ``PropertyPickerState`` instance representing the current selection state.
     ///
     /// - Returns: A view that updates its state based on the selected property value.
-    func propertyPicker<Key: PropertyPickerKey>(
-        _ pickerState: PropertyPickerState<Key>
-    ) -> some View where Key.Value: Equatable {
-        PickerSelectionReader(pickerState.key) { initialValue in
-            onChange(of: initialValue) { newValue in
-                pickerState.state = newValue
-            }
-        }
-    }
-
-    /// Adds a dynamic property selection capability to the view using a `PropertyPickerEnvironment`.
-    ///
-    /// This allows the view to update its state based on user selection from a set of predefined options.
-    ///
-    /// - Parameters:
-    ///   - pickerEnvironment: A `PropertyPickerEnvironment` instance representing the current selection state.
-    ///
-    /// - Returns: A view that updates its state based on the selected property value.
-    func propertyPicker<Key: PropertyPickerKey>(
-        _ pickerEnvironment: PropertyPickerEnvironment<Key>
-    ) -> some View where Key.Value: Equatable {
-        PickerSelectionReader(pickerEnvironment.key) { value in
-            environment(pickerEnvironment.keyPath, value)
-        }
-    }
-
-    /// Adds a dynamic property selector to the view for a specific state binding.
-    ///
-    /// This variant uses a `Binding` to directly modify a property on the view's state.
-    ///
-    /// - Parameters:
-    ///   - key: The type of the property picker key.
-    ///   - state: A binding to the property's current value.
-    ///
-    /// - Returns: A modified view that reflects changes to the selected property.
-    func propertyPicker<Key: PropertyPickerKey>(
-        _ key: Key.Type,
-        _ value: Binding<Key.Value>
-    ) -> some View where Key.Value: Equatable {
-        PickerSelectionReader(key) { initialValue in
-            onChange(of: initialValue) { newValue in
-                value.wrappedValue = newValue
+    func propertyPicker<K: PropertyPickerKey>(_ state: PropertyPickerState<K>) -> some View where K: Equatable {
+        PickerSelectionReader(K.self) { selection in
+            onChange(of: selection) { newValue in
+                state._state = newValue
             }
         }
     }
@@ -133,15 +95,12 @@ public extension View {
     ///
     /// - Parameters:
     ///   - key: The type of the property picker key.
-    ///   - environmentKeyPath: The key path to the specific environment value to modify.
+    ///   - keyPath: The key path to the specific environment value to modify.
     ///
     /// - Returns: A view that modifies an environment value based on the selected property.
-    func propertyPicker<Key: PropertyPickerKey>(
-        _ key: Key.Type,
-        _ environmentKeyPath: WritableKeyPath<EnvironmentValues, Key.Value>
-    ) -> some View {
-        PickerSelectionReader(key) { value in
-            environment(environmentKeyPath, value)
+    func propertyPicker<K: PropertyPickerKey>( _ key: K.Type, _ keyPath: WritableKeyPath<EnvironmentValues, K.Value>) -> some View {
+        PickerSelectionReader(key) { selection in
+            environment(keyPath, selection.value)
         }
     }
 

@@ -67,27 +67,48 @@ public struct PropertyPicker<Content: View>: View {
 
 // MARK: - Preview
 
+@available(iOS 16.0, *)
+#Preview(body: {
+    Example()
+})
+
 #if DEBUG
 @available(iOS 16.0, *)
-struct Example: PreviewProvider {
+struct Example: View {
+    @PropertyPickerState<Content>
+    private var content
 
-    static var previews: some View {
+    var body: some View {
         PropertyPicker {
             Button {
                 //
             } label: {
-                Text("Button")
+                switch content {
+                case .image:
+                    Image(systemName: "circle")
+                case .text:
+                    Text("Button")
+                }
             }
             .buttonStyle(.bordered)
             .propertyPicker(UserInteractionKey.self, \.isEnabled)
             .propertyPicker(ColorSchemeKey.self, \.colorScheme)
-            .propertyPickerListContentBackground(Color.blue)
-            .propertyPickerListContentBackground(Color.red)
+            .propertyPicker($content)
+//            .propertyPickerListContentBackground(Color.blue)
+//            .propertyPickerListContentBackground(Color.red)
         }
         .propertyPickerStyle(.list)
     }
 
+    enum Content: String, PropertyPickerKey {
+        static var defaultValue: Example.Content = .text
+
+        case text, image
+    }
+
     enum UserInteractionKey: String, PropertyPickerKey {
+        static var defaultValue: Example.UserInteractionKey = .Enabled
+
         case Enabled, Disabled
 
         var value: Bool {
@@ -99,6 +120,8 @@ struct Example: PreviewProvider {
     }
 
     enum ColorSchemeKey: String, PropertyPickerKey {
+        static var defaultValue: Example.ColorSchemeKey = .Light
+
         case Light, Dark
 
         var value: ColorScheme {

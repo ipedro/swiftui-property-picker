@@ -19,42 +19,85 @@
 //  SOFTWARE.
 
 import Foundation
+import SwiftUI
 
-// MARK: - PropertyPickerKey Protocol
+/// A protocol for defining keys used in property pickers.
+///
+/// This protocol allows for the creation of selectable property lists, where each property is
+/// associated with a specific value and label.
+///
+/// `PropertyPickerKey` requires conforming types to be enumerable, meaning all possible instances
+/// are available and can be iterated over, typically used in scenarios where a user might select
+/// a property from a list.
+///
+/// - Requires: Conforming types must be enumerable (`CaseIterable`).
+public protocol PropertyPickerKey: Identifiable, CaseIterable where AllCases == [Self] {
+    /// The type of value that the property represents.
+    associatedtype Value = Self
 
-/// Defines the requirements for a type to act as a key in the property picker system.
-/// Each key represents a property that can be dynamically adjusted within a SwiftUI view.
-public protocol PropertyPickerKey<Value>: RawRepresentable, CaseIterable, Hashable where AllCases.Element: RawRepresentable<String> {
-    /// The associated value type that the key controls.
-    associatedtype Value
-    /// The default case to use when no other value is specified.
-    static var defaultCase: AllCases.Element { get }
-    /// A user-friendly description of the key. Used in UI elements like labels.
-    static var defaultDescription: String { get }
-    /// The current value associated with the key. This value is used to update the view's state.
-    var value: Value { get }
+    /// A title for the property group, typically used as a section header or similar in UI.
+    static var title: String { get }
+
+//    /// The current value of the property. This can be used to retrieve or set the property.
+//    static var currentValue: Self { get set }
+
+    /// The default value of the property. This can be used to retrieve or set the property.
+    static var defaultValue: Self { get }
+
+    /// A human-readable label for each property, typically used for display in the UI.
+    var label: String { get }
+
+    /// The specific value associated with a property instance.
+    var value: Self.Value { get }
+
+    /// Initializes a new instance of the conforming type using a label.
+    ///
+    /// - Parameter label: The label string used to identify and initialize the property key.
+    /// - Returns: An optional instance of the conforming type.
+    /// - Important: The implementation should return `nil` if no corresponding property key can be found for the given label.
+    init?(label: String)
+}
+
+// MARK: - Default Title
+
+public extension PropertyPickerKey {
+    var id: String { label }
+
+    /// Generates a user-friendly description by adding spaces before capital letters in the type name.
+    static var title: String {
+        String(describing: Self.self).addingSpacesToCamelCase()
+    }
 }
 
 public extension PropertyPickerKey where Value == Self {
     var value: Self { self }
 }
 
-/// Provides default implementations for the `PropertyPickerKey` protocol,
-/// ensuring a minimal configuration is required for conforming types.
-public extension PropertyPickerKey {
-    /// Returns the first case as the default selection if available, otherwise triggers a runtime error.
-    static var defaultCase: Self {
-        guard let first = allCases.first else {
-            fatalError("\(Self.self) requires at least one case.")
-        }
-        return first
+// MARK: - Raw Representable
+
+public extension PropertyPickerKey where Self: RawRepresentable<String> {
+    var label: String {
+        rawValue
     }
 
-    /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    static var defaultDescription: String {
-        String(describing: Self.self).addingSpacesToCamelCase()
+    init?(label: String) {
+        self.init(rawValue: label)
     }
 }
+
+extension PropertyPickerKey {
+//    static var selection: Binding<String> {
+//        Binding {
+//            currentValue.label
+//        } set: { newValue in
+//            if newValue != currentValue.label, let newValue = Self(label: newValue) {
+//                currentValue = newValue
+//            }
+//        }
+//    }
+}
+
+// MARK: - Private Helpers
 
 /// Extension to `String` for improving readability of camelCase strings by adding spaces.
 private extension String {
@@ -70,6 +113,11 @@ private extension String {
     ///
     /// - Returns: A new string with spaces added before each uppercase letter.
     func addingSpacesToCamelCase() -> String {
-        self.replacingOccurrences(of: "(?<=[a-z])(?=[A-Z])", with: " $0", options: .regularExpression, range: self.range(of: self))
+        replacingOccurrences(
+            of: "(?<=[a-z])(?=[A-Z])",
+            with: " $0",
+            options: .regularExpression,
+            range: range(of: self)
+        )
     }
 }

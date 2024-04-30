@@ -42,13 +42,13 @@ import PropertyPicker
 
 // Define a custom view that users can adjust using property pickers
 struct AdjustablePreviewView: View {
-    @PropertyPickerState(FontSizeKey.self)
+    @PropertyPickerState<FontSizeKey>
     private var fontSize
 
-    @PropertyPickerState(ColorSchemeKey.self)
+    @PropertyPickerState<ColorSchemeKey>
     private var colorScheme
 
-    @PropertyPickerState(DisabledStateKey.self)
+    @PropertyPickerState<DisabledStateKey>
     private var isButtonDisabled
     
     var body: some View {
@@ -143,7 +143,7 @@ import SwiftUI
 import PropertyPicker
 
 struct ContentView: View {
-    @PropertyPickerState(YourPickerKey.self)
+    @PropertyPickerState<YourPickerKey>
     private var myValue
     
     var body: some View {
@@ -203,7 +203,7 @@ import SwiftUI
 import PropertyPicker
 
 struct DynamicFontSizeView: View {
-    @PropertyPickerState(FontSizeKey.self)
+    @PropertyPickerState<FontSizeKey>
     private var fontSize
     
     var body: some View {

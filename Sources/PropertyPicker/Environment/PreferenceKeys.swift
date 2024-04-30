@@ -41,8 +41,8 @@ struct ContentBackgroundPreference: PreferenceKey {
 }
 
 struct ViewBuilderPreference: PreferenceKey {
-    static let defaultValue = [String: PropertyViewBuilder]()
-    static func reduce(value: inout [String: PropertyViewBuilder], nextValue: () -> [String: PropertyViewBuilder]) {
+    static let defaultValue = [ObjectIdentifier: PropertyViewBuilder]()
+    static func reduce(value: inout [ObjectIdentifier: PropertyViewBuilder], nextValue: () -> [ObjectIdentifier: PropertyViewBuilder]) {
         value.merge(nextValue()) { content, _ in
             content
         }

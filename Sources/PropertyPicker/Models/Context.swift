@@ -31,7 +31,7 @@ final class Context: ObservableObject {
     var bottomInset: Double = 0
 
     @Published
-    var viewBuilders = [String: PropertyViewBuilder]()
+    var viewBuilders = [ObjectIdentifier: PropertyViewBuilder]()
 
     var isEmpty: Bool { properties.isEmpty }
 }
