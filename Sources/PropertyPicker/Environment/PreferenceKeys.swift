@@ -78,6 +78,6 @@ struct PropertyPreference: PreferenceKey {
 
     /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
     static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
-        value = nextValue().union(value)
+        value.formUnion(nextValue())
     }
 }

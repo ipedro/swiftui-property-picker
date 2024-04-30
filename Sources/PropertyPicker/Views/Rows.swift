@@ -36,10 +36,9 @@ struct Rows: View {
     }
 
     private func makeBody(configuration property: Property) -> AnyView? {
-        for key in context.rowBuilders.keys where key == property.id {
-            if let body = context.rowBuilders[key]?.body(property) {
-                return body
-            }
+        if let customBuilder = context.rowBuilders[property.id] {
+            let body = customBuilder.body(property)
+            return body
         }
         return nil
     }

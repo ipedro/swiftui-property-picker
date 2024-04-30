@@ -74,17 +74,13 @@ public extension View {
         for key: K.Type = K.self,
         @ViewBuilder body: @escaping (_ property: Property) -> Row
     ) -> some View {
-        let id = ObjectIdentifier(key)
-        let viewBuilder = PropertyPickerBuilder { someProp in
-            if someProp.key == id {
-                return AnyView(body(someProp))
-            }
-            return nil
+        let id = PropertyPickerID(key)
+        let viewBuilder = PropertyPickerBuilder(id: id) { someProp in
+            return AnyView(body(someProp))
         }
-        let value = [id: viewBuilder]
         return self.setPreference(
             ViewBuilderPreference.self,
-            value: value
+            value: [id: viewBuilder]
         )
     }
 
