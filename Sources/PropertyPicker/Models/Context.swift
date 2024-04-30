@@ -29,7 +29,7 @@ final class Context: ObservableObject {
     /// The current title of the property picker, with a default value provided by `TitlePreference`.
     /// This title is observed by the UI components for updates.
     @Published
-    var title = TitlePreference.defaultValue
+    var title: Text?
 
     /// A collection of `Property` objects that are currently active or selected in the UI.
     /// Changes to this set trigger UI updates where this context is observed.

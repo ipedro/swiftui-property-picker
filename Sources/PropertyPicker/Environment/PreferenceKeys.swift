@@ -27,10 +27,13 @@ import SwiftUI
 /// their own title.
 struct TitlePreference: PreferenceKey {
     /// The default title shown if no other title is specified by child views.
-    static var defaultValue: Text? = Text("Properties")
+    static var defaultValue: Text?
 
-    /// Reduces values along the view hierarchy into a single value, leaving the title unchanged from the first view that sets it.
-    static func reduce(value: inout Text?, nextValue: () -> Text?) {}
+    static func reduce(value: inout Text?, nextValue: () -> Text?) {
+        if let nextValue = nextValue() {
+            value = nextValue
+        }
+    }
 }
 
 /// A preference key for storing context about the background style of content.
