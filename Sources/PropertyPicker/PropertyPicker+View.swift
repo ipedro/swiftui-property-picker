@@ -125,7 +125,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: Equatable {
-        PropertyContainer(type: K.self) { data in
+        PropertySelector(type: K.self) { data in
             self.onChange(of: data) { newValue in
                 picker.storage.state = newValue
             }
@@ -142,7 +142,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: Equatable {
-        PropertyContainer(type: K.self) { data in
+        PropertySelector(type: K.self) { data in
             self.environment(picker.storage.keyPath, data.value)
         }
     }

@@ -20,7 +20,7 @@
 
 import SwiftUI
 
-/// `PropertyPickerKeyReader` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// `PropertySelector` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
 /// updates the UI accordingly when a new selection is made.
 ///
@@ -30,7 +30,7 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyContainer<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
+struct PropertySelector<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
     let `type`: Key.Type
 
     /// A view builder closure that creates the content view based on the current selection.
@@ -50,9 +50,7 @@ struct PropertyContainer<Key, Content>: View where Key: PropertyPickerKey & Equa
     private var changes = 0
 
     var body: some View {
-        content(key).modifier(
-            PreferenceKeyModifier<PropertyPreference>([data])
-        )
+        content(key).setPreference(PropertyPreference.self, value: [data])
     }
 
     private var key: Key {
