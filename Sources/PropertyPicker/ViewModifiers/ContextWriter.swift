@@ -24,7 +24,7 @@ import SwiftUI
 ///
 /// This modifier listens for changes in specified preference keys and updates the corresponding properties
 /// in the `Context` object. It ensures that the `Context` stays in sync with the UI elements that might modify these properties.
-struct ContextUpdater: ViewModifier {
+struct ContextWriter: ViewModifier {
     @EnvironmentObject
     private var context: Context  // Shared context object.
 
