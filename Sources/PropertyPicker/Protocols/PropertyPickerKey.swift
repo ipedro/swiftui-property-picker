@@ -35,8 +35,9 @@ To conform to `PropertyPickerKey`, a type must satisfy several requirements, whi
 ## Properties
 
 - `title`: A static property providing a descriptive title for this property. A default value is provided.
-- `defaultValue`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
-- `value`: Each instance of a conforming type provides a specific value associated with the property key.
+- `defaultSelection`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
+ - `label`: The label that describes this property instance. If no label is defined, the `rawValue` used instead.
+ - `value`: Each instance of a conforming type provides a specific value associated with the property key.
 
 ## Implementation Example
 
@@ -49,7 +50,7 @@ enum TextAlignmentKey: String, PropertyPickerKey {
     case right = "Right"
 }
 ```
- - Warning: If `allCases` is empty and no `defaultValue` is explicitly provided, a `fatalError()` is thrown in runtime.
+ - Warning: If `allCases` is empty and no `defaultSelection` is explicitly provided, a `fatalError()` is thrown in runtime.
 
 ## Usage
 
@@ -83,18 +84,28 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable, Ident
     static var title: String { get }
 
     /// The default value of the property. This is used both to provide a default state and to reset the property's value.
-    static var defaultValue: Self { get }
+    static var defaultSelection: Self { get }
 
     /// The specific value associated with an instance of this property. This allows for storing additional metadata or
     /// specifics about the property beyond its enumeration case.
     var value: Self.Value { get }
+
+    /// The label that describes this property instance. If no label is defined, the `rawValue` used instead.
+    var label: String { get }
+}
+
+// MARK: - Default Label
+
+extension PropertyPickerKey {
+    /// Default label is the `rawValue`.
+    public var label: String { rawValue }
 }
 
 // MARK: - Default Title
 
-public extension PropertyPickerKey {
+extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    static var title: String {
+    public static var title: String {
         String(describing: Self.self)
             .removingSuffix("Key")
             .addingSpacesToCamelCase()
@@ -103,9 +114,9 @@ public extension PropertyPickerKey {
 
 // MARK: - Default Value
 
-public extension PropertyPickerKey {
+extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    static var defaultValue: Self {
+    public static var defaultSelection: Self {
         guard let first = allCases.first else {
             fatalError("Keys should have at least one valid option")
         }
@@ -115,14 +126,14 @@ public extension PropertyPickerKey {
 
 // MARK: - Default Identifier
 
-public extension PropertyPickerKey {
-    var id: RawValue { rawValue }
+extension PropertyPickerKey {
+    public var id: RawValue { rawValue }
 }
 
 // MARK: - Default Value
 
-public extension PropertyPickerKey where Value == Self {
-    var value: Self { self }
+extension PropertyPickerKey where Value == Self {
+    public var value: Self { self }
 }
 
 // MARK: - Private Helpers

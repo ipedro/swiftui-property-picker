@@ -29,8 +29,14 @@ public struct Property: Identifiable {
     public let title: String
     
     /// The options available for selection.
-    public let options: [String]
-    
+    public let options: [Option]
+
+    public struct Option: Identifiable {
+        public var id: String { rawValue }
+        let label: String
+        let rawValue: String
+    }
+
     /// Signal view updates
     let changeToken: Int
     

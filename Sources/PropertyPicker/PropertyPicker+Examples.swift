@@ -71,7 +71,7 @@ enum ContentKey: String, PropertyPickerKey {
 }
 
 enum InteractionKey: String, PropertyPickerKey {
-    static var defaultValue: InteractionKey = .Enabled
+    static var defaultSelection: InteractionKey = .Enabled
     case Disabled, Enabled
 
     var value: Bool {

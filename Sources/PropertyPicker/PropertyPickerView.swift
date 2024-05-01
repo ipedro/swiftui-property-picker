@@ -32,16 +32,12 @@ public struct PropertyPickerView<Content: View, Style: PropertyPickerStyle>: Vie
     var style: Style
 
     /// A view modifier that updates a shared context with changes from preference keys.
-    private var updater = ContextWriter()
-
-    /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
-    @StateObject private var context = Context()
+    private var context = Context()
 
     /// The body of the dynamic value selector, presenting the content using the current selector style.
     public var body: some View {
         content
             .modifier(style)
-            .modifier(updater)
-            .environmentObject(context)
+            .modifier(context)
     }
 }

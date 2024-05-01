@@ -90,7 +90,7 @@ public protocol _PropertyPickerStorage: DynamicProperty {
 
 public struct _LocalStorage<Key: PropertyPickerKey>: _PropertyPickerStorage {
     @State
-    var state: Key = Key.defaultValue
+    var state: Key = Key.defaultSelection
     
     public var currentValue: Key.Value {
         state.value

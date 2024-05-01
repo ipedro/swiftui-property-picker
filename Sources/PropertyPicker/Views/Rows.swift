@@ -23,7 +23,7 @@ import SwiftUI
 /// Represents the dynamic value entries within the selector.
 struct Rows: View {
     @EnvironmentObject
-    private var context: Context
+    private var context: Context.Data
 
     var body: some View {
         ForEach(context.rows.sorted()) { property in
@@ -50,8 +50,8 @@ struct Row: View {
     var body: some View {
         Row._printChanges()
         return Picker(data.title, selection: data.$selection) {
-            ForEach(data.options, id: \.self) { option in
-                Text(option)
+            ForEach(data.options) { option in
+                Text(option.label)
             }
         }
     }

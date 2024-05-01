@@ -39,7 +39,7 @@ struct PropertySelector<Key, Content>: View where Key: PropertyPickerKey & Equat
     
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Selection: ObservableObject {
-        @Published var currentValue = Key.defaultValue
+        @Published var currentValue = Key.defaultSelection
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
@@ -62,7 +62,9 @@ struct PropertySelector<Key, Content>: View where Key: PropertyPickerKey & Equat
         Property(
             id: PropertyPickerID(Key.self),
             title: Key.title,
-            options: Key.allCases.map(\.rawValue),
+            options: Key.allCases.map {
+                Property.Option(label: $0.label, rawValue: $0.rawValue)
+            },
             changeToken: changes,
             selection: Binding(
                 get: {
