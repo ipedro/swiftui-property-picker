@@ -153,10 +153,10 @@ public extension View {
     /// which is particularly useful for views like property pickers that might need to dynamically adjust
     /// their layout in response to on-screen keyboards or other overlaying UI elements.
     ///
-    /// - Parameter style: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
+    /// - Parameter adjustment: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
     /// - Returns: A view modified with the specified safe area adjustment style.
-    func propertyPickerSafeAreaAdjustmentStyle(_ style: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
-        self.environment(\.safeAreaAdjustment, style)
+    func propertyPickerSafeAreaAdjustment(_ adjustment: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
+        self.environment(\.safeAreaAdjustment, adjustment)
     }
 
     /// Sets the available detents for the picker when presented as a sheet.

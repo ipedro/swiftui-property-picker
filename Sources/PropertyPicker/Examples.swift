@@ -45,7 +45,7 @@ struct ExampleSheet: View {
     @State private var presented = false
 
     var body: some View {
-        PropertyPickerView(isPresented: $presented) {
+        PropertyPickerReader(isPresented: $presented) {
             Button {
                 presented.toggle()
             } label: {
@@ -92,6 +92,4 @@ enum ColorSchemeKey: String, PropertyPickerKey {
         }
     }
 }
-
-
 #endif

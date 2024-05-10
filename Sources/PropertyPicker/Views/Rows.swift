@@ -43,16 +43,3 @@ struct Rows: View {
         return nil
     }
 }
-
-struct Row: View {
-    var data: Property
-
-    var body: some View {
-        Row._printChanges()
-        return Picker(data.title, selection: data.$selection) {
-            ForEach(data.options) { option in
-                Text(option.label)
-            }
-        }
-    }
-}
