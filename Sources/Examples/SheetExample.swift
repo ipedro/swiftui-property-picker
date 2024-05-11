@@ -20,8 +20,8 @@
 
 import Foundation
 import SwiftUI
+import PropertyPicker
 
-#if DEBUG
 // MARK: - Sheet Example
 
 @available(iOS 16.4, *)
@@ -92,4 +92,4 @@ enum ColorSchemeKey: String, PropertyPickerKey {
         }
     }
 }
-#endif
+

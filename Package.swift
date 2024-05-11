@@ -11,11 +11,20 @@ let package = Package(
     products: [
         .library(
             name: "PropertyPicker",
-            targets: ["PropertyPicker"]),
+            targets: ["PropertyPicker"]
+        ),
+        .library(
+            name: "Examples",
+            targets: ["Examples"]
+        ),
     ],
     targets: [
         .target(
             name: "PropertyPicker"
+        ),
+        .target(
+            name: "Examples",
+            dependencies: ["PropertyPicker"]
         ),
     ]
 )
