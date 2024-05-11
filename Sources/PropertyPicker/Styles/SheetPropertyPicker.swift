@@ -59,13 +59,12 @@ public struct SheetPropertyPicker: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         content
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                Spacer().frame(height: safeAreaInset).transaction { transaction in
-                    transaction.animation = transaction.animation ?? animation
-                }
+                Spacer().frame(height: safeAreaInset)
             }
             .toolbar(content: {
                 ToolbarButton(isPresented: $isPresented)
             })
+            .animation(animation, value: safeAreaInset)
             .overlay(
                 Spacer().sheet(isPresented: $isPresented) {
                     configureList(
