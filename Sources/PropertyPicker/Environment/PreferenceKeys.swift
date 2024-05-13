@@ -42,42 +42,42 @@ struct TitlePreference: PreferenceKey {
 /// the background style and optional animations. It is useful for applying consistent styling across multiple views.
 struct ContentBackgroundStylePreference: PreferenceKey {
     /// The default value for the background context, initially nil indicating no background is applied.
-    static var defaultValue: AnimatableBox<AnyShapeStyle>?
+    static var defaultValue: AnimationBox<AnyShapeStyle>?
 
     /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
-    static func reduce(value: inout AnimatableBox<AnyShapeStyle>?, nextValue: () -> AnimatableBox<AnyShapeStyle>?) {
+    static func reduce(value: inout AnimationBox<AnyShapeStyle>?, nextValue: () -> AnimationBox<AnyShapeStyle>?) {
         if let nextValue = nextValue() {
             value = nextValue
         }
     }
 }
 
-/// A preference key for storing a dictionary of `PropertyPickerBuilder` instances indexed by `ObjectIdentifier`.
+/// A preference key for storing a dictionary of `PropertyRowBuilder` instances indexed by `ObjectIdentifier`.
 ///
 /// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
 /// It allows different parts of an application to specify custom builders for rendering specific property types.
 struct ViewBuilderPreference: PreferenceKey {
     /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
-    static let defaultValue = [PropertyPickerID: PropertyPickerBuilder]()
+    static let defaultValue = [PropertyID: PropertyRowBuilder]()
 
     /// Merges view builders provided by child views, preferring the builder set closest to the root.
-    static func reduce(value: inout [PropertyPickerID: PropertyPickerBuilder], nextValue: () -> [PropertyPickerID: PropertyPickerBuilder]) {
+    static func reduce(value: inout [PropertyID: PropertyRowBuilder], nextValue: () -> [PropertyID: PropertyRowBuilder]) {
         value.merge(nextValue()) { content, _ in
             content
         }
     }
 }
 
-/// A preference key for storing a set of `Property` objects.
+/// A preference key for storing a set of `PropertyData` objects.
 ///
 /// This preference key is designed to collect properties from various parts of the view hierarchy into a single set.
 /// It is useful for aggregating properties that need to be accessible at a higher level in the application.
 struct PropertyPreference: PreferenceKey {
     /// The default value, an empty set, indicates that no properties are collected initially.
-    static var defaultValue: Set<Property> = []
+    static var defaultValue: Set<PropertyData> = []
 
     /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
-    static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
+    static func reduce(value: inout Set<PropertyData>, nextValue: () -> Set<PropertyData>) {
         value.formUnion(nextValue())
     }
 }

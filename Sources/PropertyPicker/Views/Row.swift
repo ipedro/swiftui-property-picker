@@ -21,7 +21,7 @@
 import SwiftUI
 
 struct Row: View {
-    var data: Property
+    var data: PropertyData
 
     var body: some View {
         Row._printChanges()

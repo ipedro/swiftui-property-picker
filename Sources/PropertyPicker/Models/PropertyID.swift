@@ -20,7 +20,7 @@
 
 import Foundation
 
-/// `PropertyPickerID` provides a unique identifier for property picker elements,
+/// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
 /// across different components of an application.
 ///
@@ -31,7 +31,7 @@ import Foundation
 ///
 /// Usage of this ID is crucial in scenarios where properties need to be dynamically
 /// managed and accessed across various UI components or data handling layers.
-public struct PropertyPickerID: Hashable {
+public struct PropertyID: Hashable {
     /// The underlying value storing the unique identifier based on type information.
     private let value: ObjectIdentifier
 

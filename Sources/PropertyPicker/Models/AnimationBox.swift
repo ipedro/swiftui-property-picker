@@ -28,15 +28,15 @@ import SwiftUI
 /// requirements for identifying views in a list or similar collection.
 ///
 /// - Parameter Data: The type of the data to be stored and possibly animated.
-struct AnimatableBox<Data>: Equatable, Identifiable {
+struct AnimationBox<Data>: Equatable, Identifiable {
     /// Conforms to the Equatable protocol, allowing SwiftUI to determine when the box's contents have changed.
     /// Compares two instances based on their unique identifiers.
     ///
     /// - Parameters:
-    ///   - lhs: The left-hand side `AnimatableBox` instance for comparison.
-    ///   - rhs: The right-hand side `AnimatableBox` instance for comparison.
+    ///   - lhs: The left-hand side `AnimationBox` instance for comparison.
+    ///   - rhs: The right-hand side `AnimationBox` instance for comparison.
     /// - Returns: A Boolean value indicating whether the two instances are considered equivalent.
-    static func == (lhs: AnimatableBox<Data>, rhs: AnimatableBox<Data>) -> Bool {
+    static func == (lhs: AnimationBox<Data>, rhs: AnimationBox<Data>) -> Bool {
         lhs.id == rhs.id
     }
 

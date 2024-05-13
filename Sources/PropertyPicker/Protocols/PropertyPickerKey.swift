@@ -22,7 +22,7 @@ import Foundation
 import SwiftUI
 
 /**
-`PropertyPickerKey` encapsulates the essentials of property management within a picker interface. Conforming to this protocol enables types to be used seamlessly in conjunction with ``PropertyPickerReader``.
+`PropertyPickerKey` encapsulates the essentials of property management within a picker interface. Conforming to this protocol enables types to be used seamlessly in conjunction with ``PropertyPicker``.
 
 ## Conformance
 

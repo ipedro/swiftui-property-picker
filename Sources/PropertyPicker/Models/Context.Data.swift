@@ -32,8 +32,8 @@ extension Context {
 
         // Properties
         private var _title: Text? = TitlePreference.defaultValue
-        private var _rows: Set<Property> = []
-        private var _rowBuilders: [PropertyPickerID: PropertyPickerBuilder] = [:]
+        private var _rows: Set<PropertyData> = []
+        private var _rowBuilders: [PropertyID: PropertyRowBuilder] = [:]
 
         // Public facing properties
         var title: Text? {
@@ -46,7 +46,7 @@ extension Context {
             }
         }
 
-        var rows: Set<Property> {
+        var rows: Set<PropertyData> {
             get { _rows }
             set {
                 guard _rows != newValue else { return }
@@ -56,7 +56,7 @@ extension Context {
             }
         }
 
-        var rowBuilders: [PropertyPickerID: PropertyPickerBuilder] {
+        var rowBuilders: [PropertyID: PropertyRowBuilder] {
             get { _rowBuilders }
             set {
                 guard _rowBuilders != newValue else { return }

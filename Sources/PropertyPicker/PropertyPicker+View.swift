@@ -30,15 +30,15 @@ public extension View {
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S: ShapeStyle>(
+    func propertyPickerListContentBackground<S>(
         _ style: S?,
         _ animation: Animation? = nil
-    ) -> some View {
+    ) -> some View where S: ShapeStyle {
         self.setPreference(
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
-                return AnimatableBox(animation, AnyShapeStyle(style))
+                return AnimationBox(animation, AnyShapeStyle(style))
             }()
         )
     }
@@ -52,13 +52,13 @@ public extension View {
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S: ShapeStyle>(
+    func propertyPickerListContentBackground<S>(
         _ style: S,
         _ animation: Animation? = nil
-    ) -> some View {
+    ) -> some View where S: ShapeStyle {
         self.setPreference(
             ContentBackgroundStylePreference.self,
-            value: AnimatableBox(animation, AnyShapeStyle(style))
+            value: AnimationBox(animation, AnyShapeStyle(style))
         )
     }
 
@@ -69,13 +69,13 @@ public extension View {
     ///
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
-    ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
-    func propertyPicker<K: PropertyPickerKey, Row: View>(
+    ///   - body: A closure that takes a `PropertyData` instance and returns a view (`Row`) for that property.
+    func propertyPicker<K, Row>(
         for key: K.Type = K.self,
-        @ViewBuilder body: @escaping (_ property: Property) -> Row
-    ) -> some View {
-        let id = PropertyPickerID(key)
-        let viewBuilder = PropertyPickerBuilder(id: id) { someProp in
+        @ViewBuilder body: @escaping (_ data: PropertyData) -> Row
+    ) -> some View where K: PropertyPickerKey, Row: View {
+        let id = PropertyID(key)
+        let viewBuilder = PropertyRowBuilder(id: id) { someProp in
             return AnyView(body(someProp))
         }
         return self.setPreference(
@@ -115,35 +115,35 @@ public extension View {
         )
     }
 
-    /// Integrates a property picker with a view model state to automatically update the selected value.
+    /// Registers this view for receiving selection updates of a property.
     ///
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter state: A ``PropertyPicker`` instance which holds the current selection state and is used to update
+    /// - Parameter property: A ``PropertyPicker`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: Equatable {
+    func property<K>(_ property: Property<K, _LocalStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertySelector(type: K.self) { data in
             self.onChange(of: data) { newValue in
-                picker.storage.state = newValue
+                property.storage.state = newValue
             }
         }
     }
 
-    /// Integrates a property picker with a view model state to automatically update the selected value.
+    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
     ///
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter state: A ``PropertyPicker`` instance which holds the current selection state and is used to update
+    /// - Parameter property: A ``PropertyPicker`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K: PropertyPickerKey>(_ picker: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: Equatable {
+    func property<K>(_ property: Property<K, _EnvironmentStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertySelector(type: K.self) { data in
-            self.environment(picker.storage.keyPath, data.value)
+            self.environment(property.storage.keyPath, data.value)
         }
     }
 

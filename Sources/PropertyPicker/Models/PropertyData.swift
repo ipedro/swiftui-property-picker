@@ -21,9 +21,9 @@
 import SwiftUI
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
-public struct Property: Identifiable {
+public struct PropertyData: Identifiable {
     /// A unique identifier for the entry.
-    public let id: PropertyPickerID
+    public let id: PropertyID
     
     /// The title of the entry, used as a label in the UI.
     public let title: String
@@ -44,22 +44,22 @@ public struct Property: Identifiable {
     @Binding public var selection: String
 }
 
-extension Property: Equatable {
+extension PropertyData: Equatable {
     /// Determines if two entries are equal based on their identifiers.
-    public static func == (lhs: Property, rhs: Property) -> Bool {
+    public static func == (lhs: PropertyData, rhs: PropertyData) -> Bool {
         lhs.id == rhs.id && lhs.changeToken == rhs.changeToken
     }
 }
 
-extension Property: Hashable {
+extension PropertyData: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(changeToken)
     }
 }
 
-extension Property: Comparable {
-    public static func < (lhs: Property, rhs: Property) -> Bool {
+extension PropertyData: Comparable {
+    public static func < (lhs: PropertyData, rhs: PropertyData) -> Bool {
         lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
     }
 }

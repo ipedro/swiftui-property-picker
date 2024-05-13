@@ -33,19 +33,19 @@ import PropertyPicker
 
 @available(iOS 16.4, *)
 struct ExampleSheet: View {
-    @PropertyPicker(ContentKey.self)
+    @Property(ContentKey.self)
     private var content
 
-    @PropertyPicker(\.isEnabled, InteractionKey.self)
+    @Property(\.isEnabled, InteractionKey.self)
     private var interaction
 
-    @PropertyPicker(\.colorScheme, ColorSchemeKey.self)
+    @Property(\.colorScheme, ColorSchemeKey.self)
     private var colorScheme
 
     @State private var presented = false
 
     var body: some View {
-        PropertyPickerReader(isPresented: $presented) {
+        PropertyPicker(isPresented: $presented) {
             Button {
                 presented.toggle()
             } label: {
@@ -57,9 +57,9 @@ struct ExampleSheet: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPicker($interaction)
-            .propertyPicker($colorScheme)
-            .propertyPicker($content)
+            .property($interaction)
+            .property($colorScheme)
+            .property($content)
             .propertyPickerTitle("Example")
             .propertyPickerListContentBackground(.bar)
         }

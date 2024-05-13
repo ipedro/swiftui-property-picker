@@ -35,7 +35,7 @@ struct Rows: View {
         }
     }
 
-    private func makeBody(configuration property: Property) -> AnyView? {
+    private func makeBody(configuration property: PropertyData) -> AnyView? {
         if let customBuilder = context.rowBuilders[property.id] {
             let body = customBuilder.body(property)
             return body

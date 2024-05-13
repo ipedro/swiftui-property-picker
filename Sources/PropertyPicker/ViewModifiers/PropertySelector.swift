@@ -58,12 +58,12 @@ struct PropertySelector<Key, Content>: View where Key: PropertyPickerKey & Equat
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
-    private var data: Property {
-        Property(
-            id: PropertyPickerID(Key.self),
+    private var data: PropertyData {
+        PropertyData(
+            id: PropertyID(Key.self),
             title: Key.title,
             options: Key.allCases.map {
-                Property.Option(label: $0.label, rawValue: $0.rawValue)
+                PropertyData.Option(label: $0.label, rawValue: $0.rawValue)
             },
             changeToken: changes,
             selection: Binding(

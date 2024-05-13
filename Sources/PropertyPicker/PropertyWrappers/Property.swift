@@ -44,7 +44,7 @@ import SwiftUI
 - **DynamicProperty Conformance**: As a `DynamicProperty`, `PropertyPicker` can participate in SwiftUI's dependency and invalidation system, ensuring the view updates reactively to state changes.
  */
 @propertyWrapper
-public struct PropertyPicker<Key: PropertyPickerKey, Storage: _PropertyPickerStorage>: DynamicProperty where Storage.Key == Key {
+public struct Property<Key: PropertyPickerKey, Storage: _PropertyPickerStorage>: DynamicProperty where Storage.Key == Key {
 
     /// Initializes a new `PropertyPicker` without tying it to a specific environment value.
     ///
