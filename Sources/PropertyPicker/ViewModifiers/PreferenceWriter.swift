@@ -20,24 +20,19 @@
 
 import SwiftUI
 
-extension View {
-    /// Sets a value for the given preference in a persistent background view.
-    func setBackgroundPreference<K>(_ key: K.Type, value: K.Value) -> some View where K: PreferenceKey {
-        modifier(PreferenceWriter<K>(value))
-    }
-}
+/// A container view that sets a value for any given preference key.
+///
+/// - Parameters:
+///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
+///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
+struct PreferenceWriter<Key, Content>: View where Key: PreferenceKey, Content: View {
+    var type: Key.Type
+    var value: Key.Value
+    var content: Content
 
-/// A modifier that you apply to a view or another view modifier to set a value for any given preference key.
-struct PreferenceWriter<K>: ViewModifier where K: PreferenceKey {
-    let value: K.Value
-
-    init(_ value: K.Value) {
-        self.value = value
-    }
-
-    func body(content: Content) -> some View {
+    var body: some View {
         content.background(
-            Spacer().preference(key: K.self, value: value)
+            Spacer().preference(key: Key.self, value: value)
         )
     }
 }

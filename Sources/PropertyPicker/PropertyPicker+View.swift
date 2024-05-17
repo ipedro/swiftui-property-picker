@@ -34,12 +34,13 @@ public extension View {
         _ style: S?,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        self.setBackgroundPreference(
-            ContentBackgroundStylePreference.self,
+        PreferenceWriter(
+            type: ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
                 return AnimationBox(animation, AnyShapeStyle(style))
-            }()
+            }(),
+            content: self
         )
     }
 
@@ -56,9 +57,10 @@ public extension View {
         _ style: S,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        self.setBackgroundPreference(
-            ContentBackgroundStylePreference.self,
-            value: AnimationBox(animation, AnyShapeStyle(style))
+        PreferenceWriter(
+            type: ContentBackgroundStylePreference.self,
+            value: AnimationBox(animation, AnyShapeStyle(style)),
+            content: self
         )
     }
 
@@ -70,17 +72,18 @@ public extension View {
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
     ///   - body: A closure that takes a `PropertyData` instance and returns a view (`Row`) for that property.
-    func propertyPicker<K, Row>(
+    func propertyPickerRow<K, Row>(
         for key: K.Type = K.self,
         @ViewBuilder body: @escaping (_ data: PropertyData) -> Row
     ) -> some View where K: PropertyPickerKey, Row: View {
         let id = PropertyID(key)
-        let viewBuilder = PropertyRowBuilder(id: id) { someProp in
+        let rowBuilder = PropertyRowBuilder(id: id) { someProp in
             return AnyView(body(someProp))
         }
-        return self.setBackgroundPreference(
-            ViewBuilderPreference.self,
-            value: [id: viewBuilder]
+        return PreferenceWriter(
+            type: ViewBuilderPreference.self,
+            value: [id: rowBuilder],
+            content: self
         )
     }
 
@@ -90,12 +93,13 @@ public extension View {
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        self.setBackgroundPreference(
-            TitlePreference.self,
+        PreferenceWriter(
+            type: TitlePreference.self,
             value: {
                 if let title { return Text(title) }
                 return nil
-            }()
+            }(),
+            content: self
         )
     }
 
@@ -106,12 +110,13 @@ public extension View {
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
-        self.setBackgroundPreference(
-            TitlePreference.self,
+        PreferenceWriter(
+            type: TitlePreference.self,
             value: {
                 if let title { return Text(verbatim: title) }
                 return nil
-            }()
+            }(),
+            content: self
         )
     }
 
@@ -125,9 +130,11 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ property: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertyPickerWriter(type: K.self) { data in
+        PropertyDataWriter(type: K.self) { data in
             self.onChange(of: data) { newValue in
-                property.storage.state = newValue
+                if newValue != property.storage.state {
+                    property.storage.state = newValue
+                }
             }
         }
     }
@@ -142,7 +149,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ property: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertyPickerWriter(type: K.self) { data in
+        PropertyDataWriter(type: K.self) { data in
             self.environment(property.storage.keyPath, data.value)
         }
     }

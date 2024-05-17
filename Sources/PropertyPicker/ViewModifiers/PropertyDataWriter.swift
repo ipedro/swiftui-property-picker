@@ -20,7 +20,7 @@
 
 import SwiftUI
 
-/// `PropertyPickerWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// `PropertyDataWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
 /// updates the UI accordingly when a new selection is made.
 ///
@@ -30,16 +30,18 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyPickerWriter<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
-    let `type`: Key.Type
+struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
+    let type: Key.Type
 
     /// A view builder closure that creates the content view based on the current selection.
     /// This allows the view to reactively update in response to changes in the selection.
-    @ViewBuilder var content: (Key) -> Content
-    
+    @ViewBuilder 
+    var content: (Key) -> Content
+
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Selection: ObservableObject {
-        @Published var currentValue = Key.defaultSelection
+        @Published 
+        var currentValue = Key.defaultSelection
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
@@ -50,7 +52,11 @@ struct PropertyPickerWriter<Key, Content>: View where Key: PropertyPickerKey & E
     private var changes = 0
 
     var body: some View {
-        content(key).setBackgroundPreference(PropertyPreference.self, value: [data])
+        PreferenceWriter(
+            type: PropertyPreference.self,
+            value: [data],
+            content: content(key)
+        )
     }
 
     private var key: Key {

@@ -20,6 +20,12 @@
 
 import SwiftUI
 
+@available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
+public typealias PropertyPickerState<K: PropertyPickerKey> = PropertyPicker<K, _LocalStorage<K>>
+
+@available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
+public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPicker<K, _EnvironmentStorage<K>>
+
 /**
 `PropertyPicker` encapsulates the functionality needed to maintain and update the state of a property key in a SwiftUI view either locally or in the SwiftUI environemnt.
 
