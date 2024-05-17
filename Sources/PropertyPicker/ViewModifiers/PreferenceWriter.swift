@@ -22,7 +22,7 @@ import SwiftUI
 
 extension View {
     /// Sets a value for the given preference in a persistent background view.
-    func setPreference<K>(_ key: K.Type, value: K.Value) -> some View where K: PreferenceKey {
+    func setBackgroundPreference<K>(_ key: K.Type, value: K.Value) -> some View where K: PreferenceKey {
         modifier(PreferenceWriter<K>(value))
     }
 }

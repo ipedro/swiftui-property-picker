@@ -34,7 +34,7 @@ public extension View {
         _ style: S?,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        self.setPreference(
+        self.setBackgroundPreference(
             ContentBackgroundStylePreference.self,
             value: {
                 guard let style else { return nil }
@@ -56,7 +56,7 @@ public extension View {
         _ style: S,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        self.setPreference(
+        self.setBackgroundPreference(
             ContentBackgroundStylePreference.self,
             value: AnimationBox(animation, AnyShapeStyle(style))
         )
@@ -78,7 +78,7 @@ public extension View {
         let viewBuilder = PropertyRowBuilder(id: id) { someProp in
             return AnyView(body(someProp))
         }
-        return self.setPreference(
+        return self.setBackgroundPreference(
             ViewBuilderPreference.self,
             value: [id: viewBuilder]
         )
@@ -90,7 +90,7 @@ public extension View {
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        self.setPreference(
+        self.setBackgroundPreference(
             TitlePreference.self,
             value: {
                 if let title { return Text(title) }
@@ -106,7 +106,7 @@ public extension View {
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
-        self.setPreference(
+        self.setBackgroundPreference(
             TitlePreference.self,
             value: {
                 if let title { return Text(verbatim: title) }
@@ -125,7 +125,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ property: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertySelector(type: K.self) { data in
+        PropertyPickerWriter(type: K.self) { data in
             self.onChange(of: data) { newValue in
                 property.storage.state = newValue
             }
@@ -142,7 +142,7 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ property: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertySelector(type: K.self) { data in
+        PropertyPickerWriter(type: K.self) { data in
             self.environment(property.storage.keyPath, data.value)
         }
     }
