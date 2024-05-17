@@ -40,7 +40,6 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
 
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Context: ObservableObject {
-        @Published
         var selection = Key.defaultSelection
 
         @Published
