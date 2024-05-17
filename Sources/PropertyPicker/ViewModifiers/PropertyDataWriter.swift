@@ -41,7 +41,7 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
     /// Internal ObservableObject for managing the dynamic selection state.
     private class Context: ObservableObject {
         @Published
-        var currentValue = Key.defaultSelection
+        var selection = Key.defaultSelection
 
         @Published
         var changes = 0
@@ -68,7 +68,7 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
     }
 
     private var key: Key {
-        context.currentValue
+        context.selection
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
@@ -80,11 +80,12 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
             changeToken: context.changes,
             selection: Binding(
                 get: {
-                    context.currentValue.rawValue
+                    context.selection.rawValue
                 },
-                set: { rawValue in
-                    if let key = Key(rawValue: rawValue) {
-                        context.currentValue = key
+                set: { newValue in
+                    guard newValue != context.selection.rawValue else { return }
+                    if let newKey = Key(rawValue: newValue) {
+                        context.selection = newKey
                         context.changes += 1
                     }
                 }

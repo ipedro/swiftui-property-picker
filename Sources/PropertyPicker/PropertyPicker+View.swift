@@ -129,7 +129,9 @@ public extension View {
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ property: PropertyPicker<K, _LocalStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(
+        _ property: PropertyPicker<K, _LocalStorage<K>>
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
             self.onChange(of: data) { newValue in
                 if newValue != property.storage.state {
@@ -148,7 +150,9 @@ public extension View {
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ property: PropertyPicker<K, _EnvironmentStorage<K>>) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(
+        _ property: PropertyPicker<K, _EnvironmentStorage<K>>
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
             self.environment(property.storage.keyPath, data.value)
         }
