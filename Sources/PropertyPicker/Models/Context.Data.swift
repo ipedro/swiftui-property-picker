@@ -41,7 +41,7 @@ extension Context {
             set {
                 guard _title != newValue else { return }
                 objectWillChange.send()
-                print(#function, "changed")
+                //print(#function, "changed")
                 _title = newValue
             }
         }
@@ -51,7 +51,7 @@ extension Context {
             set {
                 guard _rows != newValue else { return }
                 objectWillChange.send()
-                print(#function, "changed")
+                //print(#function, "changed")
                 _rows = newValue
             }
         }
@@ -61,7 +61,7 @@ extension Context {
             set {
                 guard _rowBuilders != newValue else { return }
                 objectWillChange.send()
-                print(#function, "changed")
+                //print(#function, "changed")
                 _rowBuilders = newValue
             }
         }
