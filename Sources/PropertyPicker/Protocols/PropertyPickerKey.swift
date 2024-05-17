@@ -52,24 +52,6 @@ enum TextAlignmentKey: String, PropertyPickerKey {
 ```
  - Warning: If `allCases` is empty and no `defaultSelection` is explicitly provided, a `fatalError()` is thrown in runtime.
 
-## Usage
-
-The `TextAlignmentKey` can then be easily integrated into SwiftUI views. For instance, it can populate a picker in a settings form:
-
-```swift
-struct AlignmentPickerView: View {
-    @Binding var selectedAlignment: TextAlignment
-
-    var body: some View {
-        Picker(TextAlignment.title, selection: $selectedAlignment) {
-            ForEach(TextAlignment.allCases, id: \.id) { alignment in
-                Text(alignment.rawValue).tag(alignment)
-            }
-        }
-    }
-}
-```
-
 ## Conclusion
 
 `PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
@@ -107,8 +89,10 @@ extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
     public static var title: String {
         String(describing: Self.self)
+            .replacingOccurrences(of: "_", with: " ")
             .removingSuffix("Key")
             .addingSpacesToCamelCase()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

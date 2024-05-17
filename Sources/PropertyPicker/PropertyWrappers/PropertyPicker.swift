@@ -88,29 +88,3 @@ public struct PropertyPicker<Key: PropertyPickerKey, Storage: _PropertyPickerSto
         self
     }
 }
-
-public protocol _PropertyPickerStorage: DynamicProperty {
-    associatedtype Key: PropertyPickerKey
-    var currentValue: Self.Key.Value { get }
-}
-
-public struct _LocalStorage<Key: PropertyPickerKey>: _PropertyPickerStorage {
-    @State
-    var state: Key = Key.defaultSelection
-    
-    public var currentValue: Key.Value {
-        state.value
-    }
-}
-
-public struct _EnvironmentStorage<Key: PropertyPickerKey>: _PropertyPickerStorage {
-    var keyPath: WritableKeyPath<EnvironmentValues, Key.Value>
-
-    @Environment
-    public var currentValue: Key.Value
-
-    init(keyPath: WritableKeyPath<EnvironmentValues, Key.Value>) {
-        self.keyPath = keyPath
-        self._currentValue = Environment(keyPath)
-    }
-}

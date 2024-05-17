@@ -39,17 +39,25 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
     var content: (Key) -> Content
 
     /// Internal ObservableObject for managing the dynamic selection state.
-    private class Selection: ObservableObject {
-        @Published 
+    private class Context: ObservableObject {
+        @Published
         var currentValue = Key.defaultSelection
+
+        @Published
+        var changes = 0
+
+        lazy private(set) var id = PropertyID(Key.self)
+
+        lazy private(set) var title = Key.title
+
+        lazy private(set) var options = Key.allCases.map {
+            PropertyData.Option(label: $0.label, rawValue: $0.rawValue)
+        }
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
     @StateObject
-    private var selection = Selection()
-
-    @State
-    private var changes = 0
+    private var context = Context()
 
     var body: some View {
         PreferenceWriter(
@@ -60,26 +68,24 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
     }
 
     private var key: Key {
-        selection.currentValue
+        context.currentValue
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var data: PropertyData {
         PropertyData(
-            id: PropertyID(Key.self),
-            title: Key.title,
-            options: Key.allCases.map {
-                PropertyData.Option(label: $0.label, rawValue: $0.rawValue)
-            },
-            changeToken: changes,
+            id: context.id,
+            title: context.title,
+            options: context.options,
+            changeToken: context.changes,
             selection: Binding(
                 get: {
-                    selection.currentValue.rawValue
+                    context.currentValue.rawValue
                 },
                 set: { rawValue in
                     if let key = Key(rawValue: rawValue) {
-                        selection.currentValue = key
-                        changes += 1
+                        context.currentValue = key
+                        context.changes += 1
                     }
                 }
             )
