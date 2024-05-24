@@ -23,7 +23,7 @@ import SwiftUI
 /// A style that presents dynamic value options inline within the view hierarchy of a property picker.
 /// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
 /// to display additional picker options below the main content.
-public struct InlinePropertyPicker: PropertyPickerStyle {
+public struct _InlinePropertyPicker: PropertyPickerStyle {
     /// Creates the view for the inline style, embedding the dynamic value options directly within a scrollable area.
     ///
     /// The implementation arranges the picker's standard content and its rows in a `VStack` to ensure they are

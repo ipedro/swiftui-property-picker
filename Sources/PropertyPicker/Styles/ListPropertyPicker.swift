@@ -31,7 +31,7 @@ import SwiftUI
 /// - Parameters:
 ///   - S: A `ListStyle` type that defines the appearance of the list.
 ///   - B: A `View` type used for the background of each list row.
-public struct ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
+public struct _ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     let listStyle: S
     let listRowBackground: B?
 

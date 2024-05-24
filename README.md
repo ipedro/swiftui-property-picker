@@ -28,90 +28,82 @@ dependencies: [
 
 Then, import `swiftui-property-picker` in your SwiftUI views to start using it.
 
+## Documentation
+
+The full documentation for `swiftui-property-inspector` can be found [here](https://ipedro.github.io/swiftui-property-picker/documentation/propertypicker/).
+
 ## Usage
 
 Here's how to get started with the SwiftUI Property Picker:
 
 ### Basic Usage
 
-To apply a dynamic property picker to a view, use one of the `propertyPicker` view modifiers provided by the extension on `View`. Here are some examples:
+To apply a dynamic property picker to a view, use one of the `propertyPicker()` view modifiers provided by the extension on `View`. Here are some examples:
 
 ```swift
 import SwiftUI
 import PropertyPicker
 
-// Define a custom view that users can adjust using property pickers
-struct AdjustablePreviewView: View {
-    @PropertyPicker<FontSizeKey>
-    private var fontSize
+@available(iOS 16.4, *)
+struct ExampleSheet: View {
+    // This key keeps a local state
+    @PropertyPicker(ContentKey.self)
+    private var content
 
-    @PropertyPicker<ColorSchemeKey>
+    // This key writes the selection value directly in the SwiftUI environment
+    @PropertyPicker(\.isEnabled, InteractionKey.self)
+    private var interaction
+
+    // This key also writes the selection value directly in the SwiftUI environment
+    @PropertyPicker(\.colorScheme, ColorSchemeKey.self)
     private var colorScheme
 
-    @PropertyPicker<DisabledStateKey>
-    private var isButtonDisabled
-    
+    @State private var presented = false
+
     var body: some View {
-        PropertyPicker {
-            VStack {
-                Text("Dynamic Preview")
-                    .font(.system(size: fontSize))
-                
-                Button("Action") {}
-                    .disabled(isButtonDisabled)
-                    .padding()
-                    .background(colorScheme == .dark ? Color.white : Color.black)
-                    .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
-                    .clipShape(Capsule())
-                
-                Spacer()
+        PropertyPickerReader(isPresented: $presented) {
+            Button {
+                presented.toggle()
+            } label: {
+                switch content {
+                case .Image:
+                    Image(systemName: "circle")
+                case .Text:
+                    Text("Button")
+                }
             }
-            .padding()
-            // Apply dynamic property pickers for adjusting settings
-            .propertyPicker($fontSize)
+            .buttonStyle(.bordered)
+            .propertyPicker($interaction)
             .propertyPicker($colorScheme)
-            .propertyPicker($isButtonDisabled)
+            .propertyPicker($content)
         }
-        // Optional: Apply a custom style to the PropertyPicker if needed
-        .propertyPickerStyle(.inline) // This is just an example; choose the style as per your design.
     }
 }
 
-// Example PropertyPickerKey implementations for fontSize, colorScheme, and isButtonDisabled
-enum FontSizeKey: String, PropertyPickerKey {
-    case small, medium, large
-    
-    static var defaultValue: Self { .medium }
-    
-    var value: Double {
+enum ContentKey: String, PropertyPickerKey {
+    case Text, Image
+}
+
+enum InteractionKey: String, PropertyPickerKey {
+    static var defaultSelection: InteractionKey = .Enabled
+    case Disabled, Enabled
+
+    var value: Bool {
         switch self {
-        case .small: return 12
-        case .medium: return 16
-        case .large: return 20
+        case .Disabled: false
+        case .Enabled: true
         }
     }
 }
 
 enum ColorSchemeKey: String, PropertyPickerKey {
-    case light, dark
-    
-    static var defaultValue: Self { .light }
-    
+    case Light, Dark
+
     var value: ColorScheme {
         switch self {
-        case .light: return .light
-        case .dark: return .dark
+        case .Light: .light
+        case .Dark: .dark
         }
-    }
-}
-
-enum DisabledStateKey: String, PropertyPickerKey {
-    case enabled, disabled
-    
-    static var defaultValue: Self { .enabled }
-    
-    var value: Bool {
-        self == .disabled
     }
 }
 ```
@@ -314,7 +306,7 @@ struct CustomizedPickerView: View {
                 isPickerPresented = true
             }
         }
-        .propertyPickerStyle(SheetPropertyPicker(isPresented: $isPickerPresented))
+        .propertyPickerStyle(_SheetPropertyPicker(isPresented: $isPickerPresented))
     }
 }
 ```

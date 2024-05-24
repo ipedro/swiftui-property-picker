@@ -44,7 +44,7 @@ public struct PropertyPickerReader<Content: View, Style: PropertyPickerStyle>: V
 
 // MARK: - Inline Style
 
-public extension PropertyPickerReader where Style == InlinePropertyPicker {
+public extension PropertyPickerReader where Style == _InlinePropertyPicker {
     /// Initializes a ``PropertyPickerReader`` with an inline presentation style.
     ///
     /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
@@ -54,7 +54,7 @@ public extension PropertyPickerReader where Style == InlinePropertyPicker {
     /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = InlinePropertyPicker()
+        self.style = _InlinePropertyPicker()
     }
 }
 
@@ -67,16 +67,16 @@ public extension PropertyPickerReader {
     /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
     ///
     /// - Parameters:
-    ///   - listStyle: A ``ListPropertyPicker`` instance defining the list's style.
+    ///   - listStyle: A ``_ListPropertyPicker`` instance defining the list's style.
     ///   - listRowBackground: The optional background color of the list's rows.
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init<S: ListStyle>(
         listStyle: S,
         listRowBackground: Color? = nil,
         @ViewBuilder content: () -> Content
-    ) where Style == ListPropertyPicker<S, Color?> {
+    ) where Style == _ListPropertyPicker<S, Color?> {
         self.content = content()
-        self.style = ListPropertyPicker(
+        self.style = _ListPropertyPicker(
             listStyle: listStyle,
             listRowBackground: listRowBackground
         )
@@ -88,7 +88,7 @@ public extension PropertyPickerReader {
     /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
     ///
     /// - Parameters:
-    ///   - listStyle: A ``ListPropertyPicker`` instance defining the list's style.
+    ///   - listStyle: A ``_ListPropertyPicker`` instance defining the list's style.
     ///   - listRowBackground: The optional background view of the list's rows.
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     @_disfavoredOverload
@@ -96,9 +96,9 @@ public extension PropertyPickerReader {
         listStyle: S,
         listRowBackground: B,
         @ViewBuilder content: () -> Content
-    ) where Style == ListPropertyPicker<S, B> {
+    ) where Style == _ListPropertyPicker<S, B> {
         self.content = content()
-        self.style = ListPropertyPicker(
+        self.style = _ListPropertyPicker(
             listStyle: listStyle,
             listRowBackground: listRowBackground
         )
@@ -108,7 +108,7 @@ public extension PropertyPickerReader {
 // MARK: - Sheet Style
 
 @available(iOS 16.4, *)
-public extension PropertyPickerReader where Style == SheetPropertyPicker {
+public extension PropertyPickerReader where Style == _SheetPropertyPicker {
     /// Initializes a ``PropertyPickerReader`` with a sheet presentation style.
     ///
     /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
@@ -119,6 +119,6 @@ public extension PropertyPickerReader where Style == SheetPropertyPicker {
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = SheetPropertyPicker(isPresented: isPresented)
+        self.style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }

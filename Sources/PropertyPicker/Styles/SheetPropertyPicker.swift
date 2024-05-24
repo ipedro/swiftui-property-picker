@@ -27,7 +27,7 @@ import SwiftUI
 ///
 /// - Requires: iOS 16.4 or newer for certain APIs used in this struct.
 @available(iOS 16.4, *)
-public struct SheetPropertyPicker: PropertyPickerStyle {
+public struct _SheetPropertyPicker: PropertyPickerStyle {
     @Binding
     var isPresented: Bool
 
