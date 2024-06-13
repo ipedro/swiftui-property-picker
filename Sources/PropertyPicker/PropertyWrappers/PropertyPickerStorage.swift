@@ -36,12 +36,10 @@ public struct _LocalStorage<Key: PropertyPickerKey>: _PropertyPickerStorage {
 
 public struct _EnvironmentStorage<Key: PropertyPickerKey>: _PropertyPickerStorage {
     var keyPath: WritableKeyPath<EnvironmentValues, Key.Value>
+    @State
+    var state: Key = Key.defaultSelection
 
-    @Environment
-    public var currentValue: Key.Value
-
-    init(keyPath: WritableKeyPath<EnvironmentValues, Key.Value>) {
-        self.keyPath = keyPath
-        self._currentValue = Environment(keyPath)
+    public var currentValue: Key.Value {
+        state.value
     }
 }

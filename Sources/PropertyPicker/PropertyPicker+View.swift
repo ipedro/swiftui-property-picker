@@ -154,7 +154,11 @@ public extension View {
         _ property: PropertyPicker<K, _EnvironmentStorage<K>>
     ) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
-            self.environment(property.storage.keyPath, data.value)
+            self.environment(property.storage.keyPath, data.value).onChange(of: data) { newValue in
+                if newValue != property.storage.state {
+                    property.storage.state = newValue
+                }
+            }
         }
     }
 
