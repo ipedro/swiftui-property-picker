@@ -29,6 +29,18 @@ struct AnimationKey: EnvironmentKey {
     static var defaultValue: Animation? = .easeOut
 }
 
+// Environment Key Definition
+struct TitleTransformKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
+}
+
+// MARK: - LabelTransformKey
+
+// Environment Key Definition
+struct LabelTransformKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
+}
+
 @available(iOS 16.0, *)
 struct PresentationDetentKey: EnvironmentKey {
     static var defaultValue: Binding<PresentationDetent>?
@@ -63,5 +75,15 @@ extension EnvironmentValues {
     var selectedDetent: Binding<PresentationDetent>? {
         get { self[PresentationDetentKey.self] }
         set { self[PresentationDetentKey.self] = newValue }
+    }
+
+    var titleTransformation: PropertyPickerTextTransformation {
+        get { self[TitleTransformKey.self] }
+        set { self[TitleTransformKey.self] = newValue }
+    }
+
+    var labelTransformation: PropertyPickerTextTransformation {
+        get { self[LabelTransformKey.self] }
+        set { self[LabelTransformKey.self] = newValue }
     }
 }

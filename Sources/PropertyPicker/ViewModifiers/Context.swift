@@ -28,7 +28,7 @@ struct Context: ViewModifier {
     /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
     @StateObject 
     private var data = Data()
-    
+
     /// The body of the modifier which subscribes to preference changes and updates the context.
     func body(content: Content) -> some View {
         content.onPreferenceChange(PropertyPreference.self) { newValue in

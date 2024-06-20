@@ -39,43 +39,45 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equ
     var content: (Key) -> Content
 
     /// Internal ObservableObject for managing the dynamic selection state.
-    private class Context: ObservableObject {
+    private class Context: ObservableObject { // FIXME: change to struct and move to state with injectable context
         var selection = Key.defaultSelection
 
         @Published
         var changes = 0
-
-        lazy private(set) var id = PropertyID(Key.self)
-
-        lazy private(set) var title = Key.title
-
-        lazy private(set) var options = Key.allCases.map {
-            PropertyData.Option(label: $0.label, rawValue: $0.rawValue)
-        }
     }
 
     /// The current selection state of the dynamic value, observed for changes to update the view.
     @StateObject
     private var context = Context()
 
+    @Environment(\.labelTransformation)
+    private var labelTransformation
+
+    @Environment(\.titleTransformation)
+    private var titleTransformation
+
     var body: some View {
         PreferenceWriter(
             type: PropertyPreference.self,
-            value: [data],
-            content: content(key)
+            value: [property],
+            content: content(context.selection)
         )
     }
 
-    private var key: Key {
-        context.selection
-    }
-
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
-    private var data: PropertyData {
-        PropertyData(
-            id: context.id,
-            title: context.title,
-            options: context.options,
+    private var property: PropertyData {
+        let id = PropertyID(Key.self)
+        let title = titleTransformation.apply(to: Key.title)
+        let options = Key.allCases.map {
+            PropertyData.Option(
+                label: labelTransformation.apply(to: $0.label),
+                rawValue: $0.rawValue
+            )
+        }
+        return PropertyData(
+            id: id,
+            title: title,
+            options: options,
             changeToken: context.changes,
             selection: Binding(
                 get: {

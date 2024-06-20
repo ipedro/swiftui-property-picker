@@ -56,7 +56,7 @@ enum TextAlignmentKey: String, PropertyPickerKey {
 
 `PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
  */
-public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable, Identifiable where AllCases == [Self] {
+public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where AllCases == [Self] {
     /// The type of the value associated with the property. By default, it is the type of `Self`, allowing for types
     /// where the key and the value are the same.
     associatedtype Value = Self
@@ -81,6 +81,7 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable, Ident
 extension PropertyPickerKey {
     /// Default label is the `rawValue`.
     public var label: String { rawValue }
+    /// Default title transformation is `camelCaseToWords`.
 }
 
 // MARK: - Default Title
@@ -89,9 +90,8 @@ extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
     public static var title: String {
         String(describing: Self.self)
-            .replacingOccurrences(of: "_", with: " ")
             .removingSuffix("Key")
-            .addingSpacesToCamelCase()
+            .replacingOccurrences(of: "_", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
@@ -118,28 +118,4 @@ extension PropertyPickerKey {
 
 extension PropertyPickerKey where Value == Self {
     public var value: Self { self }
-}
-
-// MARK: - Private Helpers
-
-private extension String {
-    /// Adds spaces before each uppercase letter in a camelCase string.
-    /// - Returns: A new string with spaces added before each uppercase letter.
-    func addingSpacesToCamelCase() -> String {
-        replacingOccurrences(
-            of: "(?<=[a-z])(?=[A-Z])",
-            with: " $0",
-            options: .regularExpression,
-            range: range(of: self)
-        )
-    }
-
-    /// Removes a specified suffix from the string if it ends with that suffix.
-    ///
-    /// - Parameter suffix: The suffix to remove from the string.
-    /// - Returns: The string after the specified suffix has been removed if it was present at the end.
-    func removingSuffix(_ suffix: String) -> String {
-        guard self.hasSuffix(suffix) else { return self }
-        return String(self.dropLast(suffix.count))
-    }
 }
