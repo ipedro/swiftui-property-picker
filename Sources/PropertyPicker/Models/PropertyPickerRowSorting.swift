@@ -18,32 +18,34 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-import SwiftUI
+import Foundation
 
+public enum PropertyPickerRowSorting {
+    case ascending
+    case descending
+    case custom(comparator: (_ lhs: PropertyData, _ rhs: PropertyData) -> Bool)
 
-/// Represents the dynamic value entries within the selector.
-struct Rows: View {
-    @EnvironmentObject
-    private var context: Context.Data
-
-    @Environment(\.rowSorting)
-    private var rowSorting
-
-    var body: some View {
-        ForEach(rowSorting.sort(context.rows)) { property in
-            if let custom = makeBody(configuration: property) {
-                custom
-            } else {
-                Row(data: property)
+    func sort<D>(_ data: D) -> [PropertyData] where D: Collection, D.Element == PropertyData {
+        switch self {
+        case .ascending:
+            data.sorted()
+        case .descending:
+            data.sorted().reversed()
+        case .custom(let comparator):
+            data.sorted { lhs, rhs in
+                comparator(lhs, rhs)
             }
         }
     }
+}
 
-    private func makeBody(configuration property: PropertyData) -> AnyView? {
-        if let customBuilder = context.rowBuilders[property.id] {
-            let body = customBuilder.body(property)
-            return body
+extension Optional<PropertyPickerRowSorting> {
+    func sort<D>(_ data: D) -> [PropertyData] where D: Collection, D.Element == PropertyData {
+        switch self {
+        case .none:
+            return Array(data)
+        case .some(let wrapped):
+            return wrapped.sort(data)
         }
-        return nil
     }
 }

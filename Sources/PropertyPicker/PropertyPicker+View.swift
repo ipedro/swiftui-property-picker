@@ -20,6 +20,8 @@
 
 import SwiftUI
 
+// MARK: - List Content
+
 public extension View {
     /// Applies a background style to the list content of a property picker with optional animation.
     ///
@@ -63,7 +65,11 @@ public extension View {
             content: self
         )
     }
+}
 
+// MARK: - Row
+
+public extension View {
     /// Adds a custom view builder to a property picker for a specific property key type.
     ///
     /// This method allows customization of the presentation for a specific property within a property picker.
@@ -73,11 +79,11 @@ public extension View {
     ///   - key: The property key type for which the custom view is being provided.
     ///   - body: A closure that takes a `PropertyData` instance and returns a view (`Row`) for that property.
     func propertyPickerRow<K, Row>(
-        for key: K.Type = K.self,
+        for key: K.Type,
         @ViewBuilder body: @escaping (_ data: PropertyData) -> Row
     ) -> some View where K: PropertyPickerKey, Row: View {
         let id = PropertyID(key)
-        let rowBuilder = PropertyRowBuilder(id: id) { someProp in
+        let rowBuilder = PropertyPickerRowBuilder(id: id) { someProp in
             return AnyView(body(someProp))
         }
         return PreferenceWriter(
@@ -91,9 +97,9 @@ public extension View {
     ///
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
-    func propertyPickerHidden<K>(_ key: K.Type = K.self) -> some View where K: PropertyPickerKey {
+    func propertyPickerRowHidden<K>(for key: K.Type = K.self) -> some View where K: PropertyPickerKey {
         let id = PropertyID(key)
-        let rowBuilder = PropertyRowBuilder(
+        let rowBuilder = PropertyPickerRowBuilder(
             id: id,
             body: { _ in AnyView(EmptyView()) }
         )
@@ -104,6 +110,22 @@ public extension View {
         )
     }
 
+    /// Sets the sorting order for the rows in the property picker.
+    ///
+    /// This method allows you to specify a custom sorting order for the rows displayed in the property picker,
+    /// ensuring that the items are presented in the desired sequence.
+    ///
+    /// - Parameter sort: A ``PropertyPickerRowSorting`` instance that defines the sorting order for the rows.
+    ///   Pass `nil` to use the default sorting order.
+    /// - Returns: A view that applies the specified sorting order to the rows.
+    func propertyPickerRowSorting(_ sort: PropertyPickerRowSorting?) -> some View {
+        self.environment(\.rowSorting, sort)
+    }
+}
+
+// MARK: - Title
+
+public extension View {
     /// Sets the title for a property picker using a localized string key.
     ///
     /// This method allows you to specify a title for the property picker, supporting localization.
@@ -137,6 +159,38 @@ public extension View {
         )
     }
 
+    /// Sets the transformation applied to the property picker's key titles.
+    ///
+    /// This method allows you to define how the titles of the property picker keys should be transformed,
+    /// such as applying capitalization, modifying text format, or other custom transformations.
+    ///
+    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
+    ///   to apply to the key titles.
+    /// - Returns: A view that applies the specified transformation to the key titles.
+    func propertyPickerTitleTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
+        environment(\.titleTransformation, transform)
+    }
+}
+
+// MARK: - Label
+
+public extension View {
+    /// Sets the transformation applied to the property picker's key labels.
+    ///
+    /// This method allows you to define how the labels of the property picker keys should be transformed,
+    /// enabling custom formatting or modifications to the display of key labels.
+    ///
+    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
+    ///   to apply to the key labels.
+    /// - Returns: A view that applies the specified transformation to the key labels.
+    func propertyPickerLabelTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
+        environment(\.labelTransformation, transform)
+    }
+}
+
+// MARK: - State
+
+public extension View {
     /// Registers this view for receiving selection updates of a property.
     ///
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
@@ -178,7 +232,11 @@ public extension View {
             }
         }
     }
+}
 
+// MARK: - Sheet Presentation
+
+public extension View {
     /// Sets the safe area adjustment style for a property picker within the view.
     ///
     /// This method configures how the view should adjust its content relative to the safe area insets,
@@ -219,29 +277,5 @@ public extension View {
     ) -> some View {
         self.environment(\.presentationDetents, detents)
             .environment(\.selectedDetent, selection)
-    }
-
-    /// Sets the transformation applied to the property picker's key titles.
-    ///
-    /// This method allows you to define how the titles of the property picker keys should be transformed,
-    /// such as applying capitalization, modifying text format, or other custom transformations.
-    ///
-    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
-    ///   to apply to the key titles.
-    /// - Returns: A view that applies the specified transformation to the key titles.
-    func propertyPickerKeyTitleTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
-        environment(\.titleTransformation, transform)
-    }
-
-    /// Sets the transformation applied to the property picker's key labels.
-    ///
-    /// This method allows you to define how the labels of the property picker keys should be transformed,
-    /// enabling custom formatting or modifications to the display of key labels.
-    ///
-    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
-    ///   to apply to the key labels.
-    /// - Returns: A view that applies the specified transformation to the key labels.
-    func propertyPickerKeyLabelTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
-        environment(\.labelTransformation, transform)
     }
 }

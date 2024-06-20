@@ -34,6 +34,10 @@ struct TitleTransformKey: EnvironmentKey {
     static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
 }
 
+struct RowSortingKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerRowSorting? = .ascending
+}
+
 // MARK: - LabelTransformKey
 
 // Environment Key Definition
@@ -85,5 +89,10 @@ extension EnvironmentValues {
     var labelTransformation: PropertyPickerTextTransformation {
         get { self[LabelTransformKey.self] }
         set { self[LabelTransformKey.self] = newValue }
+    }
+
+    var rowSorting: PropertyPickerRowSorting? {
+        get { self[RowSortingKey.self] }
+        set { self[RowSortingKey.self] = newValue }
     }
 }

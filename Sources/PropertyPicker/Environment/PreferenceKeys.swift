@@ -52,16 +52,16 @@ struct ContentBackgroundStylePreference: PreferenceKey {
     }
 }
 
-/// A preference key for storing a dictionary of `PropertyRowBuilder` instances indexed by `ObjectIdentifier`.
+/// A preference key for storing a dictionary of `PropertyPickerRowBuilder` instances indexed by `ObjectIdentifier`.
 ///
 /// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
 /// It allows different parts of an application to specify custom builders for rendering specific property types.
 struct ViewBuilderPreference: PreferenceKey {
     /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
-    static let defaultValue = [PropertyID: PropertyRowBuilder]()
+    static let defaultValue = [PropertyID: PropertyPickerRowBuilder]()
 
     /// Merges view builders provided by child views, preferring the builder set closest to the root.
-    static func reduce(value: inout [PropertyID: PropertyRowBuilder], nextValue: () -> [PropertyID: PropertyRowBuilder]) {
+    static func reduce(value: inout [PropertyID: PropertyPickerRowBuilder], nextValue: () -> [PropertyID: PropertyPickerRowBuilder]) {
         value.merge(nextValue()) { content, _ in
             content
         }
