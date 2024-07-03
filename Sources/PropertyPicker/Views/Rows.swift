@@ -20,8 +20,6 @@
 
 import SwiftUI
 
-
-/// Represents the dynamic value entries within the selector.
 struct Rows: View {
     @EnvironmentObject
     private var context: Context.Data

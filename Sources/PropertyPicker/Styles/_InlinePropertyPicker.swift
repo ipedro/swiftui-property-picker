@@ -24,6 +24,9 @@ import SwiftUI
 /// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
 /// to display additional picker options below the main content.
 public struct _InlinePropertyPicker: PropertyPickerStyle {
+    @Environment(\.rowBackground)
+    private var rowBackground
+
     /// Creates the view for the inline style, embedding the dynamic value options directly within a scrollable area.
     ///
     /// The implementation arranges the picker's standard content and its rows in a `VStack` to ensure they are
@@ -33,10 +36,13 @@ public struct _InlinePropertyPicker: PropertyPickerStyle {
     /// - Returns: A view displaying the dynamic value options inline, enhanced with custom spacing and dividers.
     public func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom) {
-            LazyVStack {
-                Divider().padding()
-                content.rows
+            VStack {
+                Divider().padding(.bottom)
+                LazyVStack {
+                    content.rows.background(rowBackground)
+                }
             }
+            .padding()
         }
     }
 }

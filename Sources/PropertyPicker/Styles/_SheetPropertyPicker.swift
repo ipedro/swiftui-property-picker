@@ -51,46 +51,40 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
 
     private var safeAreaInset: CGFloat {
         switch safeAreaAdjustment {
-        case .automatic where isPresented: contentHeight
-        case .automatic, .never: .zero
+        case .automatic where isPresented: 
+            contentHeight
+        case .automatic, .never: 
+            .zero
         }
     }
     
     public func body(content: Content) -> some View {
-        content
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                Spacer().frame(height: safeAreaInset)
-            }
-            .toolbar(content: {
-                ToolbarButton(isPresented: $isPresented)
-            })
-            .animation(animation, value: safeAreaInset)
-            .overlay(
-                Spacer().sheet(isPresented: $isPresented) {
-                    configureList(
-                        List {
-                            Section {
-                                content.rows.listRowBackground(Color.clear)
-                            } header: {
-                                configureTitle(content.title)
-                            }
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            Spacer().frame(height: safeAreaInset)
+        }
+        .toolbar(content: {
+            ToolbarButton(isPresented: $isPresented)
+        })
+        .animation(animation, value: safeAreaInset)
+        .overlay {
+            Spacer().sheet(isPresented: $isPresented) {
+                configureList(
+                    List {
+                        Section {
+                            content.rows.listRowBackground(Color.clear)
+                        } header: {
+                            configureTitle(content.title)
                         }
-                    )
-                }
-            )
+                    }
+                )
+            }
+        }
     }
 
     private func configureTitle(_ title: some View) -> some View {
         title
             .bold()
-            .padding(
-                EdgeInsets(
-                    top: 16,
-                    leading: 0,
-                    bottom: 8,
-                    trailing: 0
-                )
-            )
+            .padding(EdgeInsets(top: 16, leading: 0, bottom: 8, trailing: 0))
             .font(.title2)
             .foregroundStyle(.primary)
     }
@@ -124,7 +118,6 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
             .presentationCornerRadius(20)
             .presentationBackground(Material.thinMaterial)
             .edgesIgnoringSafeArea(.top)
-            .listRowBackground(Color.clear)
             .scrollContentBackground(.hidden)
             .background {
                 GeometryReader(content: { geometry in

@@ -24,12 +24,10 @@ struct Row: View {
     var data: PropertyData
 
     var body: some View {
-        Row._printChanges()
-        return Picker(data.title, selection: data.$selection) {
+        Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
                 Text(option.label)
             }
         }
     }
 }
-

@@ -22,17 +22,20 @@ import Foundation
 import SwiftUI
 import PropertyPicker
 
-// MARK: - Sheet Example
+// MARK: - List Example
 
-@available(iOS 16.4, *)
-#Preview {
+#Preview("Default") {
     NavigationView {
-       SheetExample()
+        InlineExample()
+    }
+}
+#Preview("Custom Picker Style") {
+    NavigationView {
+        InlineExample().pickerStyle(.segmented)
     }
 }
 
-@available(iOS 16.4, *)
-struct SheetExample: View {
+struct InlineExample: View {
     // changes are local
     @PropertyPickerState(ContentKey.self)
     private var content
@@ -45,10 +48,10 @@ struct SheetExample: View {
     @PropertyPickerState(\.colorScheme, ColorSchemeKey.self)
     private var colorScheme
 
-    @State private var presented = true
+    @State private var presented = false
 
     var body: some View {
-        PropertyPicker(isPresented: $presented) {
+        PropertyPicker {
             Button {
                 presented.toggle()
             } label: {
@@ -63,8 +66,6 @@ struct SheetExample: View {
             .propertyPicker($interaction)
             .propertyPicker($colorScheme)
             .propertyPicker($content)
-            .propertyPickerTitle("Example")
-            .propertyPickerListContentBackground(.bar)
         }
     }
 

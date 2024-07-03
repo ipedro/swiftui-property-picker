@@ -30,10 +30,11 @@ import SwiftUI
 ///
 /// - Parameters:
 ///   - S: A `ListStyle` type that defines the appearance of the list.
-///   - B: A `View` type used for the background of each list row.
-public struct _ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
+public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     let listStyle: S
-    let listRowBackground: B?
+
+    @Environment(\.rowBackground)
+    private var rowBackground
 
     @State
     private var backgroundPreference = ContentBackgroundStylePreference.defaultValue
@@ -45,7 +46,7 @@ public struct _ListPropertyPicker<S: ListStyle, B: View>: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         List {
             Section {
-                content.rows.listRowBackground(listRowBackground)
+                content.rows.listRowBackground(rowBackground)
             } header: {
                 VStack(spacing: .zero) {
                     ZStack {

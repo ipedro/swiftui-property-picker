@@ -31,6 +31,7 @@ public extension View {
     /// - Parameters:
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
+    @_disfavoredOverload
     @available(iOS 16.0, *)
     func propertyPickerListContentBackground<S>(
         _ style: S?,
@@ -70,6 +71,19 @@ public extension View {
 // MARK: - Row
 
 public extension View {
+    func propertyPickerRowBackground<B>(@ViewBuilder background: () -> B) -> some View where B: View {
+        environment(\.rowBackground, AnyView(background()))
+    }
+
+    func propertyPickerRowBackground<S>(_ style: S) -> some View where S: ShapeStyle & View {
+        environment(\.rowBackground, AnyView(style))
+    }
+
+    @_disfavoredOverload
+    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View  {
+        environment(\.rowBackground, AnyView(background))
+    }
+
     /// Adds a custom view builder to a property picker for a specific property key type.
     ///
     /// This method allows customization of the presentation for a specific property within a property picker.
@@ -119,7 +133,7 @@ public extension View {
     ///   Pass `nil` to use the default sorting order.
     /// - Returns: A view that applies the specified sorting order to the rows.
     func propertyPickerRowSorting(_ sort: PropertyPickerRowSorting?) -> some View {
-        self.environment(\.rowSorting, sort)
+        environment(\.rowSorting, sort)
     }
 }
 
@@ -196,17 +210,15 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter property: A ``PropertyPicker`` instance which holds the current selection state and is used to update
+    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(
-        _ property: PropertyPicker<K, _LocalStorage<K>>
-    ) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
-            self.onChange(of: data) { newValue in
-                if newValue != property.storage.state {
-                    property.storage.state = newValue
+            onChange(of: data) { newValue in
+                if newValue != pickerState.state {
+                    pickerState.state = newValue
                 }
             }
         }
@@ -217,17 +229,15 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter property: A ``PropertyPicker`` instance which holds the current selection state and is used to update
+    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(
-        _ property: PropertyPicker<K, _EnvironmentStorage<K>>
-    ) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, WritableKeyPath<EnvironmentValues, K.Value>>) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
-            self.environment(property.storage.keyPath, data.value).onChange(of: data) { newValue in
-                if newValue != property.storage.state {
-                    property.storage.state = newValue
+            environment(pickerState.data, data.value).onChange(of: data) { newValue in
+                if newValue != pickerState.state {
+                    pickerState.state = newValue
                 }
             }
         }
@@ -246,7 +256,7 @@ public extension View {
     /// - Parameter adjustment: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
     /// - Returns: A view modified with the specified safe area adjustment style.
     func propertyPickerSafeAreaAdjustment(_ adjustment: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
-        self.environment(\.safeAreaAdjustment, adjustment)
+        environment(\.safeAreaAdjustment, adjustment)
     }
 
     /// Sets the available detents for the picker when presented as a sheet.
@@ -256,8 +266,7 @@ public extension View {
     ///   to resize it.
     @available(iOS 16.0, *)
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
-        self.environment(\.presentationDetents, detents)
-            .environment(\.selectedDetent, nil)
+        environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)
     }
 
     /// Sets the available detents for the picker when presented as a sheet, giving you
@@ -271,11 +280,7 @@ public extension View {
     ///     Ensure that the value matches one of the detents that you
     ///     provide for the `detents` parameter.
     @available(iOS 16.0, *)
-    func propertyPickerPresentationDetents(
-        _ detents: Set<PresentationDetent>,
-        selection: Binding<PresentationDetent>
-    ) -> some View {
-        self.environment(\.presentationDetents, detents)
-            .environment(\.selectedDetent, selection)
+    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
+        environment(\.presentationDetents, detents).environment(\.selectedDetent, selection)
     }
 }

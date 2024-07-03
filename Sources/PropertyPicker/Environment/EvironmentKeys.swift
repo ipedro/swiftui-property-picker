@@ -29,7 +29,6 @@ struct AnimationKey: EnvironmentKey {
     static var defaultValue: Animation? = .easeOut
 }
 
-// Environment Key Definition
 struct TitleTransformKey: EnvironmentKey {
     static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
 }
@@ -38,9 +37,10 @@ struct RowSortingKey: EnvironmentKey {
     static var defaultValue: PropertyPickerRowSorting? = .ascending
 }
 
-// MARK: - LabelTransformKey
+struct RowBackgroundKey: EnvironmentKey {
+    static var defaultValue: AnyView?
+}
 
-// Environment Key Definition
 struct LabelTransformKey: EnvironmentKey {
     static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
 }
@@ -58,6 +58,7 @@ struct PresentationDetentsKey: EnvironmentKey {
         .large
     ]
 }
+
 extension EnvironmentValues {
     var safeAreaAdjustment: PropertyPickerSafeAreaAdjustmentStyle {
         get { self[SafeAreaAdjustmentKey.self] }
@@ -94,5 +95,10 @@ extension EnvironmentValues {
     var rowSorting: PropertyPickerRowSorting? {
         get { self[RowSortingKey.self] }
         set { self[RowSortingKey.self] = newValue }
+    }
+
+    var rowBackground: AnyView? {
+        get { self[RowBackgroundKey.self] }
+        set { self[RowBackgroundKey.self] = newValue }
     }
 }
