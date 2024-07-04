@@ -30,7 +30,7 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey & Equatable, Content: View {
+struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey, Content: View {
     let type: Key.Type
 
     /// A view builder closure that creates the content view based on the current selection.

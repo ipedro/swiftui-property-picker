@@ -61,6 +61,8 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where 
     /// where the key and the value are the same.
     associatedtype Value = Self
 
+    typealias KeyPath = WritableKeyPath<EnvironmentValues, Self.Value>
+
     /// A title for the property group, typically used as a section header or similar in UI elements. This helps users
     /// understand the context or categorization of the properties.
     static var title: String { get }

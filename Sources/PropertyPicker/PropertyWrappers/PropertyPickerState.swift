@@ -21,7 +21,7 @@
 import SwiftUI
 
 @available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
-public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, WritableKeyPath<EnvironmentValues, K.Value>>
+public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>
 
 /**
  `PropertyPickerState` encapsulates the functionality needed to maintain and update the state of a ``PropertyPickerKey`` in a SwiftUI view, either locally or in the SwiftUI environment.
@@ -31,35 +31,31 @@ public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPicke
  - Note: When provided with a `keyPath` parameter, state changes are linked directly to the SwiftUI enviroment.
  */
 @propertyWrapper
-public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
-
+public struct PropertyPickerState<Key: PropertyPickerKey, KeyPath>: DynamicProperty {
     /// Initializes the property picker state for local usage without linking to an environment value.
     /// - Parameter key: The type of the property key.
-    public init(_ key: Key.Type = Key.self) where Data == Void {
-        data = ()
+    public init(_ key: Key.Type = Key.self) where KeyPath == Void {
+        self.keyPath = ()
     }
 
     /// Initializes the property picker state, linking it to an environment value using a key path.
     /// - Parameters:
-    ///   - keyPath: A key path to an environment value that this picker state will sync with.
     ///   - key: The type of the property key.
-    public init(
-        _ keyPath: WritableKeyPath<EnvironmentValues, Key.Value>,
-        _ key: Key.Type = Key.self
-    ) where Data == WritableKeyPath<EnvironmentValues, Key.Value> {
-        data = keyPath
+    ///   - keyPath: A key path to an environment value that this picker state will sync with.
+    public init(_ key: Key.Type = Key.self, keyPath: Key.KeyPath) where KeyPath == Key.KeyPath {
+        self.keyPath = keyPath
     }
 
     @State
     var state: Key = Key.defaultSelection
 
-    var data: Data
+    var keyPath: KeyPath
 
     public var wrappedValue: Key.Value {
         state.value
     }
 
-    public var projectedValue: PropertyPickerState<Key, Data> {
+    public var projectedValue: Self {
         self
     }
 }

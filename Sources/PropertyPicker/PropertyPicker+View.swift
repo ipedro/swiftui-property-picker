@@ -233,9 +233,9 @@ public extension View {
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, WritableKeyPath<EnvironmentValues, K.Value>>) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
         PropertyDataWriter(type: K.self) { data in
-            environment(pickerState.data, data.value).onChange(of: data) { newValue in
+            environment(pickerState.keyPath, data.value).onChange(of: data) { newValue in
                 if newValue != pickerState.state {
                     pickerState.state = newValue
                 }

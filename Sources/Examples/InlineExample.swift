@@ -41,11 +41,11 @@ struct InlineExample: View {
     private var content
 
     // changes are written to the SwiftUI environment
-    @PropertyPickerState(\.isEnabled, InteractionKey.self)
+    @PropertyPickerState(InteractionKey.self, keyPath: \.isEnabled)
     private var interaction
 
     // changes are written to the SwiftUI environment
-    @PropertyPickerState(\.colorScheme, ColorSchemeKey.self)
+    @PropertyPickerState(ColorSchemeKey.self, keyPath: \.colorScheme)
     private var colorScheme
 
     @State private var presented = false
