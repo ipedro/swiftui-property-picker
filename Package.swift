@@ -15,7 +15,7 @@ let package = Package(
         ),
         .library(
             name: "PropertyPickerExamples",
-            targets: ["Examples"]
+            targets: ["PropertyPickerExamples"]
         ),
     ],
     targets: [
@@ -23,8 +23,9 @@ let package = Package(
             name: "PropertyPicker"
         ),
         .target(
-            name: "Examples",
-            dependencies: ["PropertyPicker"]
+            name: "PropertyPickerExamples",
+            dependencies: ["PropertyPicker"],
+            path: "Sources/Examples"
         ),
     ]
 )
