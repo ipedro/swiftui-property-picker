@@ -14,7 +14,7 @@ let package = Package(
             targets: ["PropertyPicker"]
         ),
         .library(
-            name: "Examples",
+            name: "PropertyPickerExamples",
             targets: ["Examples"]
         ),
     ],
