@@ -32,6 +32,16 @@ import Foundation
 /// Usage of this ID is crucial in scenarios where properties need to be dynamically
 /// managed and accessed across various UI components or data handling layers.
 public struct PropertyID: Hashable {
+    public static func == (lhs: PropertyID, rhs: PropertyID) -> Bool {
+        lhs.value == rhs.value
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(value)
+    }
+
+    let type: Any.Type
+
     /// The underlying value storing the unique identifier based on type information.
     private let value: ObjectIdentifier
 
@@ -43,5 +53,6 @@ public struct PropertyID: Hashable {
     ///   captures the caller's type context, automatically providing type-specific uniqueness.
     init<K: PropertyPickerKey>(_ key: K.Type = K.self) {
         value = ObjectIdentifier(key)
+        type = key
     }
 }

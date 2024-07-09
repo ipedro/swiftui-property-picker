@@ -20,42 +20,32 @@
 
 import SwiftUI
 
-/// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
-public struct PropertyData: Identifiable {
-    /// A unique identifier for the entry.
-    public let id: PropertyID
-    
-    /// The title of the entry, used as a label in the UI.
-    public let title: String
-    
-    /// The options available for selection.
-    public let options: [Option]
+struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Row: View {
+    var key: Key.Type
 
-    public struct Option: Identifiable {
-        public var id: String { rawValue }
-        let label: String
-        let rawValue: String
+    @ViewBuilder
+    var row: (_ data: Property) -> Row
+
+    private var id: PropertyID {
+        PropertyID(key)
     }
-    
-    /// A binding to the currently selected option.
-    @Binding public var selection: String
-}
 
-extension PropertyData: Equatable {
-    /// Determines if two entries are equal based on their identifiers.
-    public static func == (lhs: PropertyData, rhs: PropertyData) -> Bool {
-        lhs.id == rhs.id
+    private var rowBuilder: RowBuilder {
+        .init(id: id, body: { data in
+            return AnyView(row(data))
+        })
     }
-}
 
-extension PropertyData: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
-
-extension PropertyData: Comparable {
-    public static func < (lhs: PropertyData, rhs: PropertyData) -> Bool {
-        lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+    func body(content: Content) -> some View {
+        #if VERBOSE
+        Self._printChanges()
+        #endif
+        return content.modifier(
+            PreferenceWriter(
+                type: ViewBuilderPreference.self,
+                value: [id: rowBuilder],
+                verbose: false
+            )
+        )
     }
 }

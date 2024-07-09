@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+let isRemoteCheckout = Context.packageDirectory.contains("Library/Developer/Xcode/DerivedData/")
+
 let package = Package(
     name: "swiftui-property-picker",
     platforms: [
@@ -20,7 +22,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PropertyPicker"
+            name: "PropertyPicker",
+            swiftSettings: {
+                if isRemoteCheckout {
+                    []
+                } else {
+                    [.define("VERBOSE")]
+                }
+            }()
         ),
         .target(
             name: "PropertyPickerExamples",

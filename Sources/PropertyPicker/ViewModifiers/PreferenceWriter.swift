@@ -28,9 +28,15 @@ import SwiftUI
 struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
     var type: Key.Type
     var value: Key.Value
-    
+    var verbose: Bool = true
+
     func body(content: Content) -> some View {
-        content.background(
+        #if VERBOSE
+        if verbose {
+            Self._printChanges()
+        }
+        #endif
+        return content.background(
             Spacer().preference(key: Key.self, value: value)
         )
     }

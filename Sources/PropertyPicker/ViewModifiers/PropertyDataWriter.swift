@@ -20,7 +20,7 @@
 
 import SwiftUI
 
-/// `PropertyDataWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// `PropertyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
 /// updates the UI accordingly when a new selection is made.
 ///
@@ -30,7 +30,7 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyDataWriter<Key>: ViewModifier where Key: PropertyPickerKey {
+struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     let type: Key.Type
 
     @Binding
@@ -43,26 +43,45 @@ struct PropertyDataWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     private var titleTransformation
 
     func body(content: Content) -> some View {
-        content.modifier(
-            PreferenceWriter(type: PropertyPreference.self, value: [property])
+        #if VERBOSE
+        Self._printChanges()
+        #endif
+        return content.modifier(
+            PreferenceWriter(
+                type: PropertyPreference.self,
+                value: [property],
+                verbose: false
+            )
         )
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
-    private var property: PropertyData {
+    private var property: Property {
         let id = PropertyID(Key.self)
         let title = titleTransformation.apply(to: Key.title)
         let options = Key.allCases.map {
-            PropertyData.Option(
+            Property.Option(
                 label: labelTransformation.apply(to: $0.label),
                 rawValue: $0.rawValue
             )
         }
-        return PropertyData(
+        return Property(
             id: id,
             title: title,
-            options: options,
-            selection: $selection.asRawValue()
+            options: options, 
+            token: selection.rawValue.hashValue,
+            selection: Binding {
+                selection.rawValue
+            } set: { newValue in
+                guard newValue != selection.rawValue else {
+                    return
+                }
+                if let newKey = Key(rawValue: newValue) {
+                    selection = newKey
+                } else {
+                    assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
+                }
+            }
         )
     }
 }

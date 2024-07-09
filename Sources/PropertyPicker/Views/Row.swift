@@ -21,10 +21,13 @@
 import SwiftUI
 
 struct Row: View {
-    var data: PropertyData
+    var data: Property
 
     var body: some View {
-        Picker(data.title, selection: data.$selection) {
+        #if VERBOSE
+        Self._printChanges()
+        #endif
+        return Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
                 Text(option.label)
             }

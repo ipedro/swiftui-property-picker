@@ -28,71 +28,33 @@ extension Context {
     /// property pickers. It uses `@Published` properties to ensure that views observing this context will
     /// update automatically in response to changes, supporting reactive UI updates.
     final class Data: ObservableObject {
-        private var cancellables = Set<AnyCancellable>()
+        init() {}
 
-        // Properties
-        private var _title: Text? = TitlePreference.defaultValue
-        private var _rows: Set<PropertyData> = []
-        private var _rowBuilders: [PropertyID: PropertyPickerRowBuilder] = [:]
-
-        // Public facing properties
-        var title: Text? {
-            get { _title }
-            set {
-                guard _title != newValue else { return }
-                objectWillChange.send()
-                //print(#function, "changed")
-                _title = newValue
+        @Published
+        var title: Text? = TitlePreference.defaultValue {
+            didSet {
+                #if VERBOSE
+                print("\(Self.self): Updated Title \"\(String(describing: title))\"")
+                #endif
             }
         }
 
-        var rows: Set<PropertyData> {
-            get { _rows }
-            set {
-                guard _rows != newValue else { return }
-                objectWillChange.send()
-                //print(#function, "changed")
-                _rows = newValue
+        @Published
+        var rows: Set<Property> = [] {
+            didSet {
+                #if VERBOSE
+                print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
+                #endif
             }
         }
 
-        var rowBuilders: [PropertyID: PropertyPickerRowBuilder] {
-            get { _rowBuilders }
-            set {
-                guard _rowBuilders != newValue else { return }
-                objectWillChange.send()
-                //print(#function, "changed")
-                _rowBuilders = newValue
+        @Published
+        var rowBuilders: [PropertyID: RowBuilder] = [:] {
+            didSet {
+                #if VERBOSE
+                print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
+                #endif
             }
-        }
-
-        init() {
-            setupDebouncing()
-        }
-
-        private func setupDebouncing() {
-            let oneFrame = Int((1 / UIScreen.main.maximumFramesPerSecond) * 1000)
-
-            // Title debouncing
-            Just(_title)
-                .removeDuplicates()
-                .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
-                .sink { [weak self] in self?.title = $0 }
-                .store(in: &cancellables)
-
-            // Rows debouncing
-            Just(_rows)
-                .removeDuplicates()
-                .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
-                .sink { [weak self] in self?.rows = $0 }
-                .store(in: &cancellables)
-
-            // RowBuilders debouncing
-            Just(_rowBuilders)
-                .removeDuplicates()
-                .debounce(for: .milliseconds(oneFrame), scheduler: RunLoop.main)
-                .sink { [weak self] in self?.rowBuilders = $0 }
-                .store(in: &cancellables)
         }
     }
 }

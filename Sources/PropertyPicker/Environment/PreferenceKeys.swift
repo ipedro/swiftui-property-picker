@@ -52,32 +52,32 @@ struct ContentBackgroundStylePreference: PreferenceKey {
     }
 }
 
-/// A preference key for storing a dictionary of `PropertyPickerRowBuilder` instances indexed by `ObjectIdentifier`.
+/// A preference key for storing a dictionary of `RowBuilder` instances indexed by `ObjectIdentifier`.
 ///
 /// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
 /// It allows different parts of an application to specify custom builders for rendering specific property types.
 struct ViewBuilderPreference: PreferenceKey {
     /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
-    static let defaultValue = [PropertyID: PropertyPickerRowBuilder]()
+    static let defaultValue = [PropertyID: RowBuilder]()
 
     /// Merges view builders provided by child views, preferring the builder set closest to the root.
-    static func reduce(value: inout [PropertyID: PropertyPickerRowBuilder], nextValue: () -> [PropertyID: PropertyPickerRowBuilder]) {
+    static func reduce(value: inout [PropertyID: RowBuilder], nextValue: () -> [PropertyID: RowBuilder]) {
         value.merge(nextValue()) { content, _ in
             content
         }
     }
 }
 
-/// A preference key for storing a set of `PropertyData` objects.
+/// A preference key for storing a set of `Property` objects.
 ///
 /// This preference key is designed to collect properties from various parts of the view hierarchy into a single set.
 /// It is useful for aggregating properties that need to be accessible at a higher level in the application.
 struct PropertyPreference: PreferenceKey {
     /// The default value, an empty set, indicates that no properties are collected initially.
-    static var defaultValue: Set<PropertyData> = []
+    static var defaultValue: Set<Property> = []
 
     /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
-    static func reduce(value: inout Set<PropertyData>, nextValue: () -> Set<PropertyData>) {
+    static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
         value.formUnion(nextValue())
     }
 }

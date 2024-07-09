@@ -93,20 +93,13 @@ public extension View {
     ///
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
-    ///   - body: A closure that takes a `PropertyData` instance and returns a view (`Row`) for that property.
+    ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
     func propertyPickerRow<K, Row>(
         for key: K.Type,
-        @ViewBuilder body: @escaping (_ data: PropertyData) -> Row
+        @ViewBuilder body: @escaping (_ data: Property) -> Row
     ) -> some View where K: PropertyPickerKey, Row: View {
-        let id = PropertyID(key)
-        let rowBuilder = PropertyPickerRowBuilder(id: id) { someProp in
-            return AnyView(body(someProp))
-        }
-        return modifier(
-            PreferenceWriter(
-                type: ViewBuilderPreference.self,
-                value: [id: rowBuilder]
-            )
+        modifier(
+            RowBuilderWriter(key: key, row: body)
         )
     }
 
@@ -115,16 +108,8 @@ public extension View {
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
     func propertyPickerRowHidden<K>(for key: K.Type = K.self) -> some View where K: PropertyPickerKey {
-        let id = PropertyID(key)
-        let rowBuilder = PropertyPickerRowBuilder(
-            id: id,
-            body: { _ in AnyView(EmptyView()) }
-        )
-        return modifier(
-            PreferenceWriter(
-                type: ViewBuilderPreference.self,
-                value: [id: rowBuilder]
-            )
+        modifier(
+            RowBuilderWriter(key: key, row: { _ in EmptyView() })
         )
     }
 
@@ -220,9 +205,9 @@ public extension View {
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(_ state: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyDataWriter(type: K.self, selection: pickerState.$state)
+            PropertyWriter(type: K.self, selection: state.$state)
         )
     }
 
@@ -235,11 +220,11 @@ public extension View {
     ///   and react to changes in the property picker's selected value.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ pickerState: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
+    func propertyPicker<K>(_ state: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyDataWriter(type: K.self, selection: pickerState.$state)
+            PropertyWriter(type: K.self, selection: state.$state)
         )
-        .environment(pickerState.data, pickerState.state.value)
+        .environment(state.data, state.state.value)
     }
 }
 

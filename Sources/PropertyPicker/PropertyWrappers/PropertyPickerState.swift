@@ -75,18 +75,3 @@ public extension PropertyPickerState where Data == Key.KeyPath {
         self.data = keyPath
     }
 }
-
-extension Binding where Value: PropertyPickerKey {
-    func asRawValue() -> Binding<String> {
-        Binding<String> {
-            wrappedValue.rawValue
-        } set: { newValue in
-            guard newValue != wrappedValue.rawValue else { return }
-            if let newKey = Value(rawValue: newValue) {
-                wrappedValue = newKey
-            } else {
-                assertionFailure("Couldn't convert \"\(newValue)\" to a \(Value.self) instance.")
-            }
-        }
-    }
-}

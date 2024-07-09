@@ -28,7 +28,10 @@ struct Rows: View {
     private var rowSorting
 
     var body: some View {
-        ForEach(rowSorting.sort(context.rows)) { property in
+        #if VERBOSE
+        Self._printChanges()
+        #endif
+        return ForEach(rowSorting.sort(context.rows)) { property in
             if let custom = makeBody(configuration: property) {
                 custom
             } else {
@@ -37,7 +40,7 @@ struct Rows: View {
         }
     }
 
-    private func makeBody(configuration property: PropertyData) -> AnyView? {
+    private func makeBody(configuration property: Property) -> AnyView? {
         if let customBuilder = context.rowBuilders[property.id] {
             let body = customBuilder.body(property)
             return body
