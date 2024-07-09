@@ -30,25 +30,11 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey, Content: View {
+struct PropertyDataWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     let type: Key.Type
 
-    /// A view builder closure that creates the content view based on the current selection.
-    /// This allows the view to reactively update in response to changes in the selection.
-    @ViewBuilder 
-    var content: (Key) -> Content
-
-    /// Internal ObservableObject for managing the dynamic selection state.
-    private class Context: ObservableObject { // FIXME: change to struct and move to state with injectable context
-        var selection = Key.defaultSelection
-
-        @Published
-        var changes = 0
-    }
-
-    /// The current selection state of the dynamic value, observed for changes to update the view.
-    @StateObject
-    private var context = Context()
+    @Binding
+    var selection: Key
 
     @Environment(\.labelTransformation)
     private var labelTransformation
@@ -56,11 +42,9 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey, Cont
     @Environment(\.titleTransformation)
     private var titleTransformation
 
-    var body: some View {
-        PreferenceWriter(
-            type: PropertyPreference.self,
-            value: [property],
-            content: content(context.selection)
+    func body(content: Content) -> some View {
+        content.modifier(
+            PreferenceWriter(type: PropertyPreference.self, value: [property])
         )
     }
 
@@ -78,19 +62,7 @@ struct PropertyDataWriter<Key, Content>: View where Key: PropertyPickerKey, Cont
             id: id,
             title: title,
             options: options,
-            changeToken: context.changes,
-            selection: Binding(
-                get: {
-                    context.selection.rawValue
-                },
-                set: { newValue in
-                    guard newValue != context.selection.rawValue else { return }
-                    if let newKey = Key(rawValue: newValue) {
-                        context.selection = newKey
-                        context.changes += 1
-                    }
-                }
-            )
+            selection: $selection.asRawValue()
         )
     }
 }

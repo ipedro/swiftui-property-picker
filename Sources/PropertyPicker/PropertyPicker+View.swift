@@ -37,13 +37,14 @@ public extension View {
         _ style: S?,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        PreferenceWriter(
-            type: ContentBackgroundStylePreference.self,
-            value: {
-                guard let style else { return nil }
-                return AnimationBox(animation, AnyShapeStyle(style))
-            }(),
-            content: self
+        modifier(
+            PreferenceWriter(
+                type: ContentBackgroundStylePreference.self,
+                value: {
+                    guard let style else { return nil }
+                    return AnimationBox(animation, AnyShapeStyle(style))
+                }()
+            )
         )
     }
 
@@ -60,10 +61,11 @@ public extension View {
         _ style: S,
         _ animation: Animation? = nil
     ) -> some View where S: ShapeStyle {
-        PreferenceWriter(
-            type: ContentBackgroundStylePreference.self,
-            value: AnimationBox(animation, AnyShapeStyle(style)),
-            content: self
+        modifier(
+            PreferenceWriter(
+                type: ContentBackgroundStylePreference.self,
+                value: AnimationBox(animation, AnyShapeStyle(style))
+            )
         )
     }
 }
@@ -100,10 +102,11 @@ public extension View {
         let rowBuilder = PropertyPickerRowBuilder(id: id) { someProp in
             return AnyView(body(someProp))
         }
-        return PreferenceWriter(
-            type: ViewBuilderPreference.self,
-            value: [id: rowBuilder],
-            content: self
+        return modifier(
+            PreferenceWriter(
+                type: ViewBuilderPreference.self,
+                value: [id: rowBuilder]
+            )
         )
     }
 
@@ -117,10 +120,11 @@ public extension View {
             id: id,
             body: { _ in AnyView(EmptyView()) }
         )
-        return PreferenceWriter(
-            type: ViewBuilderPreference.self,
-            value: [id: rowBuilder],
-            content: self
+        return modifier(
+            PreferenceWriter(
+                type: ViewBuilderPreference.self,
+                value: [id: rowBuilder]
+            )
         )
     }
 
@@ -146,13 +150,14 @@ public extension View {
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
     func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        PreferenceWriter(
-            type: TitlePreference.self,
-            value: {
-                if let title { return Text(title) }
-                return nil
-            }(),
-            content: self
+        modifier(
+            PreferenceWriter(
+                type: TitlePreference.self,
+                value: {
+                    if let title { return Text(title) }
+                    return nil
+                }()
+            )
         )
     }
 
@@ -163,13 +168,14 @@ public extension View {
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
     func propertyPickerTitle(_ title: String?) -> some View {
-        PreferenceWriter(
-            type: TitlePreference.self,
-            value: {
-                if let title { return Text(verbatim: title) }
-                return nil
-            }(),
-            content: self
+        modifier(
+            PreferenceWriter(
+                type: TitlePreference.self,
+                value: {
+                    if let title { return Text(verbatim: title) }
+                    return nil
+                }()
+            )
         )
     }
 
@@ -215,13 +221,9 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ pickerState: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertyDataWriter(type: K.self) { data in
-            onChange(of: data) { newValue in
-                if newValue != pickerState.state {
-                    pickerState.state = newValue
-                }
-            }
-        }
+        modifier(
+            PropertyDataWriter(type: K.self, selection: pickerState.$state)
+        )
     }
 
     /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
@@ -234,13 +236,10 @@ public extension View {
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     func propertyPicker<K>(_ pickerState: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
-        PropertyDataWriter(type: K.self) { data in
-            environment(pickerState.keyPath, data.value).onChange(of: data) { newValue in
-                if newValue != pickerState.state {
-                    pickerState.state = newValue
-                }
-            }
-        }
+        modifier(
+            PropertyDataWriter(type: K.self, selection: pickerState.$state)
+        )
+        .environment(pickerState.data, pickerState.state.value)
     }
 }
 

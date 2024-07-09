@@ -38,7 +38,7 @@ import PropertyPicker
 struct InlineExample: View {
     // changes are local
     @PropertyPickerState(ContentKey.self)
-    private var content
+    private var content = .image
 
     // changes are written to the SwiftUI environment
     @PropertyPickerState(InteractionKey.self, keyPath: \.isEnabled)
@@ -46,7 +46,7 @@ struct InlineExample: View {
 
     // changes are written to the SwiftUI environment
     @PropertyPickerState(ColorSchemeKey.self, keyPath: \.colorScheme)
-    private var colorScheme
+    private var colorScheme = .dark
 
     @State private var presented = false
 
@@ -57,9 +57,11 @@ struct InlineExample: View {
             } label: {
                 switch content {
                 case .image:
-                    Image(systemName: "circle")
+                    Image(systemName: "star")
                 case .text:
                     Text("Button")
+                case .both:
+                    Label("Button", systemImage: "star")
                 }
             }
             .buttonStyle(.bordered)
@@ -70,11 +72,11 @@ struct InlineExample: View {
     }
 
     private enum ContentKey: String, PropertyPickerKey {
-        case text, image
+        case text, image, both
     }
 
     private enum InteractionKey: String, PropertyPickerKey {
-        static var defaultSelection: InteractionKey = .enabled
+        static var defaultValue: InteractionKey = .enabled
 
         case disabled, enabled
 
@@ -94,5 +96,3 @@ struct InlineExample: View {
         }
     }
 }
-
-

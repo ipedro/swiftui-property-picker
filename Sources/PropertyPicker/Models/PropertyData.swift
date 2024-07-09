@@ -36,9 +36,6 @@ public struct PropertyData: Identifiable {
         let label: String
         let rawValue: String
     }
-
-    /// Signal view updates
-    let changeToken: Int
     
     /// A binding to the currently selected option.
     @Binding public var selection: String
@@ -47,14 +44,13 @@ public struct PropertyData: Identifiable {
 extension PropertyData: Equatable {
     /// Determines if two entries are equal based on their identifiers.
     public static func == (lhs: PropertyData, rhs: PropertyData) -> Bool {
-        lhs.id == rhs.id && lhs.changeToken == rhs.changeToken
+        lhs.id == rhs.id
     }
 }
 
 extension PropertyData: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(changeToken)
     }
 }
 

@@ -79,7 +79,7 @@ private enum ContentKey: String, PropertyPickerKey {
 }
 
 private enum InteractionKey: String, PropertyPickerKey {
-    static var defaultSelection: InteractionKey { .enabled }
+    static var defaultValue: InteractionKey { .enabled }
 
     case disabled, enabled
 

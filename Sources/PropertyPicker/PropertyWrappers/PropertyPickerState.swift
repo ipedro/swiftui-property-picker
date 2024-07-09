@@ -31,31 +31,62 @@ public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPicke
  - Note: When provided with a `keyPath` parameter, state changes are linked directly to the SwiftUI enviroment.
  */
 @propertyWrapper
-public struct PropertyPickerState<Key: PropertyPickerKey, KeyPath>: DynamicProperty {
-    /// Initializes the property picker state for local usage without linking to an environment value.
-    /// - Parameter key: The type of the property key.
-    public init(_ key: Key.Type = Key.self) where KeyPath == Void {
-        self.keyPath = ()
-    }
+public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
+    @State var state: Key
 
-    /// Initializes the property picker state, linking it to an environment value using a key path.
+    var data: Data
+
+    public var wrappedValue: Key.Value { state.value }
+
+    public var projectedValue: Self { self }
+}
+
+public extension PropertyPickerState where Data == Void {
+    /// Initializes the property picker state for local usage.
     /// - Parameters:
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self) {
+        self._state = State(initialValue: value)
+        self.data = ()
+    }
+}
+
+public extension PropertyPickerState where Data == Key.KeyPath {
+    /// Initializes the property picker state, linking the local selection to an environment value.
+    /// - Parameters:
+    ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
-    public init(_ key: Key.Type = Key.self, keyPath: Key.KeyPath) where KeyPath == Key.KeyPath {
-        self.keyPath = keyPath
+    @_disfavoredOverload
+    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self, keyPath: Key.KeyPath) {
+        self._state = State(initialValue: value)
+        self.data = keyPath
     }
-
-    @State
-    var state: Key = Key.defaultSelection
-
-    var keyPath: KeyPath
-
-    public var wrappedValue: Key.Value {
-        state.value
+    /// Initializes the property picker state, linking it to an environment value using a key path.
+    /// - Parameters:
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    ///   - keyPath: A key path to an environment value that this picker state will sync with.
+    @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
+    @_disfavoredOverload
+    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _ key: Key.Type = Key.self) {
+        self._state = State(initialValue: value)
+        self.data = keyPath
     }
+}
 
-    public var projectedValue: Self {
-        self
+extension Binding where Value: PropertyPickerKey {
+    func asRawValue() -> Binding<String> {
+        Binding<String> {
+            wrappedValue.rawValue
+        } set: { newValue in
+            guard newValue != wrappedValue.rawValue else { return }
+            if let newKey = Value(rawValue: newValue) {
+                wrappedValue = newKey
+            } else {
+                assertionFailure("Couldn't convert \"\(newValue)\" to a \(Value.self) instance.")
+            }
+        }
     }
 }

@@ -35,7 +35,7 @@ To conform to `PropertyPickerKey`, a type must satisfy several requirements, whi
 ## Properties
 
 - `title`: A static property providing a descriptive title for this property. A default value is provided.
-- `defaultSelection`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
+- `defaultValue`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
  - `label`: The label that describes this property instance. If no label is defined, the `rawValue` used instead.
  - `value`: Each instance of a conforming type provides a specific value associated with the property key.
 
@@ -50,7 +50,7 @@ enum TextAlignmentKey: String, PropertyPickerKey {
     case right = "Right"
 }
 ```
- - Warning: If `allCases` is empty and no `defaultSelection` is explicitly provided, a `fatalError()` is thrown in runtime.
+ - Warning: If `allCases` is empty and no `defaultValue` is explicitly provided, a `fatalError()` is thrown in runtime.
 
 ## Conclusion
 
@@ -68,7 +68,7 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where 
     static var title: String { get }
 
     /// The default value of the property. This is used both to provide a default state and to reset the property's value.
-    static var defaultSelection: Self { get }
+    static var defaultValue: Self { get }
 
     /// The specific value associated with an instance of this property. This allows for storing additional metadata or
     /// specifics about the property beyond its enumeration case.
@@ -80,10 +80,9 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where 
 
 // MARK: - Default Label
 
-extension PropertyPickerKey {
+public extension PropertyPickerKey {
     /// Default label is the `rawValue`.
-    public var label: String { rawValue }
-    /// Default title transformation is `camelCaseToWords`.
+    var label: String { rawValue }
 }
 
 // MARK: - Default Title
@@ -102,7 +101,7 @@ extension PropertyPickerKey {
 
 extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    public static var defaultSelection: Self {
+    public static var defaultValue: Self {
         guard let first = allCases.first else {
             fatalError("Keys should have at least one valid option")
         }

@@ -25,12 +25,11 @@ import SwiftUI
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
-struct PreferenceWriter<Key, Content>: View where Key: PreferenceKey, Content: View {
+struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
     var type: Key.Type
     var value: Key.Value
-    var content: Content
-
-    var body: some View {
+    
+    func body(content: Content) -> some View {
         content.background(
             Spacer().preference(key: Key.self, value: value)
         )
