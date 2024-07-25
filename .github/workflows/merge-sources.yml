@@ -4,8 +4,11 @@ on:
   push:
     branches: ["main"]
 
+permissions:
+  contents: write
+
 jobs:
-  concatenate:
+  merge-sources:
     runs-on: ubuntu-latest
 
     steps:
