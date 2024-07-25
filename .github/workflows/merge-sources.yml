@@ -26,7 +26,7 @@ jobs:
 
     - name: Concatenate files
       run: |
-        find Sources/PropertyPicker -type f -name '*.swift' -exec cat {} + > PropertyPicker.swift
+        find Sources/Development -type f -name '*.swift' -exec cat {} + > PropertyPicker.swift
       shell: bash
 
     - name: Prepare LICENSE content

@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+let isDevelopment = !Context.packageDirectory.contains(".build/checkouts/") && !Context.packageDirectory.contains("DerivedData/")
+
 let package = Package(
     name: "swiftui-property-picker",
     platforms: [
@@ -16,22 +18,14 @@ let package = Package(
         .library(
             name: "PropertyPicker-Examples",
             targets: ["PropertyPicker-Examples"]
-        ),
-        .library(
-            name: "PropertyPicker-Development",
-            targets: ["PropertyPicker-Development"]
-        ),
+        )
     ],
     targets: [
         .target(
             name: "PropertyPicker",
-            path: ".",
-            sources: ["PropertyPicker.swift"]
-        ),
-        .target(
-            name: "PropertyPicker-Development",
-            path: "Sources/PropertyPicker",
-            swiftSettings: [.define("VERBOSE")]
+            path: isDevelopment ? "Sources/Development" : ".",
+            sources: isDevelopment ? nil : ["PropertyPicker.swift"],
+            swiftSettings: isDevelopment ? [.define("VERBOSE")] : nil
         ),
         .target(
             name: "PropertyPicker-Examples",
