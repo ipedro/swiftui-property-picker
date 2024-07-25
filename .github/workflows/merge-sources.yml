@@ -31,7 +31,23 @@ jobs:
 
     - name: Remove multiline pattern
       run: |
-        awk 'BEGIN {p=0} /\/\/  Copyright \(c\) 2024 Pedro Almeida/ {p=1} p && /import SwiftUI/ {p=0; next} !p' Sources/PropertyPicker/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker/PropertyPicker.swift
+        awk '
+        BEGIN { 
+          p = 0 
+          # Define patterns for matching copyright block
+          pattern_start = "/^\/\/  Copyright \\(c\\) [0-9]{4} [A-Za-z ]+/"
+          pattern_end = "/^import SwiftUI/"
+        }
+        # Match the start pattern with a flexible year and name
+        /^\/\/  Copyright \(c\) [0-9]{4} [A-Za-z ]+/ { 
+          p = 1 
+        }
+        # Reset flag if end pattern is found
+        /^import SwiftUI/ { 
+          p = 0 
+        }
+        # If flag is set, skip lines; otherwise, print lines
+        p == 0' Sources/PropertyPicker/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker/PropertyPicker.swift
       shell: bash
       
     - name: Commit changes
