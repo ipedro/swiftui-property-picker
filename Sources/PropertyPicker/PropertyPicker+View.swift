@@ -207,7 +207,7 @@ public extension View {
     ///   changes to and from the state.
     func propertyPicker<K>(_ state: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyWriter(type: K.self, selection: state.$state)
+            PropertyWriter(type: K.self, selection: state.$store)
         )
     }
 
@@ -222,9 +222,9 @@ public extension View {
     ///   changes to and from the state.
     func propertyPicker<K>(_ state: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyWriter(type: K.self, selection: state.$state)
+            PropertyWriter(type: K.self, selection: state.$store)
         )
-        .environment(state.data, state.state.value)
+        .environment(state.data, state.store.value)
     }
 }
 

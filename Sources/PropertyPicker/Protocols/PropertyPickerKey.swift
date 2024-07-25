@@ -45,9 +45,7 @@ Here's a straightforward example of how one might implement `PropertyPickerKey` 
 
 ```swift
 enum TextAlignmentKey: String, PropertyPickerKey {
-    case left = "Left"
-    case center = "Center"
-    case right = "Right"
+    case left, center, right
 }
 ```
  - Warning: If `allCases` is empty and no `defaultValue` is explicitly provided, a `fatalError()` is thrown in runtime.

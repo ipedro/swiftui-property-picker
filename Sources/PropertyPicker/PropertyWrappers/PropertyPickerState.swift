@@ -23,22 +23,31 @@ import SwiftUI
 @available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
 public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>
 
-/**
- `PropertyPickerState` encapsulates the functionality needed to maintain and update the state of a ``PropertyPickerKey`` in a SwiftUI view, either locally or in the SwiftUI environment.
-
- - Note: **DynamicProperty**: `PropertyPickerState` participates in SwiftUI's dependency and invalidation system, ensuring the view updates reactively to state changes.
-
- - Note: When provided with a `keyPath` parameter, state changes are linked directly to the SwiftUI enviroment.
- */
+/// A property wrapper that provides state management for a selection within a property picker.
+///
+/// This property wrapper is designed to work with ``PropertyPickerKey`` and `DynamicProperty`
+/// to manage the state of a selected value in a picker view.
 @propertyWrapper
 public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
-    @State var state: Key
+    @State var store: Key
 
     var data: Data
 
-    public var wrappedValue: Key.Value { state.value }
+    /// The value that this property wrapper manages.
+    ///
+    /// This property returns the value associated with the current selection key.
+    public var wrappedValue: Key.PickerValue { store.value }
 
+    /// The projected value of the property wrapper.
+    ///
+    /// This property returns the instance of `PropertyPickerState` itself.
     public var projectedValue: Self { self }
+
+    /// A binding to the selection key.
+    ///
+    /// This property provides a binding to the current selection key, allowing the selection
+    /// to be read and modified.
+    public var selection: Binding<Key> { $store }
 }
 
 public extension PropertyPickerState where Data == Void {
@@ -47,7 +56,16 @@ public extension PropertyPickerState where Data == Void {
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self) {
-        self._state = State(initialValue: value)
+        self._store = State(initialValue: value)
+        self.data = ()
+    }
+
+    /// Initializes the property picker state for local usage.
+    /// - Parameters:
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
+        self._store = State(initialValue: value)
         self.data = ()
     }
 }
@@ -60,7 +78,7 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @_disfavoredOverload
     init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self, keyPath: Key.KeyPath) {
-        self._state = State(initialValue: value)
+        self._store = State(initialValue: value)
         self.data = keyPath
     }
     /// Initializes the property picker state, linking it to an environment value using a key path.
@@ -71,7 +89,7 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
     @_disfavoredOverload
     init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _ key: Key.Type = Key.self) {
-        self._state = State(initialValue: value)
+        self._store = State(initialValue: value)
         self.data = keyPath
     }
 }
