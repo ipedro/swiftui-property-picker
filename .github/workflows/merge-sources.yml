@@ -33,21 +33,33 @@ jobs:
       run: |
         awk '
         BEGIN { 
-          p = 0 
-          # Define patterns for matching copyright block
-          pattern_start = "/^\/\/  Copyright \\(c\\) [0-9]{4} [A-Za-z ]+/"
-          pattern_end = "/^import SwiftUI/"
+          p = 0
+          first_header = 1
+          first_import = 1
         }
         # Match the start pattern with a flexible year and name
-        /^\/\/  Copyright \(c\) [0-9]{4} [A-Za-z ]+/ { 
-          p = 1 
+        /^\/\/  Copyright \(c\) [0-9]{4} [A-Za-z ]+/ {
+          if (first_header) {
+            first_header = 0
+            print
+            next
+          }
+          p = 1
         }
-        # Reset flag if end pattern is found
-        /^import SwiftUI/ { 
-          p = 0 
+        # Handle import statement
+        /^import SwiftUI/ {
+          if (first_import) {
+            first_import = 0
+            print
+            next
+          }
+          if (p) {
+            p = 0
+            next
+          }
         }
         # If flag is set, skip lines; otherwise, print lines
-        p == 0' Sources/PropertyPicker/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker/PropertyPicker.swift
+        !p' Sources/PropertyPicker/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker/PropertyPicker.swift
       shell: bash
       
     - name: Commit changes
