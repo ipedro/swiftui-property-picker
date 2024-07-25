@@ -1,4 +1,46 @@
+import Foundation
 import SwiftUI
+import func SwiftUI.withAnimation
+import protocol SwiftUI.DynamicProperty
+import protocol SwiftUI.EnvironmentKey
+import protocol SwiftUI.ListStyle
+import protocol SwiftUI.ObservableObject
+import protocol SwiftUI.PreferenceKey
+import protocol SwiftUI.ShapeStyle
+import protocol SwiftUI.View
+import protocol SwiftUI.ViewModifier
+import struct SwiftUI.Animation
+import struct SwiftUI.AnyShapeStyle
+import struct SwiftUI.AnyView
+import struct SwiftUI.Binding
+import struct SwiftUI.Button
+import struct SwiftUI.CGFloat
+import struct SwiftUI.Color
+import struct SwiftUI.Divider
+import struct SwiftUI.EdgeInsets
+import struct SwiftUI.EmptyView
+import struct SwiftUI.Environment
+import struct SwiftUI.EnvironmentObject
+import struct SwiftUI.EnvironmentValues
+import struct SwiftUI.ForEach
+import struct SwiftUI.GeometryReader
+import struct SwiftUI.Image
+import struct SwiftUI.LazyVStack
+import struct SwiftUI.List
+import struct SwiftUI.LocalizedStringKey
+import struct SwiftUI.Material
+import struct SwiftUI.Picker
+import struct SwiftUI.PresentationDetent
+import struct SwiftUI.Published
+import struct SwiftUI.Section
+import struct SwiftUI.Spacer
+import struct SwiftUI.State
+import struct SwiftUI.StateObject
+import struct SwiftUI.Text
+import struct SwiftUI.UUID
+import struct SwiftUI.VStack
+import struct SwiftUI.ViewBuilder
+import struct SwiftUI.ZStack
 
 /// A SwiftUI view that enables dynamic property selection.
 ///
@@ -78,7 +120,6 @@ public extension PropertyPicker where Style == _SheetPropertyPicker {
         self.style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }
-import SwiftUI
 
 struct Rows: View {
     @EnvironmentObject
@@ -108,7 +149,6 @@ struct Rows: View {
         return nil
     }
 }
-import SwiftUI
 
 struct Title: View {
     @EnvironmentObject
@@ -118,7 +158,6 @@ struct Title: View {
         context.title
     }
 }
-import SwiftUI
 
 struct Row: View {
     var data: Property
@@ -134,7 +173,6 @@ struct Row: View {
         }
     }
 }
-import SwiftUI
 
 /// `PropertyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
@@ -199,7 +237,6 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
         )
     }
 }
-import SwiftUI
 
 /// A container view that sets a value for any given preference key.
 ///
@@ -222,7 +259,6 @@ struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
         )
     }
 }
-import SwiftUI
 
 /// A view modifier that updates a shared context with changes from preference keys.
 ///
@@ -250,7 +286,6 @@ struct Context: ViewModifier {
         }.environmentObject(data)
     }
 }
-import SwiftUI
 
 struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Row: View {
     var key: Key.Type
@@ -281,7 +316,6 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
         )
     }
 }
-import SwiftUI
 
 @available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
 public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>
@@ -356,7 +390,6 @@ public extension PropertyPickerState where Data == Key.KeyPath {
         self.data = keyPath
     }
 }
-import SwiftUI
 
 /// A protocol defining a customizable style for property pickers within a SwiftUI application.
 ///
@@ -381,8 +414,6 @@ public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
         Title()
     }
 }
-import Foundation
-import SwiftUI
 
 /**
 `PropertyPickerKey` encapsulates the essentials of property management within a picker interface. Conforming to this protocol enables types to be used seamlessly in conjunction with ``PropertyPicker``.
@@ -474,7 +505,6 @@ extension PropertyPickerKey {
 extension PropertyPickerKey where PickerValue == Self {
     public var value: Self { self }
 }
-import SwiftUI
 
 // MARK: - List Style
 
@@ -547,7 +577,6 @@ private extension View {
         }
     }
 }
-import SwiftUI
 
 /// A property picker style that presents content in a sheet overlay, with additional customizations for presentation and dismissal.
 ///
@@ -680,7 +709,6 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
         }
     }
 }
-import SwiftUI
 
 /// A style that presents dynamic value options inline within the view hierarchy of a property picker.
 /// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
@@ -708,8 +736,6 @@ public struct _InlinePropertyPicker: PropertyPickerStyle {
         }
     }
 }
-import Foundation
-import SwiftUI
 
 struct SafeAreaAdjustmentKey: EnvironmentKey {
     static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
@@ -792,7 +818,6 @@ extension EnvironmentValues {
         set { self[RowBackgroundKey.self] = newValue }
     }
 }
-import SwiftUI
 
 /// A preference key for storing an optional `Text` that represents a title.
 ///
@@ -855,7 +880,6 @@ struct PropertyPreference: PreferenceKey {
         value.formUnion(nextValue())
     }
 }
-import SwiftUI
 
 extension Context {
     /// A data object that holds and manages UI related data for property pickers within a SwiftUI application.
@@ -894,7 +918,6 @@ extension Context {
         }
     }
 }
-import SwiftUI
 
 struct RowBuilder: Equatable, Identifiable {
     let id: PropertyID
@@ -904,7 +927,6 @@ struct RowBuilder: Equatable, Identifiable {
         lhs.id == rhs.id
     }
 }
-import Foundation
 
 /// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
@@ -942,7 +964,6 @@ public struct PropertyID: Hashable {
         type = key
     }
 }
-import Foundation
 
 /// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
 ///
@@ -960,7 +981,6 @@ public enum PropertyPickerSafeAreaAdjustmentStyle {
     /// should not react to overlaying interfaces.
     case never
 }
-import SwiftUI
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
 public struct Property: Identifiable {
@@ -999,7 +1019,6 @@ extension Property: Comparable {
         lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
     }
 }
-import SwiftUI
 
 public struct PropertyPickerTextTransformation: OptionSet {
     public let rawValue: Int8
@@ -1068,7 +1087,6 @@ extension String {
         return String(self.dropFirst(prefix.count))
     }
 }
-import Foundation
 
 public enum PropertyPickerRowSorting {
     case ascending
@@ -1099,7 +1117,6 @@ extension Optional<PropertyPickerRowSorting> {
         }
     }
 }
-import Foundation
 
 /// A representation of a property option that can be identified by a unique string.
 ///
@@ -1132,7 +1149,6 @@ public struct PropertyOption: Identifiable {
         self.rawValue = rawValue
     }
 }
-import SwiftUI
 
 /// A generic container that associates arbitrary data with an animation, suitable for use in SwiftUI animations.
 ///
@@ -1177,7 +1193,25 @@ struct AnimationBox<Data>: Equatable, Identifiable {
         self.type = Data.self
     }
 }
-import SwiftUI
+//  Copyright (c) 2024 Pedro Almeida
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
 
 // MARK: - List Content
 
