@@ -56,7 +56,7 @@ jobs:
     - name: Combine LICENSE, newlines, imports, and remaining content
       run: |
         # Concatenate LICENSE content with two newlines, imports, and the rest of the file
-        cat license_commented.txt newlines.txt sorted_unique_imports.txt temp_no_imports_and_imports.txt > PropertyPicker.swift
+        cat license_commented.txt newlines.txt sorted_unique_imports.txt > PropertyPicker.swift
 
         # Clean up temporary files
         rm sorted_unique_imports.txt temp_no_imports.txt temp_no_imports_and_imports.txt license_commented.txt newlines.txt
