@@ -19,51 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
-//import SwiftUI
-import func SwiftUI.withAnimation
-import protocol SwiftUI.DynamicProperty
-import protocol SwiftUI.EnvironmentKey
-import protocol SwiftUI.ListStyle
-import protocol SwiftUI.ObservableObject
-import protocol SwiftUI.PreferenceKey
-import protocol SwiftUI.ShapeStyle
-import protocol SwiftUI.View
-import protocol SwiftUI.ViewModifier
-import struct SwiftUI.Animation
-import struct SwiftUI.AnyShapeStyle
-import struct SwiftUI.AnyView
-import struct SwiftUI.Binding
-import struct SwiftUI.Button
-import struct SwiftUI.CGFloat
-import struct SwiftUI.Color
-import struct SwiftUI.Divider
-import struct SwiftUI.EdgeInsets
-import struct SwiftUI.EmptyView
-import struct SwiftUI.Environment
-import struct SwiftUI.EnvironmentObject
-import struct SwiftUI.EnvironmentValues
-import struct SwiftUI.ForEach
-import struct SwiftUI.GeometryReader
-import struct SwiftUI.Image
-import struct SwiftUI.LazyVStack
-import struct SwiftUI.List
-import struct SwiftUI.LocalizedStringKey
-import struct SwiftUI.Material
-import struct SwiftUI.Picker
-import struct SwiftUI.PresentationDetent
-import struct SwiftUI.Published
-import struct SwiftUI.Section
-import struct SwiftUI.Spacer
-import struct SwiftUI.State
-import struct SwiftUI.StateObject
-import struct SwiftUI.Text
-import struct SwiftUI.UUID
-import struct SwiftUI.VStack
-import struct SwiftUI.ViewBuilder
-import struct SwiftUI.ZStack
-import struct SwiftUI._ViewModifier_Content
-import struct SwiftUI.GroupBox
+import SwiftUI
 
 /// A SwiftUI view that enables dynamic property selection.
 ///
@@ -950,7 +906,6 @@ struct RowBuilder: Equatable, Identifiable {
         lhs.id == rhs.id
     }
 }
-
 /// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
 /// across different components of an application.
@@ -987,7 +942,6 @@ public struct PropertyID: Hashable {
         type = key
     }
 }
-
 /// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
 ///
 /// It specifies how a property picker should adjust its content to accommodate safe area insets,
@@ -1042,7 +996,6 @@ extension Property: Comparable {
         lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
     }
 }
-
 public struct PropertyPickerTextTransformation: OptionSet {
     public let rawValue: Int8
 
@@ -1110,7 +1063,6 @@ extension String {
         return String(self.dropFirst(prefix.count))
     }
 }
-
 public enum PropertyPickerRowSorting {
     case ascending
     case descending
@@ -1140,7 +1092,6 @@ extension Optional<PropertyPickerRowSorting> {
         }
     }
 }
-
 /// A representation of a property option that can be identified by a unique string.
 ///
 /// `PropertyOption` is a structure that represents an option with a label and a raw value.
