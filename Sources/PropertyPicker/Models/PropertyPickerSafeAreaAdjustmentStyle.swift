@@ -1,3 +1,5 @@
+import Foundation
+
 /// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
 ///
 /// It specifies how a property picker should adjust its content to accommodate safe area insets,

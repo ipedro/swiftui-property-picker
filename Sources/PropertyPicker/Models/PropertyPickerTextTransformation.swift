@@ -1,3 +1,5 @@
+import Foundation
+
 public struct PropertyPickerTextTransformation: OptionSet {
     public let rawValue: Int8
 
