@@ -18,17 +18,18 @@ let package = Package(
             targets: ["PropertyPicker-Examples"]
         ),
         .library(
-            name: "PropertyPicker-Examples",
-            targets: ["PropertyPicker-Examples"]
+            name: "PropertyPicker-Development",
+            targets: ["PropertyPicker-Development"]
         ),
     ],
     targets: [
         .target(
             name: "PropertyPicker",
-            sources: ["Sources/PropertyPicker.swift"]
+            path: "Sources/PropertyPicker"
         ),
         .target(
             name: "PropertyPicker-Development",
+            path: "Sources/Development",
             swiftSettings: [.define("VERBOSE")]
         ),
         .target(

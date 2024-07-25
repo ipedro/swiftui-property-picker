@@ -26,14 +26,14 @@ jobs:
 
     - name: Concatenate files
       run: |
-        find Sources/PropertyPicker/ -type f -name '*.swift' -exec cat {} + > Sources/PropertyPicker.swift
+        find Sources/Development -type f -name '*.swift' -exec cat {} + > Sources/PropertyPicker/PropertyPicker.swift
       shell: bash
 
     - name: Commit changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add Sources/PropertyPicker.swift
+        git add Sources/PropertyPicker/PropertyPicker.swift
         git commit -m "Concatenate files for main branch"
         git push origin HEAD:main
       env:
