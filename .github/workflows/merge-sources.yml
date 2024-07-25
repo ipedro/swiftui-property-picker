@@ -37,8 +37,8 @@ jobs:
     
     - name: Add newlines between LICENSE and imports
       run: |
-        # Create a file with two newlines
-        echo -e "\n\n" > newlines.txt
+        # Create a file with newline
+        echo -e "\n" > newlines.txt
       shell: bash
 
     - name: Reorder, sort, and remove duplicate imports
