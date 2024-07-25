@@ -31,9 +31,9 @@ jobs:
 
     - name: Remove multiline pattern
       run: |
-        awk 'BEGIN {p=0} /\/\/  Copyright {p=1} p && /import SwiftUI/ {p=0; next} !p' Sources/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker.swift
+        awk 'BEGIN {p=0} /\/\/  Copyright \(c\) 2024 Pedro Almeida/ {p=1} p && /import SwiftUI/ {p=0; next} !p' Sources/PropertyPicker.swift > temp && mv temp Sources/PropertyPicker.swift
       shell: bash
-
+      
     - name: Commit changes
       run: |
         git config --global user.name 'github-actions[bot]'
