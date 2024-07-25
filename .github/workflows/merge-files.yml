@@ -31,7 +31,7 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add Sources/PropertyPicker.swift
-        git commit -m "Concatenate files for version $GITHUB_REF"
-        git push origin HEAD:$(echo $GITHUB_REF | sed 's/refs\/tags\///')
+        git commit -m "Concatenate files for main branch"
+        git push origin HEAD:main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
