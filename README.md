@@ -22,7 +22,7 @@ Add `swiftui-property-picker` to your project by including it in your `Package.s
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ipedro/swiftui-property-picker", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/ipedro/swiftui-property-picker", .upToNextMajor(from: "3.0.0"))
 ]
 ```
 
