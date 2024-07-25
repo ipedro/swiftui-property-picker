@@ -30,7 +30,6 @@ To conform to `PropertyPickerKey`, a type must satisfy several requirements, whi
 
 - **RawRepresentable**: Conformance to `RawRepresentable` with a `RawValue` of `String` allows each property key to be directly associated with a string value, facilitating easy storage and display.
 - **CaseIterable**: This requirement ensures that all possible instances of the type can be listed, which is particularly useful for presenting options in a picker.
-- **Identifiable**: Leveraging SwiftUI’s `Identifiable` protocol allows each property key to be uniquely identified, which is crucial for managing selections within dynamic interfaces.
 
 ## Properties
 
@@ -48,7 +47,7 @@ enum TextAlignmentKey: String, PropertyPickerKey {
     case left, center, right
 }
 ```
- - Warning: If `allCases` is empty and no `defaultValue` is explicitly provided, a `fatalError()` is thrown in runtime.
+ - Warning: The `allCases` array must contain at least one item, or a `fatalError()` will be thrown in runtime.
 
 ## Conclusion
 
