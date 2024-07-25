@@ -1,10 +1,4 @@
-import protocol SwiftUI.View
-import struct SwiftUI.AnyView
-import struct SwiftUI.Environment
-import struct SwiftUI.EnvironmentObject
-import struct SwiftUI.ForEach
-import struct SwiftUI.Picker
-import struct SwiftUI.ViewBuilder
+import SwiftUI
 
 struct Rows: View {
     @EnvironmentObject

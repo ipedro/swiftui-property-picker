@@ -1,6 +1,4 @@
-import protocol SwiftUI.ObservableObject
-import struct SwiftUI.Published
-import struct SwiftUI.Text
+import SwiftUI
 
 extension Context {
     /// A data object that holds and manages UI related data for property pickers within a SwiftUI application.

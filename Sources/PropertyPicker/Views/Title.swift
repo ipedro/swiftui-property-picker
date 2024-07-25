@@ -1,5 +1,4 @@
-import protocol SwiftUI.View
-import struct SwiftUI.EnvironmentObject
+import SwiftUI
 
 struct Title: View {
     @EnvironmentObject

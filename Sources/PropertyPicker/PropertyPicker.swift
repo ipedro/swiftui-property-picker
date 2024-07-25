@@ -1,7 +1,4 @@
-import protocol SwiftUI.ListStyle
-import protocol SwiftUI.View
-import struct SwiftUI.Binding
-import struct SwiftUI.ViewBuilder
+import SwiftUI
 
 /// A SwiftUI view that enables dynamic property selection.
 ///

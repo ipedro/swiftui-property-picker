@@ -1,4 +1,4 @@
-import struct SwiftUI.Binding
+import SwiftUI
 
 /// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
 public struct Property: Identifiable {

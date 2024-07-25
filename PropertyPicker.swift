@@ -19,8 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import Foundation
-import SwiftUI
+
+//import SwiftUI
 import func SwiftUI.withAnimation
 import protocol SwiftUI.DynamicProperty
 import protocol SwiftUI.EnvironmentKey
@@ -62,6 +62,8 @@ import struct SwiftUI.UUID
 import struct SwiftUI.VStack
 import struct SwiftUI.ViewBuilder
 import struct SwiftUI.ZStack
+import struct SwiftUI._ViewModifier_Content
+import struct SwiftUI.GroupBox
 
 /// A SwiftUI view that enables dynamic property selection.
 ///

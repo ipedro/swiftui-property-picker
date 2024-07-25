@@ -1,9 +1,4 @@
-import protocol SwiftUI.EnvironmentKey
-import struct SwiftUI.Animation
-import struct SwiftUI.AnyView
-import struct SwiftUI.Binding
-import struct SwiftUI.EnvironmentValues
-import struct SwiftUI.PresentationDetent
+import SwiftUI
 
 struct SafeAreaAdjustmentKey: EnvironmentKey {
     static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic

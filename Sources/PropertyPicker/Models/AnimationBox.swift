@@ -1,5 +1,4 @@
-import struct SwiftUI.Animation
-import struct SwiftUI.UUID
+import SwiftUI
 
 /// A generic container that associates arbitrary data with an animation, suitable for use in SwiftUI animations.
 ///

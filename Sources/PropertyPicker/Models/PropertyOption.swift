@@ -1,5 +1,3 @@
-import Foundation
-
 /// A representation of a property option that can be identified by a unique string.
 ///
 /// `PropertyOption` is a structure that represents an option with a label and a raw value.

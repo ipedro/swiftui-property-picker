@@ -1,5 +1,3 @@
-import Foundation
-
 public enum PropertyPickerRowSorting {
     case ascending
     case descending

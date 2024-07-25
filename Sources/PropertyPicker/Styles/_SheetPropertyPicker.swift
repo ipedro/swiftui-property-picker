@@ -1,20 +1,4 @@
-import func SwiftUI.withAnimation
-import protocol SwiftUI.View
-import protocol SwiftUI.ViewModifier
-import struct SwiftUI.Binding
-import struct SwiftUI.Button
-import struct SwiftUI.CGFloat
-import struct SwiftUI.Color
-import struct SwiftUI.EdgeInsets
-import struct SwiftUI.Environment
-import struct SwiftUI.GeometryReader
-import struct SwiftUI.Image
-import struct SwiftUI.List
-import struct SwiftUI.Material
-import struct SwiftUI.Section
-import struct SwiftUI.Spacer
-import struct SwiftUI.State
-import struct SwiftUI.ZStack
+import SwiftUI
 
 /// A property picker style that presents content in a sheet overlay, with additional customizations for presentation and dismissal.
 ///

@@ -1,14 +1,4 @@
-import protocol SwiftUI.ShapeStyle
-import protocol SwiftUI.View
-import struct SwiftUI.Animation
-import struct SwiftUI.AnyShapeStyle
-import struct SwiftUI.AnyView
-import struct SwiftUI.Binding
-import struct SwiftUI.EmptyView
-import struct SwiftUI.LocalizedStringKey
-import struct SwiftUI.PresentationDetent
-import struct SwiftUI.Text
-import struct SwiftUI.ViewBuilder
+import SwiftUI
 
 // MARK: - List Content
 

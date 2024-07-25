@@ -1,7 +1,4 @@
-import protocol SwiftUI.View
-import protocol SwiftUI.ViewModifier
-import struct SwiftUI.Binding
-import struct SwiftUI.Environment
+import SwiftUI
 
 /// `PropertyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
 /// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and

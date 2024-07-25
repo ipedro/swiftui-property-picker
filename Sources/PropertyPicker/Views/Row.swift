@@ -1,7 +1,4 @@
-import protocol SwiftUI.View
-import struct SwiftUI.ForEach
-import struct SwiftUI.Picker
-import struct SwiftUI.Text
+import SwiftUI
 
 struct Row: View {
     var data: Property

@@ -1,8 +1,4 @@
-import protocol SwiftUI.View
-import struct SwiftUI.Divider
-import struct SwiftUI.Environment
-import struct SwiftUI.LazyVStack
-import struct SwiftUI.VStack
+import SwiftUI
 
 /// A style that presents dynamic value options inline within the view hierarchy of a property picker.
 /// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property

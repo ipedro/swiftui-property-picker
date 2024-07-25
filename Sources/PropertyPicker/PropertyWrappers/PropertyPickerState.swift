@@ -1,6 +1,4 @@
-import protocol SwiftUI.DynamicProperty
-import struct SwiftUI.Binding
-import struct SwiftUI.State
+import SwiftUI
 
 @available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
 public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>

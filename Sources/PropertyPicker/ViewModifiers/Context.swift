@@ -1,6 +1,4 @@
-import protocol SwiftUI.ViewModifier
-import protocol SwiftUI.View
-import struct SwiftUI.StateObject
+import SwiftUI
 
 /// A view modifier that updates a shared context with changes from preference keys.
 ///

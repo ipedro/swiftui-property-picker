@@ -1,4 +1,4 @@
-import struct SwiftUI.AnyView
+import SwiftUI
 
 struct RowBuilder: Equatable, Identifiable {
     let id: PropertyID

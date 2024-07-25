@@ -1,7 +1,4 @@
-import protocol SwiftUI.View
-import protocol SwiftUI.ViewModifier
-import struct SwiftUI.AnyView
-import struct SwiftUI.ViewBuilder
+import SwiftUI
 
 struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Row: View {
     var key: Key.Type

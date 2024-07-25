@@ -1,7 +1,4 @@
-import protocol SwiftUI.PreferenceKey
-import protocol SwiftUI.View
-import protocol SwiftUI.ViewModifier
-import struct SwiftUI.Spacer
+import SwiftUI
 
 /// A container view that sets a value for any given preference key.
 ///
