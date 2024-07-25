@@ -56,12 +56,12 @@ enum TextAlignmentKey: String, PropertyPickerKey {
 
 `PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
  */
-public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where AllCases == [Self] {
+public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIterable where AllCases == [Self] {
     /// The type of the value associated with the property. By default, it is the type of `Self`, allowing for types
     /// where the key and the value are the same.
-    associatedtype Value = Self
+    associatedtype PickerValue = Self
 
-    typealias KeyPath = WritableKeyPath<EnvironmentValues, Self.Value>
+    typealias KeyPath = WritableKeyPath<EnvironmentValues, Self.PickerValue>
 
     /// A title for the property group, typically used as a section header or similar in UI elements. This helps users
     /// understand the context or categorization of the properties.
@@ -72,20 +72,20 @@ public protocol PropertyPickerKey: RawRepresentable<String>, CaseIterable where 
 
     /// The specific value associated with an instance of this property. This allows for storing additional metadata or
     /// specifics about the property beyond its enumeration case.
-    var value: Self.Value { get }
+    var value: Self.PickerValue { get }
 
     /// The label that describes this property instance. If no label is defined, the `rawValue` used instead.
     var label: String { get }
 }
 
-// MARK: - Default Label
+// MARK: - Convenience Default Label
 
 public extension PropertyPickerKey {
-    /// Default label is the `rawValue`.
+    /// Convenience Default label is the `rawValue`.
     var label: String { rawValue }
 }
 
-// MARK: - Default Title
+// MARK: - Convenience Default Title
 
 extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
@@ -97,7 +97,7 @@ extension PropertyPickerKey {
     }
 }
 
-// MARK: - Default Value
+// MARK: - Convenience Default Value
 
 extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
@@ -109,14 +109,8 @@ extension PropertyPickerKey {
     }
 }
 
-// MARK: - Default Identifier
+// MARK: - Convenience Value
 
-extension PropertyPickerKey {
-    public var id: RawValue { rawValue }
-}
-
-// MARK: - Default Value
-
-extension PropertyPickerKey where Value == Self {
+extension PropertyPickerKey where PickerValue == Self {
     public var value: Self { self }
 }
