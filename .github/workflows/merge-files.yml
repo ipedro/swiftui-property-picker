@@ -1,4 +1,4 @@
-name: Concatenate Files on Tag
+name: Concatenate Files on Merge
 
 on:
   push:
@@ -23,14 +23,14 @@ jobs:
 
     - name: Concatenate files
       run: |
-        cat Sources/* > output/concatenated-file.txt
+        find Sources/PropertyPicker/ -type f -name '*.swift' -exec cat {} + > Sources/PropertyPicker.swift
       shell: bash
 
     - name: Commit changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add output/concatenated-file.txt
+        git add Sources/PropertyPicker.swift
         git commit -m "Concatenate files for version $GITHUB_REF"
         git push origin HEAD:$(echo $GITHUB_REF | sed 's/refs\/tags\///')
       env:
