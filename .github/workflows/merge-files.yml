@@ -1,0 +1,39 @@
+name: Concatenate Files on Tag
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  concatenate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'
+
+    - name: Clean and create output directory
+      run: |
+        rm -rf output
+        mkdir -p output
+      shell: bash
+
+    - name: Concatenate files
+      run: |
+        cat Sources/* > output/concatenated-file.txt
+      shell: bash
+
+    - name: Commit changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add output/concatenated-file.txt
+        git commit -m "Concatenate files for version $GITHUB_REF"
+        git push origin HEAD:$(echo $GITHUB_REF | sed 's/refs\/tags\///')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
