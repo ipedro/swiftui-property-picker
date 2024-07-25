@@ -18,42 +18,36 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-import SwiftUI
+import Foundation
 
-/// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
-public struct Property: Identifiable {
-    /// A unique identifier for the entry.
-    public let id: PropertyID
-    
-    /// The title of the entry, used as a label in the UI.
-    public let title: String
-    
-    /// The options available for selection.
-    public let options: [PropertyOption]
+/// A representation of a property option that can be identified by a unique string.
+///
+/// `PropertyOption` is a structure that represents an option with a label and a raw value.
+/// It conforms to the `Identifiable` protocol, which requires an `id` property.
+public struct PropertyOption: Identifiable {
 
-    /// Signal view updates
-    let token: AnyHashable
+    /// A unique identifier for the property option.
+    ///
+    /// This identifier is derived from the `rawValue` property.
+    public var id: String { rawValue }
 
-    /// A binding to the currently selected option.
-    @Binding public var selection: String
-}
+    /// A human-readable label for the property option.
+    ///
+    /// This label is intended to be displayed to users.
+    public var label: String
 
-extension Property: Equatable {
-    /// Determines if two entries are equal based on their identifiers.
-    public static func == (lhs: Property, rhs: Property) -> Bool {
-        lhs.id == rhs.id && lhs.token == rhs.token
-    }
-}
+    /// The raw value of the property option.
+    ///
+    /// This value is typically used internally to represent the option.
+    public var rawValue: String
 
-extension Property: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(token)
-    }
-}
-
-extension Property: Comparable {
-    public static func < (lhs: Property, rhs: Property) -> Bool {
-        lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+    /// Initializes a new `PropertyOption`.
+    ///
+    /// - Parameters:
+    ///   - label: A human-readable label for the property option.
+    ///   - rawValue: The raw value of the property option.
+    init(label: String, rawValue: String) {
+        self.label = label
+        self.rawValue = rawValue
     }
 }

@@ -27,9 +27,7 @@ import SwiftUI
 /// This view serves as the foundation for integrating property picker functionality into SwiftUI views, enabling dynamic configuration
 /// of view properties based on user selection.
 ///
-/// - Parameters:
-///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
-///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
+/// - Parameter Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     let type: Key.Type
 
@@ -60,7 +58,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
         let id = PropertyID(Key.self)
         let title = titleTransformation.apply(to: Key.title)
         let options = Key.allCases.map {
-            Property.Option(
+            PropertyOption(
                 label: labelTransformation.apply(to: $0.label),
                 rawValue: $0.rawValue
             )
