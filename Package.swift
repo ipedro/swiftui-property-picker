@@ -25,7 +25,8 @@ let package = Package(
     targets: [
         .target(
             name: "PropertyPicker",
-            path: "Sources/PropertyPicker"
+            path: "Sources",
+            sources: ["generated.swift"]
         ),
         .target(
             name: "PropertyPicker-Development",
