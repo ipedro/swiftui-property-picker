@@ -19,6 +19,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+
+
+import Foundation
+import SwiftUI
+import Foundation
 import SwiftUI
 
 /// A SwiftUI view that enables dynamic property selection.
@@ -906,6 +912,7 @@ struct RowBuilder: Equatable, Identifiable {
         lhs.id == rhs.id
     }
 }
+
 /// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
 /// across different components of an application.
@@ -942,6 +949,7 @@ public struct PropertyID: Hashable {
         type = key
     }
 }
+
 /// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
 ///
 /// It specifies how a property picker should adjust its content to accommodate safe area insets,
@@ -996,6 +1004,7 @@ extension Property: Comparable {
         lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
     }
 }
+
 public struct PropertyPickerTextTransformation: OptionSet {
     public let rawValue: Int8
 
@@ -1063,6 +1072,7 @@ extension String {
         return String(self.dropFirst(prefix.count))
     }
 }
+
 public enum PropertyPickerRowSorting {
     case ascending
     case descending
@@ -1092,6 +1102,7 @@ extension Optional<PropertyPickerRowSorting> {
         }
     }
 }
+
 /// A representation of a property option that can be identified by a unique string.
 ///
 /// `PropertyOption` is a structure that represents an option with a label and a raw value.
