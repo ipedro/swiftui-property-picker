@@ -30,7 +30,7 @@ struct AnimationKey: EnvironmentKey {
 }
 
 struct TitleTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
 }
 
 struct RowSortingKey: EnvironmentKey {
@@ -42,7 +42,7 @@ struct RowBackgroundKey: EnvironmentKey {
 }
 
 struct LabelTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .capitalize]
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
 }
 
 @available(iOS 16.0, *)
