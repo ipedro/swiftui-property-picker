@@ -25,12 +25,12 @@ let package = Package(
     targets: [
         .target(
             name: "PropertyPicker",
-            path: "Sources",
-            sources: ["generated.swift"]
+            path: ".",
+            sources: ["PropertyPicker.swift"]
         ),
         .target(
             name: "PropertyPicker-Development",
-            path: "Sources/Development",
+            path: "Sources/PropertyPicker",
             swiftSettings: [.define("VERBOSE")]
         ),
         .target(
