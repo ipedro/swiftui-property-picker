@@ -38,7 +38,7 @@ jobs:
     - name: Add newlines between LICENSE and imports
       run: |
         # Create a file with newline
-        echo -e "// auto-generated file, do not edit directly\n" > newlines.txt
+        echo -e "\n// auto-generated file, do not edit directly\n" > newlines.txt
       shell: bash
 
     - name: Reorder, sort, and remove duplicate imports
@@ -55,7 +55,7 @@ jobs:
 
     - name: Remove SwiftLint commands
       run: |
-        awk '!/\/\/ swiftlint: /' PropertyPicker.swift > PropertyPicker.swift
+        awk '!/\/\/ swiftlint:/' PropertyPicker.swift > PropertyPicker.swift
       shell: bash
 
     - name: Combine LICENSE, newlines, imports, and remaining content
