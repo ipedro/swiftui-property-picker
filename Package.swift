@@ -2,7 +2,7 @@
 
 import PackageDescription
 
-let isDevelopment = !Context.packageDirectory.contains(".build/checkouts/") && !Context.packageDirectory.contains("DerivedData/")
+let isDevelopment = !Context.packageDirectory.contains(".build/checkouts/") && !Context.packageDirectory.contains("SourcePackages/checkouts/")
 
 var targets: [Target] = [.target(
         name: "PropertyPicker-Examples",
