@@ -26,7 +26,7 @@ jobs:
 
     - name: Concatenate files
       run: |
-        find Sources/Development -type f -name '*.swift' -exec cat {} + > PropertyPicker.swift
+        find Development -type f -name '*.swift' -exec cat {} + > PropertyPicker.swift
       shell: bash
 
     - name: Remove SwiftLint commands

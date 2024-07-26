@@ -7,14 +7,14 @@ let isDevelopment = !Context.packageDirectory.contains(".build/checkouts/") && !
 var targets: [Target] = [.target(
         name: "PropertyPicker-Examples",
         dependencies: ["PropertyPicker"],
-        path: "Sources/Examples"
+        path: "Examples"
 )]
 
 if isDevelopment {
     targets.append(
         .target(
             name: "PropertyPicker",
-            path: "Sources/Development",
+            path: "Development",
             swiftSettings: [.define("VERBOSE")],
             plugins: [
                 .plugin(
