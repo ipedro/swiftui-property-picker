@@ -202,7 +202,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
         return Property(
             id: id,
             title: title,
-            options: options, 
+            options: options,
             token: selection.rawValue.hashValue,
             selection: Binding {
                 selection.rawValue
@@ -213,6 +213,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                 if let newKey = Key(rawValue: newValue) {
                     selection = newKey
                 } else {
+                    // swiftlint:disable:next line_length
                     assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
                 }
             }
@@ -248,7 +249,7 @@ struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
 /// in the `Context` object. It ensures that the `Context` stays in sync with the UI elements that might modify these properties.
 struct Context: ViewModifier {
     /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
-    @StateObject 
+    @StateObject
     private var data = Data()
 
     /// The body of the modifier which subscribes to preference changes and updates the context.
@@ -591,13 +592,13 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
 
     private var safeAreaInset: CGFloat {
         switch safeAreaAdjustment {
-        case .automatic where isPresented: 
+        case .automatic where isPresented:
             contentHeight
-        case .automatic, .never: 
+        case .automatic, .never:
             .zero
         }
     }
-    
+
     public func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom, spacing: 0) {
             Spacer().frame(height: safeAreaInset)
@@ -968,10 +969,10 @@ public enum PropertyPickerSafeAreaAdjustmentStyle {
 public struct Property: Identifiable {
     /// A unique identifier for the entry.
     public let id: PropertyID
-    
+
     /// The title of the entry, used as a label in the UI.
     public let title: String
-    
+
     /// The options available for selection.
     public let options: [PropertyOption]
 
@@ -1189,10 +1190,7 @@ public extension View {
     ///   - animation: Optional animation to apply when the background style changes.
     @_disfavoredOverload
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(
-        _ style: S?,
-        _ animation: Animation? = nil
-    ) -> some View where S: ShapeStyle {
+    func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
         modifier(
             PreferenceWriter(
                 type: ContentBackgroundStylePreference.self,
@@ -1213,10 +1211,7 @@ public extension View {
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(
-        _ style: S,
-        _ animation: Animation? = nil
-    ) -> some View where S: ShapeStyle {
+    func propertyPickerListContentBackground<S>(_ style: S, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
         modifier(
             PreferenceWriter(
                 type: ContentBackgroundStylePreference.self,
@@ -1238,7 +1233,7 @@ public extension View {
     }
 
     @_disfavoredOverload
-    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View  {
+    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
         environment(\.rowBackground, AnyView(background))
     }
 
@@ -1250,10 +1245,7 @@ public extension View {
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
     ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
-    func propertyPickerRow<K, Row>(
-        for key: K.Type,
-        @ViewBuilder body: @escaping (_ data: Property) -> Row
-    ) -> some View where K: PropertyPickerKey, Row: View {
+    func propertyPickerRow<K, Row>(for key: K.Type, @ViewBuilder body: @escaping (_ data: Property) -> Row) -> some View where K: PropertyPickerKey, Row: View {
         modifier(
             RowBuilderWriter(key: key, row: body)
         )
