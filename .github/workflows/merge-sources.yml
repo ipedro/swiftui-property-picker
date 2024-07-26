@@ -29,6 +29,11 @@ jobs:
         find Sources/Development -type f -name '*.swift' -exec cat {} + > PropertyPicker.swift
       shell: bash
 
+    - name: Remove SwiftLint commands
+      run: |
+        sed '/\/\/ swiftlint:/d' PropertyPicker.swift > temp && mv temp PropertyPicker.swift
+      shell: bash
+
     - name: Prepare LICENSE content
       run: |
         # Prepend "// " to each line in LICENSE and save it to a temp file
@@ -51,11 +56,6 @@ jobs:
 
         # Concatenate sorted and unique imports with the rest of the file
         cat sorted_unique_imports.txt code_without_imports.txt > code_with_sorted_imports.txt
-      shell: bash
-
-    - name: Remove SwiftLint commands
-      run: |
-        sed '/\/\/ swiftlint:disable:next/d' PropertyPicker.swift > temp && mv temp PropertyPicker.swift
       shell: bash
 
     - name: Combine LICENSE, newlines, imports, and remaining content
