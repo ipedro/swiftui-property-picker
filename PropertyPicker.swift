@@ -65,7 +65,7 @@ public extension PropertyPicker where Style == _InlinePropertyPicker {
     /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = _InlinePropertyPicker()
+        style = _InlinePropertyPicker()
     }
 }
 
@@ -100,7 +100,7 @@ public extension PropertyPicker where Style == _SheetPropertyPicker {
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = _SheetPropertyPicker(isPresented: isPresented)
+        style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }
 
@@ -113,7 +113,7 @@ struct Rows: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return ForEach(rowSorting.sort(context.rows)) { property in
             if let custom = makeBody(configuration: property) {
@@ -147,7 +147,7 @@ struct Row: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
@@ -179,7 +179,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
 
     func body(content: Content) -> some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return content.modifier(
             PreferenceWriter(
@@ -229,13 +229,13 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
 struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
     var type: Key.Type
     var value: Key.Value
-    var verbose: Bool = true
+    var verbose = true
 
     func body(content: Content) -> some View {
         #if VERBOSE
-        if verbose {
-            Self._printChanges()
-        }
+            if verbose {
+                Self._printChanges()
+            }
         #endif
         return content.background(
             Spacer().preference(key: Key.self, value: value)
@@ -282,13 +282,13 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
 
     private var rowBuilder: RowBuilder {
         .init(id: id, body: { data in
-            return AnyView(row(data))
+            AnyView(row(data))
         })
     }
 
     func body(content: Content) -> some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return content.modifier(
             PreferenceWriter(
@@ -335,9 +335,9 @@ public extension PropertyPickerState where Data == Void {
     /// - Parameters:
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
-    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self) {
-        self._store = State(initialValue: value)
-        self.data = ()
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = ()
     }
 
     /// Initializes the property picker state for local usage.
@@ -345,8 +345,8 @@ public extension PropertyPickerState where Data == Void {
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
-        self._store = State(initialValue: value)
-        self.data = ()
+        _store = State(initialValue: value)
+        data = ()
     }
 }
 
@@ -357,10 +357,11 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - key: The type of the property key.
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self, keyPath: Key.KeyPath) {
-        self._store = State(initialValue: value)
-        self.data = keyPath
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self, keyPath: Key.KeyPath) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
+
     /// Initializes the property picker state, linking it to an environment value using a key path.
     /// - Parameters:
     ///   - value: An initial value to store in the state property.
@@ -368,9 +369,9 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
     @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _ key: Key.Type = Key.self) {
-        self._store = State(initialValue: value)
-        self.data = keyPath
+    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
 }
 
@@ -399,37 +400,37 @@ public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
 }
 
 /**
-`PropertyPickerKey` encapsulates the essentials of property management within a picker interface. Conforming to this protocol enables types to be used seamlessly in conjunction with ``PropertyPicker``.
+ `PropertyPickerKey` encapsulates the essentials of property management within a picker interface. Conforming to this protocol enables types to be used seamlessly in conjunction with ``PropertyPicker``.
 
-## Conformance
+ ## Conformance
 
-To conform to `PropertyPickerKey`, a type must satisfy several requirements, which enable it to interact efficiently with SwiftUI’s environment:
+ To conform to `PropertyPickerKey`, a type must satisfy several requirements, which enable it to interact efficiently with SwiftUI’s environment:
 
-- **RawRepresentable**: Conformance to `RawRepresentable` with a `RawValue` of `String` allows each property key to be directly associated with a string value, facilitating easy storage and display.
-- **CaseIterable**: This requirement ensures that all possible instances of the type can be listed, which is particularly useful for presenting options in a picker.
+ - **RawRepresentable**: Conformance to `RawRepresentable` with a `RawValue` of `String` allows each property key to be directly associated with a string value, facilitating easy storage and display.
+ - **CaseIterable**: This requirement ensures that all possible instances of the type can be listed, which is particularly useful for presenting options in a picker.
 
-## Properties
+ ## Properties
 
-- `title`: A static property providing a descriptive title for this property. A default value is provided.
-- `defaultValue`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
- - `label`: The label that describes this property instance. If no label is defined, the `rawValue` used instead.
- - `value`: Each instance of a conforming type provides a specific value associated with the property key.
+ - `title`: A static property providing a descriptive title for this property. A default value is provided.
+ - `defaultValue`: Also static, this property specifies the default selection for the property. It serves as a fallback and initial state when user interactions have not yet altered the current selection. By default the first case is selected.
+  - `label`: The label that describes this property instance. If no label is defined, the `rawValue` used instead.
+  - `value`: Each instance of a conforming type provides a specific value associated with the property key.
 
-## Implementation Example
+ ## Implementation Example
 
-Here's a straightforward example of how one might implement `PropertyPickerKey` for a setting that manages text alignment within an application:
+ Here's a straightforward example of how one might implement `PropertyPickerKey` for a setting that manages text alignment within an application:
 
-```swift
-enum TextAlignmentKey: String, PropertyPickerKey {
-    case left, center, right
-}
-```
- - Warning: The `allCases` array must contain at least one item, or a `fatalError()` will be thrown in runtime.
+ ```swift
+ enum TextAlignmentKey: String, PropertyPickerKey {
+     case left, center, right
+ }
+ ```
+  - Warning: The `allCases` array must contain at least one item, or a `fatalError()` will be thrown in runtime.
 
-## Conclusion
+ ## Conclusion
 
-`PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
- */
+ `PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
+  */
 public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIterable where AllCases == [Self] {
     /// The type of the value associated with the property. By default, it is the type of `Self`, allowing for types
     /// where the key and the value are the same.
@@ -461,9 +462,9 @@ public extension PropertyPickerKey {
 
 // MARK: - Convenience Default Title
 
-extension PropertyPickerKey {
+public extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    public static var title: String {
+    static var title: String {
         String(describing: Self.self)
             .removingSuffix("Key")
             .replacingOccurrences(of: "_", with: " ")
@@ -473,9 +474,9 @@ extension PropertyPickerKey {
 
 // MARK: - Convenience Default Value
 
-extension PropertyPickerKey {
+public extension PropertyPickerKey {
     /// Generates a user-friendly description by adding spaces before capital letters in the type name.
-    public static var defaultValue: Self {
+    static var defaultValue: Self {
         guard let first = allCases.first else {
             fatalError("Keys should have at least one valid option")
         }
@@ -485,8 +486,8 @@ extension PropertyPickerKey {
 
 // MARK: - Convenience Value
 
-extension PropertyPickerKey where PickerValue == Self {
-    public var value: Self { self }
+public extension PropertyPickerKey where PickerValue == Self {
+    var value: Self { self }
 }
 
 // MARK: - List Style
@@ -752,9 +753,9 @@ struct PresentationDetentKey: EnvironmentKey {
 @available(iOS 16.0, *)
 struct PresentationDetentsKey: EnvironmentKey {
     static var defaultValue: Set<PresentationDetent> = [
-        .fraction(1/3),
-        .fraction(2/3),
-        .large
+        .fraction(1 / 3),
+        .fraction(2 / 3),
+        .large,
     ]
 }
 
@@ -877,7 +878,7 @@ extension Context {
         var title: Text? = TitlePreference.defaultValue {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Title \"\(String(describing: title))\"")
+                    print("\(Self.self): Updated Title \"\(String(describing: title))\"")
                 #endif
             }
         }
@@ -886,7 +887,7 @@ extension Context {
         var rows: Set<Property> = [] {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
+                    print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
                 #endif
             }
         }
@@ -895,7 +896,7 @@ extension Context {
         var rowBuilders: [PropertyID: RowBuilder] = [:] {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
+                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
                 #endif
             }
         }
@@ -1010,10 +1011,10 @@ public struct PropertyPickerTextTransformation: OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let none             = Self()
-    public static let capitalize       = Self(rawValue: 1 << 0)
-    public static let lowercase        = Self(rawValue: 1 << 1)
-    public static let uppercase        = Self(rawValue: 1 << 2)
+    public static let none = Self()
+    public static let capitalize = Self(rawValue: 1 << 0)
+    public static let lowercase = Self(rawValue: 1 << 1)
+    public static let uppercase = Self(rawValue: 1 << 2)
     public static let camelCaseToWords = Self(rawValue: 1 << 3)
     public static let snakeCaseToWords = Self(rawValue: 1 << 4)
 
@@ -1057,8 +1058,8 @@ extension String {
     /// - Parameter suffix: The suffix to remove from the string.
     /// - Returns: The string after the specified suffix has been removed if it was present at the end.
     func removingSuffix(_ suffix: String) -> String {
-        guard self.hasSuffix(suffix) else { return self }
-        return String(self.dropLast(suffix.count))
+        guard hasSuffix(suffix) else { return self }
+        return String(dropLast(suffix.count))
     }
 
     /// Removes a specified prefix from the string if it ends with that prefix.
@@ -1066,8 +1067,8 @@ extension String {
     /// - Parameter prefix: The prefix to remove from the string.
     /// - Returns: The string after the specified prefix has been removed if it was present at the start.
     func removingPrefix(_ prefix: String) -> String {
-        guard self.hasPrefix(prefix) else { return self }
-        return String(self.dropFirst(prefix.count))
+        guard hasPrefix(prefix) else { return self }
+        return String(dropFirst(prefix.count))
     }
 }
 
@@ -1082,7 +1083,7 @@ public enum PropertyPickerRowSorting {
             data.sorted()
         case .descending:
             data.sorted().reversed()
-        case .custom(let comparator):
+        case let .custom(comparator):
             data.sorted { lhs, rhs in
                 comparator(lhs, rhs)
             }
@@ -1090,12 +1091,12 @@ public enum PropertyPickerRowSorting {
     }
 }
 
-extension Optional<PropertyPickerRowSorting> {
+extension PropertyPickerRowSorting? {
     func sort<D>(_ data: D) -> [Property] where D: Collection, D.Element == Property {
         switch self {
         case .none:
             return Array(data)
-        case .some(let wrapped):
+        case let .some(wrapped):
             return wrapped.sort(data)
         }
     }
@@ -1106,7 +1107,6 @@ extension Optional<PropertyPickerRowSorting> {
 /// `PropertyOption` is a structure that represents an option with a label and a raw value.
 /// It conforms to the `Identifiable` protocol, which requires an `id` property.
 public struct PropertyOption: Identifiable {
-
     /// A unique identifier for the property option.
     ///
     /// This identifier is derived from the `rawValue` property.
@@ -1173,7 +1173,7 @@ struct AnimationBox<Data>: Equatable, Identifiable {
     init(_ animation: Animation?, _ data: Data) {
         self.animation = animation
         self.data = data
-        self.type = Data.self
+        type = Data.self
     }
 }
 
