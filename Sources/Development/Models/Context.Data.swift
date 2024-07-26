@@ -13,7 +13,7 @@ extension Context {
         var title: Text? = TitlePreference.defaultValue {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Title \"\(String(describing: title))\"")
+                    print("\(Self.self): Updated Title \"\(String(describing: title))\"")
                 #endif
             }
         }
@@ -22,7 +22,7 @@ extension Context {
         var rows: Set<Property> = [] {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
+                    print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
                 #endif
             }
         }
@@ -31,7 +31,7 @@ extension Context {
         var rowBuilders: [PropertyID: RowBuilder] = [:] {
             didSet {
                 #if VERBOSE
-                print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
+                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
                 #endif
             }
         }

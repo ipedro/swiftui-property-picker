@@ -5,7 +5,6 @@ import Foundation
 /// `PropertyOption` is a structure that represents an option with a label and a raw value.
 /// It conforms to the `Identifiable` protocol, which requires an `id` property.
 public struct PropertyOption: Identifiable {
-
     /// A unique identifier for the property option.
     ///
     /// This identifier is derived from the `rawValue` property.

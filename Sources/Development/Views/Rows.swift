@@ -9,7 +9,7 @@ struct Rows: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return ForEach(rowSorting.sort(context.rows)) { property in
             if let custom = makeBody(configuration: property) {

@@ -42,6 +42,12 @@ if isDevelopment {
             from: "0.55.1"
         )
     )
+    dependencies.append(
+        .package(
+            url: "https://github.com/nicklockwood/SwiftFormat",
+            from: "0.54.0"
+        )
+    )
 }
 
 let package = Package(

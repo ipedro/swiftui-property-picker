@@ -35,9 +35,9 @@ public extension PropertyPickerState where Data == Void {
     /// - Parameters:
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
-    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self) {
-        self._store = State(initialValue: value)
-        self.data = ()
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = ()
     }
 
     /// Initializes the property picker state for local usage.
@@ -45,8 +45,8 @@ public extension PropertyPickerState where Data == Void {
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
-        self._store = State(initialValue: value)
-        self.data = ()
+        _store = State(initialValue: value)
+        data = ()
     }
 }
 
@@ -57,10 +57,11 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - key: The type of the property key.
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _ key: Key.Type = Key.self, keyPath: Key.KeyPath) {
-        self._store = State(initialValue: value)
-        self.data = keyPath
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self, keyPath: Key.KeyPath) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
+
     /// Initializes the property picker state, linking it to an environment value using a key path.
     /// - Parameters:
     ///   - value: An initial value to store in the state property.
@@ -68,8 +69,8 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
     @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _ key: Key.Type = Key.self) {
-        self._store = State(initialValue: value)
-        self.data = keyPath
+    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
 }

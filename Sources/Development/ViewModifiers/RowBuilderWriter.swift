@@ -12,13 +12,13 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
 
     private var rowBuilder: RowBuilder {
         .init(id: id, body: { data in
-            return AnyView(row(data))
+            AnyView(row(data))
         })
     }
 
     func body(content: Content) -> some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return content.modifier(
             PreferenceWriter(

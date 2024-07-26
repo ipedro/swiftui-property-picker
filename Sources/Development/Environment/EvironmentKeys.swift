@@ -32,9 +32,9 @@ struct PresentationDetentKey: EnvironmentKey {
 @available(iOS 16.0, *)
 struct PresentationDetentsKey: EnvironmentKey {
     static var defaultValue: Set<PresentationDetent> = [
-        .fraction(1/3),
-        .fraction(2/3),
-        .large
+        .fraction(1 / 3),
+        .fraction(2 / 3),
+        .large,
     ]
 }
 

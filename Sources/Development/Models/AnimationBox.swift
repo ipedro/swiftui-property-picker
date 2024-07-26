@@ -40,6 +40,6 @@ struct AnimationBox<Data>: Equatable, Identifiable {
     init(_ animation: Animation?, _ data: Data) {
         self.animation = animation
         self.data = data
-        self.type = Data.self
+        type = Data.self
     }
 }

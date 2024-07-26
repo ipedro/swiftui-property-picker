@@ -40,7 +40,7 @@ public extension PropertyPicker where Style == _InlinePropertyPicker {
     /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = _InlinePropertyPicker()
+        style = _InlinePropertyPicker()
     }
 }
 
@@ -75,6 +75,6 @@ public extension PropertyPicker where Style == _SheetPropertyPicker {
     ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
     init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
         self.content = content()
-        self.style = _SheetPropertyPicker(isPresented: isPresented)
+        style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }

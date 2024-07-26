@@ -22,7 +22,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
 
     func body(content: Content) -> some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return content.modifier(
             PreferenceWriter(

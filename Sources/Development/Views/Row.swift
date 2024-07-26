@@ -5,7 +5,7 @@ struct Row: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+            Self._printChanges()
         #endif
         return Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
