@@ -4,6 +4,46 @@ import PackageDescription
 
 let isDevelopment = !Context.packageDirectory.contains(".build/checkouts/") && !Context.packageDirectory.contains("DerivedData/")
 
+var targets: [Target] = [.target(
+        name: "PropertyPicker-Examples",
+        dependencies: ["PropertyPicker"],
+        path: "Sources/Examples"
+)]
+
+if isDevelopment {
+    targets.append(
+        .target(
+            name: "PropertyPicker",
+            path: "Sources/Development",
+            swiftSettings: [.define("VERBOSE")],
+            plugins: [
+                .plugin(
+                    name: "SwiftLintBuildToolPlugin",
+                    package: "SwiftLintPlugins"
+                )
+            ]
+        )
+    )
+} else {
+    targets.append(
+        .target(
+            name: "PropertyPicker",
+            path: ".",
+            sources: ["PropertyPicker.swift"]
+        )
+    )
+}
+
+var dependencies = [Package.Dependency]()
+if isDevelopment {
+    dependencies.append(
+        .package(
+            url: "https://github.com/SimplyDanny/SwiftLintPlugins",
+            from: "0.55.1"
+        )
+    )
+}
+
 let package = Package(
     name: "swiftui-property-picker",
     platforms: [
@@ -19,19 +59,7 @@ let package = Package(
             name: "PropertyPicker-Examples",
             targets: ["PropertyPicker-Examples"]
         )
-    ],
-    targets: [
-        .target(
-            name: "PropertyPicker",
-            path: isDevelopment ? "Sources/Development" : ".",
-            sources: isDevelopment ? nil : ["PropertyPicker.swift"],
-            swiftSettings: isDevelopment ? [.define("VERBOSE")] : nil
-        ),
-        .target(
-            name: "PropertyPicker-Examples",
-            dependencies: ["PropertyPicker"],
-            path: "Sources/Examples"
-        ),
-    ]
+    ], 
+    dependencies: dependencies,
+    targets: targets
 )
-

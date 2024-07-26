@@ -6,7 +6,7 @@ import SwiftUI
 /// in the `Context` object. It ensures that the `Context` stays in sync with the UI elements that might modify these properties.
 struct Context: ViewModifier {
     /// A context object that holds and manages UI related data for property pickers within a SwiftUI application.
-    @StateObject 
+    @StateObject
     private var data = Data()
 
     /// The body of the modifier which subscribes to preference changes and updates the context.

@@ -46,7 +46,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
         return Property(
             id: id,
             title: title,
-            options: options, 
+            options: options,
             token: selection.rawValue.hashValue,
             selection: Binding {
                 selection.rawValue
@@ -57,6 +57,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                 if let newKey = Key(rawValue: newValue) {
                     selection = newKey
                 } else {
+                    // swiftlint:disable:next line_length
                     assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
                 }
             }

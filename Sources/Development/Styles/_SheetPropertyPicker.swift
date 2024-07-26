@@ -31,13 +31,13 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
 
     private var safeAreaInset: CGFloat {
         switch safeAreaAdjustment {
-        case .automatic where isPresented: 
+        case .automatic where isPresented:
             contentHeight
-        case .automatic, .never: 
+        case .automatic, .never:
             .zero
         }
     }
-    
+
     public func body(content: Content) -> some View {
         content.safeAreaInset(edge: .bottom, spacing: 0) {
             Spacer().frame(height: safeAreaInset)

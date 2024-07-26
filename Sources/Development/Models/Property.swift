@@ -4,10 +4,10 @@ import SwiftUI
 public struct Property: Identifiable {
     /// A unique identifier for the entry.
     public let id: PropertyID
-    
+
     /// The title of the entry, used as a label in the UI.
     public let title: String
-    
+
     /// The options available for selection.
     public let options: [PropertyOption]
 

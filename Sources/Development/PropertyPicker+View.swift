@@ -13,10 +13,7 @@ public extension View {
     ///   - animation: Optional animation to apply when the background style changes.
     @_disfavoredOverload
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(
-        _ style: S?,
-        _ animation: Animation? = nil
-    ) -> some View where S: ShapeStyle {
+    func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
         modifier(
             PreferenceWriter(
                 type: ContentBackgroundStylePreference.self,
@@ -37,10 +34,7 @@ public extension View {
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
     @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(
-        _ style: S,
-        _ animation: Animation? = nil
-    ) -> some View where S: ShapeStyle {
+    func propertyPickerListContentBackground<S>(_ style: S, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
         modifier(
             PreferenceWriter(
                 type: ContentBackgroundStylePreference.self,
@@ -62,7 +56,7 @@ public extension View {
     }
 
     @_disfavoredOverload
-    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View  {
+    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
         environment(\.rowBackground, AnyView(background))
     }
 
@@ -74,10 +68,7 @@ public extension View {
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
     ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
-    func propertyPickerRow<K, Row>(
-        for key: K.Type,
-        @ViewBuilder body: @escaping (_ data: Property) -> Row
-    ) -> some View where K: PropertyPickerKey, Row: View {
+    func propertyPickerRow<K, Row>(for key: K.Type, @ViewBuilder body: @escaping (_ data: Property) -> Row) -> some View where K: PropertyPickerKey, Row: View {
         modifier(
             RowBuilderWriter(key: key, row: body)
         )
