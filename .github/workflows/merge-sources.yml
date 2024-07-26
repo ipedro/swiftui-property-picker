@@ -55,7 +55,7 @@ jobs:
 
     - name: Remove SwiftLint commands
       run: |
-        awk '!/\/\/ swiftlint:/' PropertyPicker.swift > PropertyPicker.swift
+        sed '/\/\/ swiftlint:disable:next/d' PropertyPicker.swift > temp && mv temp PropertyPicker.swift
       shell: bash
 
     - name: Combine LICENSE, newlines, imports, and remaining content
