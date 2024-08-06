@@ -11,8 +11,9 @@ public extension View {
     /// - Parameters:
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
+    @available(iOS 16.0, *) 
+    @inlinable
     @_disfavoredOverload
-    @available(iOS 16.0, *)
     func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
         modifier(
             PreferenceWriter(
@@ -47,14 +48,17 @@ public extension View {
 // MARK: - Row
 
 public extension View {
-    func propertyPickerRowBackground<B>(@ViewBuilder background: () -> B) -> some View where B: View {
+    @inlinable
+    func propertyPickerRowBackground(@ViewBuilder background: () -> some View) -> some View {
         environment(\.rowBackground, AnyView(background()))
     }
 
+    @inlinable
     func propertyPickerRowBackground<S>(_ style: S) -> some View where S: ShapeStyle & View {
         environment(\.rowBackground, AnyView(style))
     }
 
+    @inlinable 
     @_disfavoredOverload
     func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
         environment(\.rowBackground, AnyView(background))
@@ -68,6 +72,7 @@ public extension View {
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
     ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
+    @inlinable
     func propertyPickerRow<K, Row>(for key: K.Type, @ViewBuilder body: @escaping (_ data: Property) -> Row) -> some View where K: PropertyPickerKey, Row: View {
         modifier(
             RowBuilderWriter(key: key, row: body)
@@ -78,6 +83,7 @@ public extension View {
     ///
     /// - Parameters:
     ///   - key: The property key type for which the custom view is being provided.
+    @inlinable
     func propertyPickerRowHidden<K>(for key: K.Type = K.self) -> some View where K: PropertyPickerKey {
         modifier(
             RowBuilderWriter(key: key, row: { _ in EmptyView() })
@@ -92,6 +98,7 @@ public extension View {
     /// - Parameter sort: A ``PropertyPickerRowSorting`` instance that defines the sorting order for the rows.
     ///   Pass `nil` to use the default sorting order.
     /// - Returns: A view that applies the specified sorting order to the rows.
+    @inlinable
     func propertyPickerRowSorting(_ sort: PropertyPickerRowSorting?) -> some View {
         environment(\.rowSorting, sort)
     }
@@ -105,14 +112,11 @@ public extension View {
     /// This method allows you to specify a title for the property picker, supporting localization.
     ///
     /// - Parameter title: The localized string key used for the title. If nil, no title is set.
-    func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
+    func propertyPickerTitle(_ title: LocalizedStringKey) -> some View {
         modifier(
             PreferenceWriter(
                 type: TitlePreference.self,
-                value: {
-                    if let title { return Text(title) }
-                    return nil
-                }()
+                value: Text(title)
             )
         )
     }
@@ -123,7 +127,7 @@ public extension View {
     ///
     /// - Parameter title: The string to use as the title. If nil, no title is set.
     @_disfavoredOverload
-    func propertyPickerTitle(_ title: String?) -> some View {
+    func propertyPickerTitle(_ title: String? = nil) -> some View {
         modifier(
             PreferenceWriter(
                 type: TitlePreference.self,
@@ -143,6 +147,7 @@ public extension View {
     /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
     ///   to apply to the key titles.
     /// - Returns: A view that applies the specified transformation to the key titles.
+    @inlinable
     func propertyPickerTitleTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
         environment(\.titleTransformation, transform)
     }
@@ -159,11 +164,11 @@ public extension View {
     /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
     ///   to apply to the key labels.
     /// - Returns: A view that applies the specified transformation to the key labels.
+    @inlinable
     func propertyPickerLabelTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
         environment(\.labelTransformation, transform)
     }
 }
-
 // MARK: - State
 
 public extension View {
@@ -172,13 +177,23 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
+    ///   - animation: An optional animation to apply the use when applying the changes.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ state: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
+    @inlinable
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, Void>,
+        animation: Animation? = nil
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyWriter(type: K.self, selection: state.$store)
+            PropertyWriter(
+                type: K.self,
+                selection: state.selection,
+                customAnimation: animation
+            )
         )
     }
 
@@ -187,15 +202,30 @@ public extension View {
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
     ///
-    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
+    ///   - animation: An optional animation to apply the use when applying the changes.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
-    func propertyPicker<K>(_ state: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
+    @inlinable
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, K.KeyPath>,
+        animation: Animation? = nil
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
-            PropertyWriter(type: K.self, selection: state.$store)
+            PropertyWriter(
+                type: K.self,
+                selection: state.selection,
+                customAnimation: animation
+            )
         )
         .environment(state.data, state.store.value)
+    }
+
+    @inlinable
+    func propertyPickerSelectionAnimation(_ animation: Animation? = nil) -> some View {
+        environment(\.selectionAnimation, animation)
     }
 }
 
@@ -210,6 +240,7 @@ public extension View {
     ///
     /// - Parameter adjustment: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
     /// - Returns: A view modified with the specified safe area adjustment style.
+    @inlinable
     func propertyPickerSafeAreaAdjustment(_ adjustment: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
         environment(\.safeAreaAdjustment, adjustment)
     }
@@ -219,7 +250,8 @@ public extension View {
     /// - Parameter detents: A set of supported detents for the sheet.
     ///   If you provide more that one detent, people can drag the sheet
     ///   to resize it.
-    @available(iOS 16.0, *)
+    @available(iOS 16.0, *) 
+    @inlinable
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)
     }

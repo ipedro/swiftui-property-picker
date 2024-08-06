@@ -8,11 +8,32 @@ import SwiftUI
 /// of view properties based on user selection.
 ///
 /// - Parameter Key: The type of the property picker key, conforming to `PropertyPickerKey`.
+@usableFromInline
 struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     let type: Key.Type
 
     @Binding
     var selection: Key
+
+    var customAnimation: Animation?
+
+    @usableFromInline
+    init(
+        type: Key.Type,
+        selection: Binding<Key>,
+        customAnimation: Animation? = nil
+    ) {
+        self.type = type
+        self._selection = selection
+        self.customAnimation = customAnimation
+    }
+
+    @Environment(\.selectionAnimation)
+    private var defaultAnimation
+
+    private var animation: Animation? {
+        customAnimation ?? defaultAnimation
+    }
 
     @Environment(\.labelTransformation)
     private var labelTransformation
@@ -20,11 +41,9 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     @Environment(\.titleTransformation)
     private var titleTransformation
 
+    @usableFromInline
     func body(content: Content) -> some View {
-        #if VERBOSE
-            Self._printChanges()
-        #endif
-        return content.modifier(
+        content.modifier(
             PreferenceWriter(
                 type: PropertyPreference.self,
                 value: [property],
@@ -55,9 +74,10 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                     return
                 }
                 if let newKey = Key(rawValue: newValue) {
-                    selection = newKey
+                    withAnimation(animation) {
+                        selection = newKey
+                    }
                 } else {
-                    // swiftlint:disable:next line_length
                     assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
                 }
             }

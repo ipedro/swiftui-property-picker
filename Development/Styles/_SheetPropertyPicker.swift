@@ -17,7 +17,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
     @Environment(\.safeAreaAdjustment)
     private var safeAreaAdjustment
 
-    @Environment(\.animation)
+    @Environment(\.sheetAnimation)
     private var animation
 
     @Environment(\.presentationDetents)
@@ -112,7 +112,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
         @Binding
         var isPresented: Bool
 
-        @Environment(\.animation)
+        @Environment(\.sheetAnimation)
         private var animation
 
         var body: some View {

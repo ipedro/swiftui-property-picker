@@ -20,11 +20,14 @@ struct TitlePreference: PreferenceKey {
 ///
 /// This preference key helps in managing background customization of views with context about
 /// the background style and optional animations. It is useful for applying consistent styling across multiple views.
+@usableFromInline
 struct ContentBackgroundStylePreference: PreferenceKey {
     /// The default value for the background context, initially nil indicating no background is applied.
+    @usableFromInline
     static var defaultValue: AnimationBox<AnyShapeStyle>?
 
     /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
+    @usableFromInline
     static func reduce(value: inout AnimationBox<AnyShapeStyle>?, nextValue: () -> AnimationBox<AnyShapeStyle>?) {
         if let nextValue = nextValue() {
             value = nextValue

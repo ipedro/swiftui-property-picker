@@ -9,8 +9,10 @@ public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPicke
 /// to manage the state of a selected value in a picker view.
 @propertyWrapper
 public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
+    @usableFromInline
     @State var store: Key
 
+    @usableFromInline
     var data: Data
 
     /// The value that this property wrapper manages.

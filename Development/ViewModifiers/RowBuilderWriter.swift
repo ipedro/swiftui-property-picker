@@ -1,10 +1,17 @@
 import SwiftUI
 
+@usableFromInline
 struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Row: View {
     var key: Key.Type
 
     @ViewBuilder
-    var row: (_ data: Property) -> Row
+    var row: (Property) -> Row
+
+    @usableFromInline
+    init(key: Key.Type, row: @escaping (_ data: Property) -> Row) {
+        self.key = key
+        self.row = row
+    }
 
     private var id: PropertyID {
         PropertyID(key)
@@ -16,6 +23,7 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
         })
     }
 
+    @usableFromInline
     func body(content: Content) -> some View {
         #if VERBOSE
             Self._printChanges()
