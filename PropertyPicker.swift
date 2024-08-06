@@ -25,199 +25,756 @@
 import Foundation
 import SwiftUI
 
-/// A SwiftUI view that enables dynamic property selection.
+/// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
+public struct Property: Identifiable {
+    /// A unique identifier for the entry.
+    public let id: PropertyID
+
+    /// The title of the entry, used as a label in the UI.
+    public let title: String
+
+    /// The options available for selection.
+    public let options: [PropertyOption]
+
+    /// Signal view updates
+    let token: AnyHashable
+
+    /// A binding to the currently selected option.
+    @Binding public var selection: String
+}
+
+extension Property: Equatable {
+    /// Determines if two entries are equal based on their identifiers.
+    public static func == (lhs: Property, rhs: Property) -> Bool {
+        lhs.id == rhs.id && lhs.token == rhs.token
+    }
+}
+
+extension Property: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(token)
+    }
+}
+
+extension Property: Comparable {
+    public static func < (lhs: Property, rhs: Property) -> Bool {
+        lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+    }
+}
+
+extension Context {
+    /// A data object that holds and manages UI related data for property pickers within a SwiftUI application.
+    ///
+    /// This class serves as a centralized store for various configurations and properties related to displaying
+    /// property pickers. It uses `@Published` properties to ensure that views observing this context will
+    /// update automatically in response to changes, supporting reactive UI updates.
+    final class Data: ObservableObject {
+        init() {}
+
+        @Published
+        var title: Text? = TitlePreference.defaultValue {
+            didSet {
+                #if VERBOSE
+                    print("\(Self.self): Updated Title \"\(String(describing: title))\"")
+                #endif
+            }
+        }
+
+        @Published
+        var rows: Set<Property> = [] {
+            didSet {
+                #if VERBOSE
+                    print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
+                #endif
+            }
+        }
+
+        @Published
+        var rowBuilders: [PropertyID: RowBuilder] = [:] {
+            didSet {
+                #if VERBOSE
+                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
+                #endif
+            }
+        }
+    }
+}
+
+public enum PropertyPickerRowSorting {
+    case ascending
+    case descending
+    case custom(comparator: (_ lhs: Property, _ rhs: Property) -> Bool)
+
+    func sort<D>(_ data: D) -> [Property] where D: Collection, D.Element == Property {
+        switch self {
+        case .ascending:
+            data.sorted()
+        case .descending:
+            data.sorted().reversed()
+        case let .custom(comparator):
+            data.sorted { lhs, rhs in
+                comparator(lhs, rhs)
+            }
+        }
+    }
+}
+
+extension PropertyPickerRowSorting? {
+    func sort<D>(_ data: D) -> [Property] where D: Collection, D.Element == Property {
+        switch self {
+        case .none:
+            return Array(data)
+        case let .some(wrapped):
+            return wrapped.sort(data)
+        }
+    }
+}
+
+/// A representation of a property option that can be identified by a unique string.
 ///
-/// This view acts as a container that integrates with the property picker system to allow users
-/// to dynamically select properties and apply them to the enclosed content.
-public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
-    /// The content to be presented alongside the dynamic value selector.
-    var content: Content
+/// `PropertyOption` is a structure that represents an option with a label and a raw value.
+/// It conforms to the `Identifiable` protocol, which requires an `id` property.
+public struct PropertyOption: Identifiable {
+    /// A unique identifier for the property option.
+    ///
+    /// This identifier is derived from the `rawValue` property.
+    public var id: String { rawValue }
 
-    /// The presentation style
-    var style: Style
+    /// A human-readable label for the property option.
+    ///
+    /// This label is intended to be displayed to users.
+    public var label: String
 
+    /// The raw value of the property option.
+    ///
+    /// This value is typically used internally to represent the option.
+    public var rawValue: String
+
+    /// Initializes a new `PropertyOption`.
+    ///
+    /// - Parameters:
+    ///   - label: A human-readable label for the property option.
+    ///   - rawValue: The raw value of the property option.
+    init(label: String, rawValue: String) {
+        self.label = label
+        self.rawValue = rawValue
+    }
+}
+
+/// `PropertyID` provides a unique identifier for property picker elements,
+/// facilitating the tracking and management of property picker states and configurations
+/// across different components of an application.
+///
+/// It utilizes `ObjectIdentifier` under the hood to guarantee uniqueness, basing the identity
+/// on the type information of `PropertyPickerKey` conforming types. This ensures that each
+/// property picker type is associated with a distinct identifier, preventing conflicts and
+/// improving traceability in systems that manage multiple types of property pickers.
+///
+/// Usage of this ID is crucial in scenarios where properties need to be dynamically
+/// managed and accessed across various UI components or data handling layers.
+public struct PropertyID: Hashable {
+    public static func == (lhs: PropertyID, rhs: PropertyID) -> Bool {
+        lhs.value == rhs.value
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(value)
+    }
+
+    let type: Any.Type
+
+    /// The underlying value storing the unique identifier based on type information.
+    private let value: ObjectIdentifier
+
+    /// Initializes a new identifier for a property picker key.
+    /// The identifier is derived from the type of the `PropertyPickerKey` conforming type,
+    /// ensuring that each key type has a unique identifier.
+    ///
+    /// - Parameter key: The type of the property picker key. The default value `K.self`
+    ///   captures the caller's type context, automatically providing type-specific uniqueness.
+    init<K: PropertyPickerKey>(_ key: K.Type = K.self) {
+        value = ObjectIdentifier(key)
+        type = key
+    }
+}
+
+struct RowBuilder: Equatable, Identifiable {
+    let id: PropertyID
+    let body: (Property) -> AnyView?
+
+    static func == (lhs: RowBuilder, rhs: RowBuilder) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+/// A generic container that associates arbitrary data with an animation, suitable for use in SwiftUI animations.
+///
+/// This struct is designed to facilitate the animation of changes to data in SwiftUI views. It encapsulates
+/// data along with an optional `Animation` object, allowing SwiftUI to manage and animate transitions
+/// when the data changes. It includes an `id` to uniquely identify instances, supporting SwiftUI's
+/// requirements for identifying views in a list or similar collection.
+///
+/// - Parameter Data: The type of the data to be stored and possibly animated.
+@usableFromInline
+struct AnimationBox<Data>: Equatable, Identifiable {
+    /// Conforms to the Equatable protocol, allowing SwiftUI to determine when the box's contents have changed.
+    /// Compares two instances based on their unique identifiers.
+    ///
+    /// - Parameters:
+    ///   - lhs: The left-hand side `AnimationBox` instance for comparison.
+    ///   - rhs: The right-hand side `AnimationBox` instance for comparison.
+    /// - Returns: A Boolean value indicating whether the two instances are considered equivalent.
+    @usableFromInline
+    static func == (lhs: AnimationBox<Data>, rhs: AnimationBox<Data>) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    /// A unique identifier for each instance, used by SwiftUI to manage and animate views efficiently.
+    @usableFromInline
+    let id = UUID()
+
+    /// The animation to apply when the data changes. If nil, changes to the data will not be animated.
+    let animation: Animation?
+
+    /// The data held by this box. Changes to this data might be animated if `animation` is not nil.
+    let data: Data
+
+    /// The type of the data stored in this box. This is used to support type-safe operations on the data.
+    let type: Any.Type
+
+    /// Initializes a new `AnimatableBox` with the specified animation and data.
+    ///
+    /// - Parameters:
+    ///   - animation: The animation to apply to changes in the data. Pass nil if changes should not be animated.
+    ///   - data: The data to store and animate in this box.
+    @usableFromInline
+    init(_ animation: Animation?, _ data: Data) {
+        self.animation = animation
+        self.data = data
+        type = Data.self
+    }
+}
+
+public struct PropertyPickerTextTransformation: OptionSet {
+    public let rawValue: Int8
+
+    public init(rawValue: Int8) {
+        self.rawValue = rawValue
+    }
+
+    public static let none = Self()
+    public static let capitalize = Self(rawValue: 1 << 0)
+    public static let lowercase = Self(rawValue: 1 << 1)
+    public static let uppercase = Self(rawValue: 1 << 2)
+    public static let camelCaseToWords = Self(rawValue: 1 << 3)
+    public static let snakeCaseToWords = Self(rawValue: 1 << 4)
+
+    func apply(to text: String) -> String {
+        var text = text
+        if contains(.camelCaseToWords) {
+            text = text.addingSpacesToCamelCase()
+        }
+        if contains(.snakeCaseToWords) {
+            text = text.replacingOccurrences(of: "_", with: " ")
+        }
+        if contains(.capitalize) {
+            text = text.localizedCapitalized
+        }
+        if contains(.uppercase) {
+            text = text.localizedUppercase
+        }
+        if contains(.lowercase) {
+            text = text.localizedLowercase
+        }
+        return text
+    }
+}
+
+// MARK: - Private Helpers
+
+extension String {
+    /// Adds spaces before each uppercase letter in a camelCase string.
+    /// - Returns: A new string with spaces added before each uppercase letter.
+    func addingSpacesToCamelCase() -> String {
+        replacingOccurrences(
+            of: "(?<=[a-z])(?=[A-Z])",
+            with: " $0",
+            options: .regularExpression,
+            range: range(of: self)
+        )
+    }
+
+    /// Removes a specified suffix from the string if it ends with that suffix.
+    ///
+    /// - Parameter suffix: The suffix to remove from the string.
+    /// - Returns: The string after the specified suffix has been removed if it was present at the end.
+    func removingSuffix(_ suffix: String) -> String {
+        guard hasSuffix(suffix) else { return self }
+        return String(dropLast(suffix.count))
+    }
+
+    /// Removes a specified prefix from the string if it ends with that prefix.
+    ///
+    /// - Parameter prefix: The prefix to remove from the string.
+    /// - Returns: The string after the specified prefix has been removed if it was present at the start.
+    func removingPrefix(_ prefix: String) -> String {
+        guard hasPrefix(prefix) else { return self }
+        return String(dropFirst(prefix.count))
+    }
+}
+
+/// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
+///
+/// It specifies how a property picker should adjust its content to accommodate safe area insets,
+/// ensuring that the picker does not obstruct critical parts of the user interface, such as input fields or buttons.
+/// This adjustment is particularly useful in scenarios where property pickers alter the layout dynamically,
+/// such as appearing as overlays or within modal presentations.
+public enum PropertyPickerSafeAreaAdjustmentStyle {
+    /// Adjusts the safe area insets automatically based on system guidelines and the presence of elements like keyboards
+    /// or bottom bars that may overlap the property picker's content.
+    case automatic
+
+    /// Does not make any adjustments to the safe area insets, allowing the content to maintain its layout
+    /// irrespective of environmental changes. This setting is suitable when the UI design specifies that elements
+    /// should not react to overlaying interfaces.
+    case never
+}
+
+// MARK: - List Content
+
+public extension View {
+    /// Applies a background style to the list content of a property picker with optional animation.
+    ///
+    /// Use this method to specify a custom background for the list content within a property picker view.
+    /// An optional animation parameter allows the background appearance change to be animated.
+    ///
+    /// - Parameters:
+    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
+    ///   - animation: Optional animation to apply when the background style changes.
+    @available(iOS 16.0, *) 
+    @inlinable
     @_disfavoredOverload
-    public init(style: Style, @ViewBuilder content: () -> Content) {
-        self.content = content()
-        self.style = style
-    }
-
-    /// A view modifier that updates a shared context with changes from preference keys.
-    private var context = Context()
-
-    /// The body of the dynamic value selector, presenting the content using the current selector style.
-    public var body: some View {
-        content
-            .modifier(style)
-            .modifier(context)
-    }
-}
-
-// MARK: - Inline Style
-
-public extension PropertyPicker where Style == _InlinePropertyPicker {
-    /// Initializes a ``PropertyPicker`` with an inline presentation style.
-    ///
-    /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
-    /// rather than in a separate modal or layered interface. The inline style is suitable for contexts where space allows
-    /// for direct embedding of components without the need for additional navigation.
-    ///
-    /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-        style = _InlinePropertyPicker()
-    }
-}
-
-// MARK: - List Style
-
-public extension PropertyPicker {
-    /// Initializes a ``PropertyPicker`` using a specific `ListStyle`.
-    ///
-    /// This initializer configures the property picker to display its items as a list styled according to the provided `ListStyle`.
-    /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
-    ///
-    /// - Parameters:
-    ///   - style: Defines the list style.
-    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init<S: ListStyle>(style: S, @ViewBuilder content: () -> Content) where Style == _ListPropertyPicker<S> {
-        self.content = content()
-        self.style = _ListPropertyPicker(listStyle: style)
-    }
-}
-
-// MARK: - Sheet Style
-
-@available(iOS 16.4, *)
-public extension PropertyPicker where Style == _SheetPropertyPicker {
-    /// Initializes a ``PropertyPicker`` with a sheet presentation style.
-    ///
-    /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
-    /// The sheet's size and how it reacts to different device contexts can be customized through various parameters.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
-    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
-        self.content = content()
-        style = _SheetPropertyPicker(isPresented: isPresented)
-    }
-}
-
-struct Rows: View {
-    @EnvironmentObject
-    private var context: Context.Data
-
-    @Environment(\.rowSorting)
-    private var rowSorting
-
-    var body: some View {
-        #if VERBOSE
-            Self._printChanges()
-        #endif
-        return ForEach(rowSorting.sort(context.rows)) { property in
-            if let custom = makeBody(configuration: property) {
-                custom
-            } else {
-                Row(data: property)
-            }
-        }
-    }
-
-    private func makeBody(configuration property: Property) -> AnyView? {
-        if let customBuilder = context.rowBuilders[property.id] {
-            let body = customBuilder.body(property)
-            return body
-        }
-        return nil
-    }
-}
-
-struct Title: View {
-    @EnvironmentObject
-    private var context: Context.Data
-
-    var body: some View {
-        context.title
-    }
-}
-
-struct Row: View {
-    var data: Property
-
-    var body: some View {
-        #if VERBOSE
-            Self._printChanges()
-        #endif
-        return Picker(data.title, selection: data.$selection) {
-            ForEach(data.options) { option in
-                Text(option.label)
-            }
-        }
-    }
-}
-
-/// `PropertyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
-/// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
-/// updates the UI accordingly when a new selection is made.
-///
-/// This view serves as the foundation for integrating property picker functionality into SwiftUI views, enabling dynamic configuration
-/// of view properties based on user selection.
-///
-/// - Parameter Key: The type of the property picker key, conforming to `PropertyPickerKey`.
-struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
-    let type: Key.Type
-
-    @Binding
-    var selection: Key
-
-    @Environment(\.labelTransformation)
-    private var labelTransformation
-
-    @Environment(\.titleTransformation)
-    private var titleTransformation
-
-    func body(content: Content) -> some View {
-        #if VERBOSE
-            Self._printChanges()
-        #endif
-        return content.modifier(
+    func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
+        modifier(
             PreferenceWriter(
-                type: PropertyPreference.self,
-                value: [property],
-                verbose: false
+                type: ContentBackgroundStylePreference.self,
+                value: {
+                    guard let style else { return nil }
+                    return AnimationBox(animation, AnyShapeStyle(style))
+                }()
             )
         )
     }
 
-    /// The item representing the currently selected value, used for updating the UI and storing preferences.
-    private var property: Property {
-        let id = PropertyID(Key.self)
-        let title = titleTransformation.apply(to: Key.title)
-        let options = Key.allCases.map {
-            PropertyOption(
-                label: labelTransformation.apply(to: $0.label),
-                rawValue: $0.rawValue
+    /// Applies a background style to the list content of a property picker with optional animation.
+    ///
+    /// Use this method to specify a custom background for the list content within a property picker view.
+    /// An optional animation parameter allows the background appearance change to be animated.
+    ///
+    /// - Parameters:
+    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
+    ///   - animation: Optional animation to apply when the background style changes.
+    @available(iOS 16.0, *)
+    func propertyPickerListContentBackground<S>(_ style: S, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
+        modifier(
+            PreferenceWriter(
+                type: ContentBackgroundStylePreference.self,
+                value: AnimationBox(animation, AnyShapeStyle(style))
             )
-        }
-        return Property(
-            id: id,
-            title: title,
-            options: options,
-            token: selection.rawValue.hashValue,
-            selection: Binding {
-                selection.rawValue
-            } set: { newValue in
-                guard newValue != selection.rawValue else {
-                    return
-                }
-                if let newKey = Key(rawValue: newValue) {
-                    selection = newKey
-                } else {
-                    assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
-                }
-            }
         )
+    }
+}
+
+// MARK: - Row
+
+public extension View {
+    @inlinable
+    func propertyPickerRowBackground(@ViewBuilder background: () -> some View) -> some View {
+        environment(\.rowBackground, AnyView(background()))
+    }
+
+    @inlinable
+    func propertyPickerRowBackground<S>(_ style: S) -> some View where S: ShapeStyle & View {
+        environment(\.rowBackground, AnyView(style))
+    }
+
+    @inlinable 
+    @_disfavoredOverload
+    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
+        environment(\.rowBackground, AnyView(background))
+    }
+
+    /// Adds a custom view builder to a property picker for a specific property key type.
+    ///
+    /// This method allows customization of the presentation for a specific property within a property picker.
+    /// The provided view builder closure is used to generate the view whenever the specific property is rendered.
+    ///
+    /// - Parameters:
+    ///   - key: The property key type for which the custom view is being provided.
+    ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
+    @inlinable
+    func propertyPickerRow<K, Row>(for key: K.Type, @ViewBuilder body: @escaping (_ data: Property) -> Row) -> some View where K: PropertyPickerKey, Row: View {
+        modifier(
+            RowBuilderWriter(key: key, row: body)
+        )
+    }
+
+    /// Hides the property picker for a specific property key type.
+    ///
+    /// - Parameters:
+    ///   - key: The property key type for which the custom view is being provided.
+    @inlinable
+    func propertyPickerRowHidden<K>(for key: K.Type = K.self) -> some View where K: PropertyPickerKey {
+        modifier(
+            RowBuilderWriter(key: key, row: { _ in EmptyView() })
+        )
+    }
+
+    /// Sets the sorting order for the rows in the property picker.
+    ///
+    /// This method allows you to specify a custom sorting order for the rows displayed in the property picker,
+    /// ensuring that the items are presented in the desired sequence.
+    ///
+    /// - Parameter sort: A ``PropertyPickerRowSorting`` instance that defines the sorting order for the rows.
+    ///   Pass `nil` to use the default sorting order.
+    /// - Returns: A view that applies the specified sorting order to the rows.
+    @inlinable
+    func propertyPickerRowSorting(_ sort: PropertyPickerRowSorting?) -> some View {
+        environment(\.rowSorting, sort)
+    }
+}
+
+// MARK: - Title
+
+public extension View {
+    /// Sets the title for a property picker using a localized string key.
+    ///
+    /// This method allows you to specify a title for the property picker, supporting localization.
+    ///
+    /// - Parameter title: The localized string key used for the title. If nil, no title is set.
+    func propertyPickerTitle(_ title: LocalizedStringKey) -> some View {
+        modifier(
+            PreferenceWriter(
+                type: TitlePreference.self,
+                value: Text(title)
+            )
+        )
+    }
+
+    /// Sets the title for a property picker using a plain string.
+    ///
+    /// This version allows you to specify a title using a non-localized string.
+    ///
+    /// - Parameter title: The string to use as the title. If nil, no title is set.
+    @_disfavoredOverload
+    func propertyPickerTitle(_ title: String? = nil) -> some View {
+        modifier(
+            PreferenceWriter(
+                type: TitlePreference.self,
+                value: {
+                    if let title { return Text(verbatim: title) }
+                    return nil
+                }()
+            )
+        )
+    }
+
+    /// Sets the transformation applied to the property picker's key titles.
+    ///
+    /// This method allows you to define how the titles of the property picker keys should be transformed,
+    /// such as applying capitalization, modifying text format, or other custom transformations.
+    ///
+    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
+    ///   to apply to the key titles.
+    /// - Returns: A view that applies the specified transformation to the key titles.
+    @inlinable
+    func propertyPickerTitleTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
+        environment(\.titleTransformation, transform)
+    }
+}
+
+// MARK: - Label
+
+public extension View {
+    /// Sets the transformation applied to the property picker's key labels.
+    ///
+    /// This method allows you to define how the labels of the property picker keys should be transformed,
+    /// enabling custom formatting or modifications to the display of key labels.
+    ///
+    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
+    ///   to apply to the key labels.
+    /// - Returns: A view that applies the specified transformation to the key labels.
+    @inlinable
+    func propertyPickerLabelTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
+        environment(\.labelTransformation, transform)
+    }
+}
+// MARK: - State
+
+public extension View {
+    /// Registers this view for receiving selection updates of a property.
+    ///
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
+    ///
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    ///   - animation: An optional animation to apply the use when applying the changes.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
+    @inlinable
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, Void>,
+        animation: Animation? = nil
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
+        modifier(
+            PropertyWriter(
+                type: K.self,
+                selection: state.selection,
+                customAnimation: animation
+            )
+        )
+    }
+
+    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
+    ///
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
+    ///
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    ///   - animation: An optional animation to apply the use when applying the changes.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
+    @inlinable
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, K.KeyPath>,
+        animation: Animation? = nil
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
+        modifier(
+            PropertyWriter(
+                type: K.self,
+                selection: state.selection,
+                customAnimation: animation
+            )
+        )
+        .environment(state.data, state.store.value)
+    }
+
+    @inlinable
+    func propertyPickerSelectionAnimation(_ animation: Animation? = nil) -> some View {
+        environment(\.selectionAnimation, animation)
+    }
+}
+
+// MARK: - Sheet Presentation
+
+public extension View {
+    /// Sets the safe area adjustment style for a property picker within the view.
+    ///
+    /// This method configures how the view should adjust its content relative to the safe area insets,
+    /// which is particularly useful for views like property pickers that might need to dynamically adjust
+    /// their layout in response to on-screen keyboards or other overlaying UI elements.
+    ///
+    /// - Parameter adjustment: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
+    /// - Returns: A view modified with the specified safe area adjustment style.
+    @inlinable
+    func propertyPickerSafeAreaAdjustment(_ adjustment: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
+        environment(\.safeAreaAdjustment, adjustment)
+    }
+
+    /// Sets the available detents for the picker when presented as a sheet.
+    ///
+    /// - Parameter detents: A set of supported detents for the sheet.
+    ///   If you provide more that one detent, people can drag the sheet
+    ///   to resize it.
+    @available(iOS 16.0, *) 
+    @inlinable
+    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
+        environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)
+    }
+
+    /// Sets the available detents for the picker when presented as a sheet, giving you
+    /// programmatic control of the currently selected detent.
+    ///
+    /// - Parameters:
+    ///   - detents: A set of supported detents for the sheet.
+    ///     If you provide more that one detent, people can drag the sheet
+    ///     to resize it.
+    ///   - selection: A ``Binding`` to the currently selected detent.
+    ///     Ensure that the value matches one of the detents that you
+    ///     provide for the `detents` parameter.
+    @available(iOS 16.0, *)
+    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
+        environment(\.presentationDetents, detents).environment(\.selectedDetent, selection)
+    }
+}
+
+/// A preference key for storing an optional `Text` that represents a title.
+///
+/// This preference key is used to pass a title `Text` view up the view hierarchy. The default value is
+/// set to a `Text` view containing "Properties", which can be overridden by any child views providing
+/// their own title.
+struct TitlePreference: PreferenceKey {
+    /// The default title shown if no other title is specified by child views.
+    static var defaultValue: Text?
+
+    static func reduce(value: inout Text?, nextValue: () -> Text?) {
+        if let nextValue = nextValue() {
+            value = nextValue
+        }
+    }
+}
+
+/// A preference key for storing context about the background style of content.
+///
+/// This preference key helps in managing background customization of views with context about
+/// the background style and optional animations. It is useful for applying consistent styling across multiple views.
+@usableFromInline
+struct ContentBackgroundStylePreference: PreferenceKey {
+    /// The default value for the background context, initially nil indicating no background is applied.
+    @usableFromInline
+    static var defaultValue: AnimationBox<AnyShapeStyle>?
+
+    /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
+    @usableFromInline
+    static func reduce(value: inout AnimationBox<AnyShapeStyle>?, nextValue: () -> AnimationBox<AnyShapeStyle>?) {
+        if let nextValue = nextValue() {
+            value = nextValue
+        }
+    }
+}
+
+/// A preference key for storing a dictionary of `RowBuilder` instances indexed by `ObjectIdentifier`.
+///
+/// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
+/// It allows different parts of an application to specify custom builders for rendering specific property types.
+struct ViewBuilderPreference: PreferenceKey {
+    /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
+    static let defaultValue = [PropertyID: RowBuilder]()
+
+    /// Merges view builders provided by child views, preferring the builder set closest to the root.
+    static func reduce(value: inout [PropertyID: RowBuilder], nextValue: () -> [PropertyID: RowBuilder]) {
+        value.merge(nextValue()) { content, _ in
+            content
+        }
+    }
+}
+
+/// A preference key for storing a set of `Property` objects.
+///
+/// This preference key is designed to collect properties from various parts of the view hierarchy into a single set.
+/// It is useful for aggregating properties that need to be accessible at a higher level in the application.
+struct PropertyPreference: PreferenceKey {
+    /// The default value, an empty set, indicates that no properties are collected initially.
+    static var defaultValue: Set<Property> = []
+
+    /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
+    static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
+        value.formUnion(nextValue())
+    }
+}
+
+struct SafeAreaAdjustmentKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
+}
+
+struct SheetAnimationKey: EnvironmentKey {
+    static var defaultValue: Animation? = .easeOut
+}
+
+struct SelectionAnimationKey: EnvironmentKey {
+    static var defaultValue: Animation?
+}
+
+struct TitleTransformKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+}
+
+struct RowSortingKey: EnvironmentKey {
+    static var defaultValue: PropertyPickerRowSorting? = .ascending
+}
+
+struct RowBackgroundKey: EnvironmentKey {
+    static var defaultValue: AnyView?
+}
+
+@usableFromInline
+struct LabelTransformKey: EnvironmentKey {
+    @usableFromInline
+    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+}
+
+@available(iOS 16.0, *)
+struct PresentationDetentKey: EnvironmentKey {
+    static var defaultValue: Binding<PresentationDetent>?
+}
+
+@available(iOS 16.0, *)
+struct PresentationDetentsKey: EnvironmentKey {
+    static var defaultValue: Set<PresentationDetent> = [
+        .fraction(1 / 3),
+        .fraction(2 / 3),
+        .large,
+    ]
+}
+
+
+extension EnvironmentValues {
+    @usableFromInline
+    var safeAreaAdjustment: PropertyPickerSafeAreaAdjustmentStyle {
+        get { self[SafeAreaAdjustmentKey.self] }
+        set { self[SafeAreaAdjustmentKey.self] = newValue }
+    }
+
+    var sheetAnimation: Animation? {
+        get { self[SheetAnimationKey.self] }
+        set { self[SheetAnimationKey.self] = newValue }
+    }
+
+    @usableFromInline
+    var selectionAnimation: Animation? {
+        get { self[SelectionAnimationKey.self] }
+        set { self[SelectionAnimationKey.self] = newValue }
+    }
+
+    @available(iOS 16.0, *) @usableFromInline
+    var presentationDetents: Set<PresentationDetent> {
+        get { self[PresentationDetentsKey.self] }
+        set { self[PresentationDetentsKey.self] = newValue }
+    }
+
+    @available(iOS 16.0, *) @usableFromInline
+    var selectedDetent: Binding<PresentationDetent>? {
+        get { self[PresentationDetentKey.self] }
+        set { self[PresentationDetentKey.self] = newValue }
+    }
+
+    @usableFromInline
+    var titleTransformation: PropertyPickerTextTransformation {
+        get { self[TitleTransformKey.self] }
+        set { self[TitleTransformKey.self] = newValue }
+    }
+
+    @usableFromInline
+    var labelTransformation: PropertyPickerTextTransformation {
+        get { self[LabelTransformKey.self] }
+        set { self[LabelTransformKey.self] = newValue }
+    }
+
+    @usableFromInline
+    var rowSorting: PropertyPickerRowSorting? {
+        get { self[RowSortingKey.self] }
+        set { self[RowSortingKey.self] = newValue }
+    }
+
+    @usableFromInline
+    var rowBackground: AnyView? {
+        get { self[RowBackgroundKey.self] }
+        set { self[RowBackgroundKey.self] = newValue }
     }
 }
 
@@ -226,18 +783,22 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
 /// - Parameters:
 ///   - Key: The type of the property picker key, conforming to `PropertyPickerKey`.
 ///   - Content: The type of the SwiftUI view to be presented, which will adjust based on the selected property value.
+@usableFromInline
 struct PreferenceWriter<Key>: ViewModifier where Key: PreferenceKey {
     var type: Key.Type
     var value: Key.Value
-    var verbose = true
+    var verbose: Bool
 
+    @usableFromInline
+    init(type: Key.Type, value: Key.Value, verbose: Bool = true) {
+        self.type = type
+        self.value = value
+        self.verbose = verbose
+    }
+
+    @usableFromInline
     func body(content: Content) -> some View {
-        #if VERBOSE
-            if verbose {
-                Self._printChanges()
-            }
-        #endif
-        return content.background(
+        content.background(
             Spacer().preference(key: Key.self, value: value)
         )
     }
@@ -270,11 +831,103 @@ struct Context: ViewModifier {
     }
 }
 
+/// `PropertyWriter` is a generic SwiftUI view responsible for presenting the content associated with a property picker key
+/// and handling the dynamic selection of property values. It leverages SwiftUI's `@StateObject` to track the current selection and
+/// updates the UI accordingly when a new selection is made.
+///
+/// This view serves as the foundation for integrating property picker functionality into SwiftUI views, enabling dynamic configuration
+/// of view properties based on user selection.
+///
+/// - Parameter Key: The type of the property picker key, conforming to `PropertyPickerKey`.
+@usableFromInline
+struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
+    let type: Key.Type
+
+    @Binding
+    var selection: Key
+
+    var customAnimation: Animation?
+
+    @usableFromInline
+    init(
+        type: Key.Type,
+        selection: Binding<Key>,
+        customAnimation: Animation? = nil
+    ) {
+        self.type = type
+        self._selection = selection
+        self.customAnimation = customAnimation
+    }
+
+    @Environment(\.selectionAnimation)
+    private var defaultAnimation
+
+    private var animation: Animation? {
+        customAnimation ?? defaultAnimation
+    }
+
+    @Environment(\.labelTransformation)
+    private var labelTransformation
+
+    @Environment(\.titleTransformation)
+    private var titleTransformation
+
+    @usableFromInline
+    func body(content: Content) -> some View {
+        content.modifier(
+            PreferenceWriter(
+                type: PropertyPreference.self,
+                value: [property],
+                verbose: false
+            )
+        )
+    }
+
+    /// The item representing the currently selected value, used for updating the UI and storing preferences.
+    private var property: Property {
+        let id = PropertyID(Key.self)
+        let title = titleTransformation.apply(to: Key.title)
+        let options = Key.allCases.map {
+            PropertyOption(
+                label: labelTransformation.apply(to: $0.label),
+                rawValue: $0.rawValue
+            )
+        }
+        return Property(
+            id: id,
+            title: title,
+            options: options,
+            token: selection.rawValue.hashValue,
+            selection: Binding {
+                selection.rawValue
+            } set: { newValue in
+                guard newValue != selection.rawValue else {
+                    return
+                }
+                if let newKey = Key(rawValue: newValue) {
+                    withAnimation(animation) {
+                        selection = newKey
+                    }
+                } else {
+                    assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
+                }
+            }
+        )
+    }
+}
+
+@usableFromInline
 struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Row: View {
     var key: Key.Type
 
     @ViewBuilder
-    var row: (_ data: Property) -> Row
+    var row: (Property) -> Row
+
+    @usableFromInline
+    init(key: Key.Type, row: @escaping (_ data: Property) -> Row) {
+        self.key = key
+        self.row = row
+    }
 
     private var id: PropertyID {
         PropertyID(key)
@@ -286,6 +939,7 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
         })
     }
 
+    @usableFromInline
     func body(content: Content) -> some View {
         #if VERBOSE
             Self._printChanges()
@@ -297,81 +951,6 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
                 verbose: false
             )
         )
-    }
-}
-
-@available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
-public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>
-
-/// A property wrapper that provides state management for a selection within a property picker.
-///
-/// This property wrapper is designed to work with ``PropertyPickerKey`` and `DynamicProperty`
-/// to manage the state of a selected value in a picker view.
-@propertyWrapper
-public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
-    @State var store: Key
-
-    var data: Data
-
-    /// The value that this property wrapper manages.
-    ///
-    /// This property returns the value associated with the current selection key.
-    public var wrappedValue: Key.PickerValue { store.value }
-
-    /// The projected value of the property wrapper.
-    ///
-    /// This property returns the instance of `PropertyPickerState` itself.
-    public var projectedValue: Self { self }
-
-    /// A binding to the selection key.
-    ///
-    /// This property provides a binding to the current selection key, allowing the selection
-    /// to be read and modified.
-    public var selection: Binding<Key> { $store }
-}
-
-public extension PropertyPickerState where Data == Void {
-    /// Initializes the property picker state for local usage.
-    /// - Parameters:
-    ///   - value: An initial value to store in the state property.
-    ///   - key: The type of the property key.
-    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self) {
-        _store = State(initialValue: value)
-        data = ()
-    }
-
-    /// Initializes the property picker state for local usage.
-    /// - Parameters:
-    ///   - value: An initial value to store in the state property.
-    ///   - key: The type of the property key.
-    init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
-        _store = State(initialValue: value)
-        data = ()
-    }
-}
-
-public extension PropertyPickerState where Data == Key.KeyPath {
-    /// Initializes the property picker state, linking the local selection to an environment value.
-    /// - Parameters:
-    ///   - value: An initial value to store in the state property.
-    ///   - key: The type of the property key.
-    ///   - keyPath: A key path to an environment value that this picker state will sync with.
-    @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self, keyPath: Key.KeyPath) {
-        _store = State(initialValue: value)
-        data = keyPath
-    }
-
-    /// Initializes the property picker state, linking it to an environment value using a key path.
-    /// - Parameters:
-    ///   - value: An initial value to store in the state property.
-    ///   - key: The type of the property key.
-    ///   - keyPath: A key path to an environment value that this picker state will sync with.
-    @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
-    @_disfavoredOverload
-    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _: Key.Type = Key.self) {
-        _store = State(initialValue: value)
-        data = keyPath
     }
 }
 
@@ -490,6 +1069,138 @@ public extension PropertyPickerKey where PickerValue == Self {
     var value: Self { self }
 }
 
+struct Rows: View {
+    @EnvironmentObject
+    private var context: Context.Data
+
+    @Environment(\.rowSorting)
+    private var rowSorting
+
+    var body: some View {
+        #if VERBOSE
+            Self._printChanges()
+        #endif
+        return ForEach(rowSorting.sort(context.rows)) { property in
+            if let custom = makeBody(configuration: property) {
+                custom
+            } else {
+                Row(data: property)
+            }
+        }
+    }
+
+    private func makeBody(configuration property: Property) -> AnyView? {
+        if let customBuilder = context.rowBuilders[property.id] {
+            let body = customBuilder.body(property)
+            return body
+        }
+        return nil
+    }
+}
+
+struct Title: View {
+    @EnvironmentObject
+    private var context: Context.Data
+
+    var body: some View {
+        context.title
+    }
+}
+
+struct Row: View {
+    var data: Property
+
+    var body: some View {
+        #if VERBOSE
+            Self._printChanges()
+        #endif
+        return Picker(data.title, selection: data.$selection) {
+            ForEach(data.options) { option in
+                Text(option.label)
+            }
+        }
+    }
+}
+
+/// A SwiftUI view that enables dynamic property selection.
+///
+/// This view acts as a container that integrates with the property picker system to allow users
+/// to dynamically select properties and apply them to the enclosed content.
+public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
+    /// The content to be presented alongside the dynamic value selector.
+    var content: Content
+
+    /// The presentation style
+    var style: Style
+
+    @_disfavoredOverload
+    public init(style: Style, @ViewBuilder content: () -> Content) {
+        self.content = content()
+        self.style = style
+    }
+
+    /// A view modifier that updates a shared context with changes from preference keys.
+    private var context = Context()
+
+    /// The body of the dynamic value selector, presenting the content using the current selector style.
+    public var body: some View {
+        content
+            .modifier(style)
+            .modifier(context)
+    }
+}
+
+// MARK: - Inline Style
+
+public extension PropertyPicker where Style == _InlinePropertyPicker {
+    /// Initializes a ``PropertyPicker`` with an inline presentation style.
+    ///
+    /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
+    /// rather than in a separate modal or layered interface. The inline style is suitable for contexts where space allows
+    /// for direct embedding of components without the need for additional navigation.
+    ///
+    /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+        style = _InlinePropertyPicker()
+    }
+}
+
+// MARK: - List Style
+
+public extension PropertyPicker {
+    /// Initializes a ``PropertyPicker`` using a specific `ListStyle`.
+    ///
+    /// This initializer configures the property picker to display its items as a list styled according to the provided `ListStyle`.
+    /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
+    ///
+    /// - Parameters:
+    ///   - style: Defines the list style.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init<S: ListStyle>(style: S, @ViewBuilder content: () -> Content) where Style == _ListPropertyPicker<S> {
+        self.content = content()
+        self.style = _ListPropertyPicker(listStyle: style)
+    }
+}
+
+// MARK: - Sheet Style
+
+@available(iOS 16.4, *)
+public extension PropertyPicker where Style == _SheetPropertyPicker {
+    /// Initializes a ``PropertyPicker`` with a sheet presentation style.
+    ///
+    /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
+    /// The sheet's size and how it reacts to different device contexts can be customized through various parameters.
+    ///
+    /// - Parameters:
+    ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
+        self.content = content()
+        style = _SheetPropertyPicker(isPresented: isPresented)
+    }
+}
+
 // MARK: - List Style
 
 /// A `PropertyPickerStyle` for displaying property picker content within a styled list.
@@ -562,6 +1273,33 @@ private extension View {
     }
 }
 
+/// A style that presents dynamic value options inline within the view hierarchy of a property picker.
+/// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
+/// to display additional picker options below the main content.
+public struct _InlinePropertyPicker: PropertyPickerStyle {
+    @Environment(\.rowBackground)
+    private var rowBackground
+
+    /// Creates the view for the inline style, embedding the dynamic value options directly within a scrollable area.
+    ///
+    /// The implementation arranges the picker's standard content and its rows in a `VStack` to ensure they are
+    /// displayed inline with appropriate spacing and structural divisions.
+    ///
+    /// - Parameter content: The dynamic value options and content.
+    /// - Returns: A view displaying the dynamic value options inline, enhanced with custom spacing and dividers.
+    public func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom) {
+            VStack {
+                Divider().padding(.bottom)
+                LazyVStack {
+                    content.rows.background(rowBackground)
+                }
+            }
+            .padding()
+        }
+    }
+}
+
 /// A property picker style that presents content in a sheet overlay, with additional customizations for presentation and dismissal.
 ///
 /// This style encapsulates the behavior necessary to present and manage a modal sheet that contains property picker content.
@@ -579,7 +1317,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
     @Environment(\.safeAreaAdjustment)
     private var safeAreaAdjustment
 
-    @Environment(\.animation)
+    @Environment(\.sheetAnimation)
     private var animation
 
     @Environment(\.presentationDetents)
@@ -674,7 +1412,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
         @Binding
         var isPresented: Bool
 
-        @Environment(\.animation)
+        @Environment(\.sheetAnimation)
         private var animation
 
         var body: some View {
@@ -694,725 +1432,79 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
     }
 }
 
-/// A style that presents dynamic value options inline within the view hierarchy of a property picker.
-/// This style uses a vertical stack to organize the content, adding a divider and utilizing the `rows` property
-/// to display additional picker options below the main content.
-public struct _InlinePropertyPicker: PropertyPickerStyle {
-    @Environment(\.rowBackground)
-    private var rowBackground
+@available(*, deprecated, renamed: "PropertyPicker", message: "Renamed PropertyPicker")
+public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPickerState<K, K.KeyPath>
 
-    /// Creates the view for the inline style, embedding the dynamic value options directly within a scrollable area.
-    ///
-    /// The implementation arranges the picker's standard content and its rows in a `VStack` to ensure they are
-    /// displayed inline with appropriate spacing and structural divisions.
-    ///
-    /// - Parameter content: The dynamic value options and content.
-    /// - Returns: A view displaying the dynamic value options inline, enhanced with custom spacing and dividers.
-    public func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom) {
-            VStack {
-                Divider().padding(.bottom)
-                LazyVStack {
-                    content.rows.background(rowBackground)
-                }
-            }
-            .padding()
-        }
-    }
-}
-
-struct SafeAreaAdjustmentKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
-}
-
-struct AnimationKey: EnvironmentKey {
-    static var defaultValue: Animation? = .easeOut
-}
-
-struct TitleTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
-}
-
-struct RowSortingKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerRowSorting? = .ascending
-}
-
-struct RowBackgroundKey: EnvironmentKey {
-    static var defaultValue: AnyView?
-}
-
-struct LabelTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
-}
-
-@available(iOS 16.0, *)
-struct PresentationDetentKey: EnvironmentKey {
-    static var defaultValue: Binding<PresentationDetent>?
-}
-
-@available(iOS 16.0, *)
-struct PresentationDetentsKey: EnvironmentKey {
-    static var defaultValue: Set<PresentationDetent> = [
-        .fraction(1 / 3),
-        .fraction(2 / 3),
-        .large,
-    ]
-}
-
-extension EnvironmentValues {
-    var safeAreaAdjustment: PropertyPickerSafeAreaAdjustmentStyle {
-        get { self[SafeAreaAdjustmentKey.self] }
-        set { self[SafeAreaAdjustmentKey.self] = newValue }
-    }
-
-    var animation: Animation? {
-        get { self[AnimationKey.self] }
-        set { self[AnimationKey.self] = newValue }
-    }
-
-    @available(iOS 16.0, *)
-    var presentationDetents: Set<PresentationDetent> {
-        get { self[PresentationDetentsKey.self] }
-        set { self[PresentationDetentsKey.self] = newValue }
-    }
-
-    @available(iOS 16.0, *)
-    var selectedDetent: Binding<PresentationDetent>? {
-        get { self[PresentationDetentKey.self] }
-        set { self[PresentationDetentKey.self] = newValue }
-    }
-
-    var titleTransformation: PropertyPickerTextTransformation {
-        get { self[TitleTransformKey.self] }
-        set { self[TitleTransformKey.self] = newValue }
-    }
-
-    var labelTransformation: PropertyPickerTextTransformation {
-        get { self[LabelTransformKey.self] }
-        set { self[LabelTransformKey.self] = newValue }
-    }
-
-    var rowSorting: PropertyPickerRowSorting? {
-        get { self[RowSortingKey.self] }
-        set { self[RowSortingKey.self] = newValue }
-    }
-
-    var rowBackground: AnyView? {
-        get { self[RowBackgroundKey.self] }
-        set { self[RowBackgroundKey.self] = newValue }
-    }
-}
-
-/// A preference key for storing an optional `Text` that represents a title.
+/// A property wrapper that provides state management for a selection within a property picker.
 ///
-/// This preference key is used to pass a title `Text` view up the view hierarchy. The default value is
-/// set to a `Text` view containing "Properties", which can be overridden by any child views providing
-/// their own title.
-struct TitlePreference: PreferenceKey {
-    /// The default title shown if no other title is specified by child views.
-    static var defaultValue: Text?
+/// This property wrapper is designed to work with ``PropertyPickerKey`` and `DynamicProperty`
+/// to manage the state of a selected value in a picker view.
+@propertyWrapper
+public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
+    @usableFromInline
+    @State var store: Key
 
-    static func reduce(value: inout Text?, nextValue: () -> Text?) {
-        if let nextValue = nextValue() {
-            value = nextValue
-        }
-    }
-}
+    @usableFromInline
+    var data: Data
 
-/// A preference key for storing context about the background style of content.
-///
-/// This preference key helps in managing background customization of views with context about
-/// the background style and optional animations. It is useful for applying consistent styling across multiple views.
-struct ContentBackgroundStylePreference: PreferenceKey {
-    /// The default value for the background context, initially nil indicating no background is applied.
-    static var defaultValue: AnimationBox<AnyShapeStyle>?
-
-    /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
-    static func reduce(value: inout AnimationBox<AnyShapeStyle>?, nextValue: () -> AnimationBox<AnyShapeStyle>?) {
-        if let nextValue = nextValue() {
-            value = nextValue
-        }
-    }
-}
-
-/// A preference key for storing a dictionary of `RowBuilder` instances indexed by `ObjectIdentifier`.
-///
-/// This preference key is used to pass custom view builders for specific property types identified by their `ObjectIdentifier`.
-/// It allows different parts of an application to specify custom builders for rendering specific property types.
-struct ViewBuilderPreference: PreferenceKey {
-    /// The default value is an empty dictionary, indicating no custom view builders are provided initially.
-    static let defaultValue = [PropertyID: RowBuilder]()
-
-    /// Merges view builders provided by child views, preferring the builder set closest to the root.
-    static func reduce(value: inout [PropertyID: RowBuilder], nextValue: () -> [PropertyID: RowBuilder]) {
-        value.merge(nextValue()) { content, _ in
-            content
-        }
-    }
-}
-
-/// A preference key for storing a set of `Property` objects.
-///
-/// This preference key is designed to collect properties from various parts of the view hierarchy into a single set.
-/// It is useful for aggregating properties that need to be accessible at a higher level in the application.
-struct PropertyPreference: PreferenceKey {
-    /// The default value, an empty set, indicates that no properties are collected initially.
-    static var defaultValue: Set<Property> = []
-
-    /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
-    static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
-        value.formUnion(nextValue())
-    }
-}
-
-extension Context {
-    /// A data object that holds and manages UI related data for property pickers within a SwiftUI application.
+    /// The value that this property wrapper manages.
     ///
-    /// This class serves as a centralized store for various configurations and properties related to displaying
-    /// property pickers. It uses `@Published` properties to ensure that views observing this context will
-    /// update automatically in response to changes, supporting reactive UI updates.
-    final class Data: ObservableObject {
-        init() {}
+    /// This property returns the value associated with the current selection key.
+    public var wrappedValue: Key.PickerValue { store.value }
 
-        @Published
-        var title: Text? = TitlePreference.defaultValue {
-            didSet {
-                #if VERBOSE
-                    print("\(Self.self): Updated Title \"\(String(describing: title))\"")
-                #endif
-            }
-        }
-
-        @Published
-        var rows: Set<Property> = [] {
-            didSet {
-                #if VERBOSE
-                    print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
-                #endif
-            }
-        }
-
-        @Published
-        var rowBuilders: [PropertyID: RowBuilder] = [:] {
-            didSet {
-                #if VERBOSE
-                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
-                #endif
-            }
-        }
-    }
-}
-
-struct RowBuilder: Equatable, Identifiable {
-    let id: PropertyID
-    let body: (Property) -> AnyView?
-
-    static func == (lhs: RowBuilder, rhs: RowBuilder) -> Bool {
-        lhs.id == rhs.id
-    }
-}
-
-/// `PropertyID` provides a unique identifier for property picker elements,
-/// facilitating the tracking and management of property picker states and configurations
-/// across different components of an application.
-///
-/// It utilizes `ObjectIdentifier` under the hood to guarantee uniqueness, basing the identity
-/// on the type information of `PropertyPickerKey` conforming types. This ensures that each
-/// property picker type is associated with a distinct identifier, preventing conflicts and
-/// improving traceability in systems that manage multiple types of property pickers.
-///
-/// Usage of this ID is crucial in scenarios where properties need to be dynamically
-/// managed and accessed across various UI components or data handling layers.
-public struct PropertyID: Hashable {
-    public static func == (lhs: PropertyID, rhs: PropertyID) -> Bool {
-        lhs.value == rhs.value
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(value)
-    }
-
-    let type: Any.Type
-
-    /// The underlying value storing the unique identifier based on type information.
-    private let value: ObjectIdentifier
-
-    /// Initializes a new identifier for a property picker key.
-    /// The identifier is derived from the type of the `PropertyPickerKey` conforming type,
-    /// ensuring that each key type has a unique identifier.
+    /// The projected value of the property wrapper.
     ///
-    /// - Parameter key: The type of the property picker key. The default value `K.self`
-    ///   captures the caller's type context, automatically providing type-specific uniqueness.
-    init<K: PropertyPickerKey>(_ key: K.Type = K.self) {
-        value = ObjectIdentifier(key)
-        type = key
-    }
-}
+    /// This property returns the instance of `PropertyPickerState` itself.
+    public var projectedValue: Self { self }
 
-/// An enumeration that defines the adjustment styles for safe area insets in property picker contexts.
-///
-/// It specifies how a property picker should adjust its content to accommodate safe area insets,
-/// ensuring that the picker does not obstruct critical parts of the user interface, such as input fields or buttons.
-/// This adjustment is particularly useful in scenarios where property pickers alter the layout dynamically,
-/// such as appearing as overlays or within modal presentations.
-public enum PropertyPickerSafeAreaAdjustmentStyle {
-    /// Adjusts the safe area insets automatically based on system guidelines and the presence of elements like keyboards
-    /// or bottom bars that may overlap the property picker's content.
-    case automatic
-
-    /// Does not make any adjustments to the safe area insets, allowing the content to maintain its layout
-    /// irrespective of environmental changes. This setting is suitable when the UI design specifies that elements
-    /// should not react to overlaying interfaces.
-    case never
-}
-
-/// Represents a dynamic value entry with a unique identifier, title, and selectable labels.
-public struct Property: Identifiable {
-    /// A unique identifier for the entry.
-    public let id: PropertyID
-
-    /// The title of the entry, used as a label in the UI.
-    public let title: String
-
-    /// The options available for selection.
-    public let options: [PropertyOption]
-
-    /// Signal view updates
-    let token: AnyHashable
-
-    /// A binding to the currently selected option.
-    @Binding public var selection: String
-}
-
-extension Property: Equatable {
-    /// Determines if two entries are equal based on their identifiers.
-    public static func == (lhs: Property, rhs: Property) -> Bool {
-        lhs.id == rhs.id && lhs.token == rhs.token
-    }
-}
-
-extension Property: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(token)
-    }
-}
-
-extension Property: Comparable {
-    public static func < (lhs: Property, rhs: Property) -> Bool {
-        lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
-    }
-}
-
-public struct PropertyPickerTextTransformation: OptionSet {
-    public let rawValue: Int8
-
-    public init(rawValue: Int8) {
-        self.rawValue = rawValue
-    }
-
-    public static let none = Self()
-    public static let capitalize = Self(rawValue: 1 << 0)
-    public static let lowercase = Self(rawValue: 1 << 1)
-    public static let uppercase = Self(rawValue: 1 << 2)
-    public static let camelCaseToWords = Self(rawValue: 1 << 3)
-    public static let snakeCaseToWords = Self(rawValue: 1 << 4)
-
-    func apply(to text: String) -> String {
-        var text = text
-        if contains(.camelCaseToWords) {
-            text = text.addingSpacesToCamelCase()
-        }
-        if contains(.snakeCaseToWords) {
-            text = text.replacingOccurrences(of: "_", with: " ")
-        }
-        if contains(.capitalize) {
-            text = text.localizedCapitalized
-        }
-        if contains(.uppercase) {
-            text = text.localizedUppercase
-        }
-        if contains(.lowercase) {
-            text = text.localizedLowercase
-        }
-        return text
-    }
-}
-
-// MARK: - Private Helpers
-
-extension String {
-    /// Adds spaces before each uppercase letter in a camelCase string.
-    /// - Returns: A new string with spaces added before each uppercase letter.
-    func addingSpacesToCamelCase() -> String {
-        replacingOccurrences(
-            of: "(?<=[a-z])(?=[A-Z])",
-            with: " $0",
-            options: .regularExpression,
-            range: range(of: self)
-        )
-    }
-
-    /// Removes a specified suffix from the string if it ends with that suffix.
+    /// A binding to the selection key.
     ///
-    /// - Parameter suffix: The suffix to remove from the string.
-    /// - Returns: The string after the specified suffix has been removed if it was present at the end.
-    func removingSuffix(_ suffix: String) -> String {
-        guard hasSuffix(suffix) else { return self }
-        return String(dropLast(suffix.count))
-    }
-
-    /// Removes a specified prefix from the string if it ends with that prefix.
-    ///
-    /// - Parameter prefix: The prefix to remove from the string.
-    /// - Returns: The string after the specified prefix has been removed if it was present at the start.
-    func removingPrefix(_ prefix: String) -> String {
-        guard hasPrefix(prefix) else { return self }
-        return String(dropFirst(prefix.count))
-    }
+    /// This property provides a binding to the current selection key, allowing the selection
+    /// to be read and modified.
+    public var selection: Binding<Key> { $store }
 }
 
-public enum PropertyPickerRowSorting {
-    case ascending
-    case descending
-    case custom(comparator: (_ lhs: Property, _ rhs: Property) -> Bool)
-
-    func sort<D>(_ data: D) -> [Property] where D: Collection, D.Element == Property {
-        switch self {
-        case .ascending:
-            data.sorted()
-        case .descending:
-            data.sorted().reversed()
-        case let .custom(comparator):
-            data.sorted { lhs, rhs in
-                comparator(lhs, rhs)
-            }
-        }
-    }
-}
-
-extension PropertyPickerRowSorting? {
-    func sort<D>(_ data: D) -> [Property] where D: Collection, D.Element == Property {
-        switch self {
-        case .none:
-            return Array(data)
-        case let .some(wrapped):
-            return wrapped.sort(data)
-        }
-    }
-}
-
-/// A representation of a property option that can be identified by a unique string.
-///
-/// `PropertyOption` is a structure that represents an option with a label and a raw value.
-/// It conforms to the `Identifiable` protocol, which requires an `id` property.
-public struct PropertyOption: Identifiable {
-    /// A unique identifier for the property option.
-    ///
-    /// This identifier is derived from the `rawValue` property.
-    public var id: String { rawValue }
-
-    /// A human-readable label for the property option.
-    ///
-    /// This label is intended to be displayed to users.
-    public var label: String
-
-    /// The raw value of the property option.
-    ///
-    /// This value is typically used internally to represent the option.
-    public var rawValue: String
-
-    /// Initializes a new `PropertyOption`.
-    ///
+public extension PropertyPickerState where Data == Void {
+    /// Initializes the property picker state for local usage.
     /// - Parameters:
-    ///   - label: A human-readable label for the property option.
-    ///   - rawValue: The raw value of the property option.
-    init(label: String, rawValue: String) {
-        self.label = label
-        self.rawValue = rawValue
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = ()
+    }
+
+    /// Initializes the property picker state for local usage.
+    /// - Parameters:
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
+        _store = State(initialValue: value)
+        data = ()
     }
 }
 
-/// A generic container that associates arbitrary data with an animation, suitable for use in SwiftUI animations.
-///
-/// This struct is designed to facilitate the animation of changes to data in SwiftUI views. It encapsulates
-/// data along with an optional `Animation` object, allowing SwiftUI to manage and animate transitions
-/// when the data changes. It includes an `id` to uniquely identify instances, supporting SwiftUI's
-/// requirements for identifying views in a list or similar collection.
-///
-/// - Parameter Data: The type of the data to be stored and possibly animated.
-struct AnimationBox<Data>: Equatable, Identifiable {
-    /// Conforms to the Equatable protocol, allowing SwiftUI to determine when the box's contents have changed.
-    /// Compares two instances based on their unique identifiers.
-    ///
+public extension PropertyPickerState where Data == Key.KeyPath {
+    /// Initializes the property picker state, linking the local selection to an environment value.
     /// - Parameters:
-    ///   - lhs: The left-hand side `AnimationBox` instance for comparison.
-    ///   - rhs: The right-hand side `AnimationBox` instance for comparison.
-    /// - Returns: A Boolean value indicating whether the two instances are considered equivalent.
-    static func == (lhs: AnimationBox<Data>, rhs: AnimationBox<Data>) -> Bool {
-        lhs.id == rhs.id
-    }
-
-    /// A unique identifier for each instance, used by SwiftUI to manage and animate views efficiently.
-    let id = UUID()
-
-    /// The animation to apply when the data changes. If nil, changes to the data will not be animated.
-    let animation: Animation?
-
-    /// The data held by this box. Changes to this data might be animated if `animation` is not nil.
-    let data: Data
-
-    /// The type of the data stored in this box. This is used to support type-safe operations on the data.
-    let type: Any.Type
-
-    /// Initializes a new `AnimatableBox` with the specified animation and data.
-    ///
-    /// - Parameters:
-    ///   - animation: The animation to apply to changes in the data. Pass nil if changes should not be animated.
-    ///   - data: The data to store and animate in this box.
-    init(_ animation: Animation?, _ data: Data) {
-        self.animation = animation
-        self.data = data
-        type = Data.self
-    }
-}
-
-// MARK: - List Content
-
-public extension View {
-    /// Applies a background style to the list content of a property picker with optional animation.
-    ///
-    /// Use this method to specify a custom background for the list content within a property picker view.
-    /// An optional animation parameter allows the background appearance change to be animated.
-    ///
-    /// - Parameters:
-    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
-    ///   - animation: Optional animation to apply when the background style changes.
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @_disfavoredOverload
-    @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
-        modifier(
-            PreferenceWriter(
-                type: ContentBackgroundStylePreference.self,
-                value: {
-                    guard let style else { return nil }
-                    return AnimationBox(animation, AnyShapeStyle(style))
-                }()
-            )
-        )
+    init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self, keyPath: Key.KeyPath) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
 
-    /// Applies a background style to the list content of a property picker with optional animation.
-    ///
-    /// Use this method to specify a custom background for the list content within a property picker view.
-    /// An optional animation parameter allows the background appearance change to be animated.
-    ///
+    /// Initializes the property picker state, linking it to an environment value using a key path.
     /// - Parameters:
-    ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
-    ///   - animation: Optional animation to apply when the background style changes.
-    @available(iOS 16.0, *)
-    func propertyPickerListContentBackground<S>(_ style: S, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
-        modifier(
-            PreferenceWriter(
-                type: ContentBackgroundStylePreference.self,
-                value: AnimationBox(animation, AnyShapeStyle(style))
-            )
-        )
-    }
-}
-
-// MARK: - Row
-
-public extension View {
-    func propertyPickerRowBackground<B>(@ViewBuilder background: () -> B) -> some View where B: View {
-        environment(\.rowBackground, AnyView(background()))
-    }
-
-    func propertyPickerRowBackground<S>(_ style: S) -> some View where S: ShapeStyle & View {
-        environment(\.rowBackground, AnyView(style))
-    }
-
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    ///   - keyPath: A key path to an environment value that this picker state will sync with.
+    @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
     @_disfavoredOverload
-    func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
-        environment(\.rowBackground, AnyView(background))
-    }
-
-    /// Adds a custom view builder to a property picker for a specific property key type.
-    ///
-    /// This method allows customization of the presentation for a specific property within a property picker.
-    /// The provided view builder closure is used to generate the view whenever the specific property is rendered.
-    ///
-    /// - Parameters:
-    ///   - key: The property key type for which the custom view is being provided.
-    ///   - body: A closure that takes a `Property` instance and returns a view (`Row`) for that property.
-    func propertyPickerRow<K, Row>(for key: K.Type, @ViewBuilder body: @escaping (_ data: Property) -> Row) -> some View where K: PropertyPickerKey, Row: View {
-        modifier(
-            RowBuilderWriter(key: key, row: body)
-        )
-    }
-
-    /// Hides the property picker for a specific property key type.
-    ///
-    /// - Parameters:
-    ///   - key: The property key type for which the custom view is being provided.
-    func propertyPickerRowHidden<K>(for key: K.Type = K.self) -> some View where K: PropertyPickerKey {
-        modifier(
-            RowBuilderWriter(key: key, row: { _ in EmptyView() })
-        )
-    }
-
-    /// Sets the sorting order for the rows in the property picker.
-    ///
-    /// This method allows you to specify a custom sorting order for the rows displayed in the property picker,
-    /// ensuring that the items are presented in the desired sequence.
-    ///
-    /// - Parameter sort: A ``PropertyPickerRowSorting`` instance that defines the sorting order for the rows.
-    ///   Pass `nil` to use the default sorting order.
-    /// - Returns: A view that applies the specified sorting order to the rows.
-    func propertyPickerRowSorting(_ sort: PropertyPickerRowSorting?) -> some View {
-        environment(\.rowSorting, sort)
-    }
-}
-
-// MARK: - Title
-
-public extension View {
-    /// Sets the title for a property picker using a localized string key.
-    ///
-    /// This method allows you to specify a title for the property picker, supporting localization.
-    ///
-    /// - Parameter title: The localized string key used for the title. If nil, no title is set.
-    func propertyPickerTitle(_ title: LocalizedStringKey?) -> some View {
-        modifier(
-            PreferenceWriter(
-                type: TitlePreference.self,
-                value: {
-                    if let title { return Text(title) }
-                    return nil
-                }()
-            )
-        )
-    }
-
-    /// Sets the title for a property picker using a plain string.
-    ///
-    /// This version allows you to specify a title using a non-localized string.
-    ///
-    /// - Parameter title: The string to use as the title. If nil, no title is set.
-    @_disfavoredOverload
-    func propertyPickerTitle(_ title: String?) -> some View {
-        modifier(
-            PreferenceWriter(
-                type: TitlePreference.self,
-                value: {
-                    if let title { return Text(verbatim: title) }
-                    return nil
-                }()
-            )
-        )
-    }
-
-    /// Sets the transformation applied to the property picker's key titles.
-    ///
-    /// This method allows you to define how the titles of the property picker keys should be transformed,
-    /// such as applying capitalization, modifying text format, or other custom transformations.
-    ///
-    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
-    ///   to apply to the key titles.
-    /// - Returns: A view that applies the specified transformation to the key titles.
-    func propertyPickerTitleTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
-        environment(\.titleTransformation, transform)
-    }
-}
-
-// MARK: - Label
-
-public extension View {
-    /// Sets the transformation applied to the property picker's key labels.
-    ///
-    /// This method allows you to define how the labels of the property picker keys should be transformed,
-    /// enabling custom formatting or modifications to the display of key labels.
-    ///
-    /// - Parameter transform: A ``PropertyPickerTextTransformation`` instance that defines the transformation
-    ///   to apply to the key labels.
-    /// - Returns: A view that applies the specified transformation to the key labels.
-    func propertyPickerLabelTransformation(_ transform: PropertyPickerTextTransformation) -> some View {
-        environment(\.labelTransformation, transform)
-    }
-}
-
-// MARK: - State
-
-public extension View {
-    /// Registers this view for receiving selection updates of a property.
-    ///
-    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
-    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
-    ///
-    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
-    ///   and react to changes in the property picker's selected value.
-    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
-    ///   changes to and from the state.
-    func propertyPicker<K>(_ state: PropertyPickerState<K, Void>) -> some View where K: PropertyPickerKey, K: Equatable {
-        modifier(
-            PropertyWriter(type: K.self, selection: state.$store)
-        )
-    }
-
-    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
-    ///
-    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
-    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
-    ///
-    /// - Parameter property: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
-    ///   and react to changes in the property picker's selected value.
-    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
-    ///   changes to and from the state.
-    func propertyPicker<K>(_ state: PropertyPickerState<K, K.KeyPath>) -> some View where K: PropertyPickerKey, K: Equatable {
-        modifier(
-            PropertyWriter(type: K.self, selection: state.$store)
-        )
-        .environment(state.data, state.store.value)
-    }
-}
-
-// MARK: - Sheet Presentation
-
-public extension View {
-    /// Sets the safe area adjustment style for a property picker within the view.
-    ///
-    /// This method configures how the view should adjust its content relative to the safe area insets,
-    /// which is particularly useful for views like property pickers that might need to dynamically adjust
-    /// their layout in response to on-screen keyboards or other overlaying UI elements.
-    ///
-    /// - Parameter adjustment: The `PropertyPickerSafeAreaAdjustmentStyle` specifying the adjustment behavior.
-    /// - Returns: A view modified with the specified safe area adjustment style.
-    func propertyPickerSafeAreaAdjustment(_ adjustment: PropertyPickerSafeAreaAdjustmentStyle) -> some View {
-        environment(\.safeAreaAdjustment, adjustment)
-    }
-
-    /// Sets the available detents for the picker when presented as a sheet.
-    ///
-    /// - Parameter detents: A set of supported detents for the sheet.
-    ///   If you provide more that one detent, people can drag the sheet
-    ///   to resize it.
-    @available(iOS 16.0, *)
-    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
-        environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)
-    }
-
-    /// Sets the available detents for the picker when presented as a sheet, giving you
-    /// programmatic control of the currently selected detent.
-    ///
-    /// - Parameters:
-    ///   - detents: A set of supported detents for the sheet.
-    ///     If you provide more that one detent, people can drag the sheet
-    ///     to resize it.
-    ///   - selection: A ``Binding`` to the currently selected detent.
-    ///     Ensure that the value matches one of the detents that you
-    ///     provide for the `detents` parameter.
-    @available(iOS 16.0, *)
-    func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
-        environment(\.presentationDetents, detents).environment(\.selectedDetent, selection)
+    init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _: Key.Type = Key.self) {
+        _store = State(initialValue: value)
+        data = keyPath
     }
 }
