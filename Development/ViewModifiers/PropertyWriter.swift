@@ -15,25 +15,17 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     @Binding
     var selection: Key
 
-    var customAnimation: Animation?
-
     @usableFromInline
     init(
         type: Key.Type,
-        selection: Binding<Key>,
-        customAnimation: Animation? = nil
+        selection: Binding<Key>
     ) {
         self.type = type
         self._selection = selection
-        self.customAnimation = customAnimation
     }
 
     @Environment(\.selectionAnimation)
-    private var defaultAnimation
-
-    private var animation: Animation? {
-        customAnimation ?? defaultAnimation
-    }
+    private var animation
 
     @Environment(\.labelTransformation)
     private var labelTransformation
@@ -78,6 +70,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                         selection = newKey
                     }
                 } else {
+                    // swiftlint:disable:next line_length
                     assertionFailure("\(Self.self): Couldn't initialize case with \"\(newValue)\". Valid options: \(options.map(\.label))")
                 }
             }

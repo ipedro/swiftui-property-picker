@@ -11,7 +11,7 @@ public extension View {
     /// - Parameters:
     ///   - style: The `ShapeStyle` to apply as the background of the list content. If nil, the background is not modified.
     ///   - animation: Optional animation to apply when the background style changes.
-    @available(iOS 16.0, *) 
+    @available(iOS 16.0, *)
     @inlinable
     @_disfavoredOverload
     func propertyPickerListContentBackground<S>(_ style: S?, _ animation: Animation? = nil) -> some View where S: ShapeStyle {
@@ -58,7 +58,7 @@ public extension View {
         environment(\.rowBackground, AnyView(style))
     }
 
-    @inlinable 
+    @inlinable
     @_disfavoredOverload
     func propertyPickerRowBackground<B>(_ background: B?) -> some View where B: View {
         environment(\.rowBackground, AnyView(background))
@@ -180,24 +180,21 @@ public extension View {
     /// - Parameters:
     ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
     ///   and react to changes in the property picker's selected value.
-    ///   - animation: An optional animation to apply the use when applying the changes.
     /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
     ///   changes to and from the state.
     @inlinable
     func propertyPicker<K>(
-        _ state: PropertyPickerState<K, Void>,
-        animation: Animation? = nil
+        _ state: PropertyPickerState<K, Void>
     ) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
             PropertyWriter(
                 type: K.self,
-                selection: state.selection,
-                customAnimation: animation
+                selection: state.selection
             )
         )
     }
 
-    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
+    /// Registers this view for receiving selection updates of a property.
     ///
     /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
     /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
@@ -210,21 +207,60 @@ public extension View {
     ///   changes to and from the state.
     @inlinable
     func propertyPicker<K>(
-        _ state: PropertyPickerState<K, K.KeyPath>,
-        animation: Animation? = nil
+        _ state: PropertyPickerState<K, Void>,
+        animation: Animation?
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
+        propertyPicker(state).propertyPickerStateAnimation(animation)
+    }
+
+    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
+    ///
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
+    ///
+    /// - Note:
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    ///   - animation: Override the global when the user selection changes.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
+    @inlinable
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, K.KeyPath>
     ) -> some View where K: PropertyPickerKey, K: Equatable {
         modifier(
             PropertyWriter(
                 type: K.self,
-                selection: state.selection,
-                customAnimation: animation
+                selection: state.selection
             )
         )
         .environment(state.data, state.store.value)
     }
 
+    /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
+    ///
+    /// This method sets up a property picker that responds to changes in the selection state. It observes and writes
+    /// changes to the property picker's state, ensuring the view remains in sync with the underlying model.
+    ///
+    /// - Note:
+    /// - Parameters:
+    ///   - state: A ``PropertyPickerState`` instance which holds the current selection state and is used to update
+    ///   and react to changes in the property picker's selected value.
+    ///   - animation: Override the global when the user selection changes.
+    /// - Returns: A view that binds the property picker's selection to the provided state, ensuring the UI reflects
+    ///   changes to and from the state.
     @inlinable
-    func propertyPickerSelectionAnimation(_ animation: Animation? = nil) -> some View {
+    func propertyPicker<K>(
+        _ state: PropertyPickerState<K, K.KeyPath>,
+        animation: Animation?
+    ) -> some View where K: PropertyPickerKey, K: Equatable {
+        propertyPicker(state).propertyPickerStateAnimation(animation)
+    }
+
+    /// Sets the default animation for changes when ``PropertyPickerState`` selection changes.
+    @inlinable
+    func propertyPickerStateAnimation(_ animation: Animation? = nil) -> some View {
         environment(\.selectionAnimation, animation)
     }
 }
@@ -250,7 +286,7 @@ public extension View {
     /// - Parameter detents: A set of supported detents for the sheet.
     ///   If you provide more that one detent, people can drag the sheet
     ///   to resize it.
-    @available(iOS 16.0, *) 
+    @available(iOS 16.0, *)
     @inlinable
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)

@@ -40,10 +40,9 @@ struct PresentationDetentsKey: EnvironmentKey {
     static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
         .fraction(2 / 3),
-        .large,
+        .large
     ]
 }
-
 
 extension EnvironmentValues {
     @usableFromInline
