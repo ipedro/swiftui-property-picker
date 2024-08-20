@@ -24,7 +24,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     }
 
     public func body(content: Content) -> some View {
-        List {
+        Form {
             Section {
                 content.rows.listRowBackground(rowBackground)
             } header: {
@@ -60,7 +60,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func ios16_backgroundStyle<S: ShapeStyle>(_ background: S) -> some View {
         if #available(iOS 16.0, *) {
