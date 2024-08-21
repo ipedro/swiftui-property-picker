@@ -15,6 +15,7 @@ struct Row: View {
     }
 }
 
+// FIXME: Find a cleaner solution for inline style.
 struct InlineRow: View {
     var data: Property
 
