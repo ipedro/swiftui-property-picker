@@ -1558,6 +1558,7 @@ struct Row: View {
     }
 }
 
+// FIXME: Find a cleaner solution for inline style.
 struct InlineRow: View {
     var data: Property
 
@@ -1623,6 +1624,7 @@ struct Rows: View {
     }
 }
 
+// FIXME: Find a cleaner solution for inline style.
 struct InlineRows: View {
     @EnvironmentObject
     private var context: Context.Data
