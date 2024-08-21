@@ -9,8 +9,12 @@ public typealias PropertyPickerEnvironment<K: PropertyPickerKey> = PropertyPicke
 /// to manage the state of a selected value in a picker view.
 @propertyWrapper
 public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty {
-    @usableFromInline
-    @State var store: Key
+    private enum Storage: DynamicProperty {
+        case state(State<Key>)
+        case binding(Binding<Key>)
+    }
+
+    private var storage: Storage
 
     @usableFromInline
     var data: Data
@@ -18,7 +22,14 @@ public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty
     /// The value that this property wrapper manages.
     ///
     /// This property returns the value associated with the current selection key.
-    public var wrappedValue: Key.PickerValue { store.value }
+    public var wrappedValue: Key.PickerValue {
+        switch storage {
+        case let .state(state):
+            state.wrappedValue.value
+        case let .binding(binding):
+            binding.wrappedValue.value
+        }
+    }
 
     /// The projected value of the property wrapper.
     ///
@@ -29,7 +40,14 @@ public struct PropertyPickerState<Key: PropertyPickerKey, Data>: DynamicProperty
     ///
     /// This property provides a binding to the current selection key, allowing the selection
     /// to be read and modified.
-    public var selection: Binding<Key> { $store }
+    public var selection: Binding<Key> {
+        switch storage {
+        case let .state(state):
+            state.projectedValue
+        case let .binding(binding):
+            binding.projectedValue
+        }
+    }
 }
 
 public extension PropertyPickerState where Data == Void {
@@ -38,7 +56,7 @@ public extension PropertyPickerState where Data == Void {
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self) {
-        _store = State(initialValue: value)
+        storage = .state(State(initialValue: value))
         data = ()
     }
 
@@ -47,7 +65,17 @@ public extension PropertyPickerState where Data == Void {
     ///   - value: An initial value to store in the state property.
     ///   - key: The type of the property key.
     init(wrappedValue value: Key = .defaultValue) where Key == Key.PickerValue {
-        _store = State(initialValue: value)
+        storage = .state(State(initialValue: value))
+        data = ()
+    }
+}
+
+public extension PropertyPickerState where Data == Void {
+    /// Initializes the property picker state for local usage.
+    /// - Parameters:
+    ///   - selection: A binding to the currently selected option.
+    init(selection: Binding<Key>) {
+        storage = .binding(selection)
         data = ()
     }
 }
@@ -59,8 +87,19 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     ///   - key: The type of the property key.
     ///   - keyPath: A key path to an environment value that this picker state will sync with.
     @_disfavoredOverload
+    init(keyPath: Key.KeyPath, selection: Binding<Key>) {
+        storage = .binding(selection)
+        data = keyPath
+    }
+
+    /// Initializes the property picker state, linking the local selection to an environment value.
+    /// - Parameters:
+    ///   - value: An initial value to store in the state property.
+    ///   - key: The type of the property key.
+    ///   - keyPath: A key path to an environment value that this picker state will sync with.
+    @_disfavoredOverload
     init(wrappedValue value: Key = .defaultValue, _: Key.Type = Key.self, keyPath: Key.KeyPath) {
-        _store = State(initialValue: value)
+        storage = .state(State(initialValue: value))
         data = keyPath
     }
 
@@ -72,7 +111,7 @@ public extension PropertyPickerState where Data == Key.KeyPath {
     @available(*, deprecated, renamed: "init(_:keyPath:)", message: "Renamed")
     @_disfavoredOverload
     init(wrappedValue value: Key = .defaultValue, _ keyPath: Key.KeyPath, _: Key.Type = Key.self) {
-        _store = State(initialValue: value)
+        storage = .state(State(initialValue: value))
         data = keyPath
     }
 }

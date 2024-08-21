@@ -5,7 +5,7 @@ struct Row: View {
 
     var body: some View {
         #if VERBOSE
-            Self._printChanges()
+        Self._printChanges()
         #endif
         return Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
@@ -31,11 +31,9 @@ struct InlineRow: View {
         return HStack {
             Text(verbatim: data.title)
             Menu {
-                ForEach(data.options) { option in
-                    Button(option.label) {
-                        withAnimation(animation) {
-                            data.selection = option.rawValue
-                        }
+                Picker(data.title, selection: data.$selection) {
+                    ForEach(data.options) { option in
+                        Text(option.label)
                     }
                 }
             } label: {
@@ -45,13 +43,10 @@ struct InlineRow: View {
                 }
                 .opacity(0.5)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .transaction { transaction in
-                transaction.animation = nil
+                .padding(.vertical, 8)
             }
         }
         .foregroundStyle(.foreground)
-        .padding(.vertical, 4)
-        .safeAreaInset(edge: .bottom, content: Divider.init)
+        .safeAreaInset(edge: .bottom, spacing: .zero, content: Divider.init)
     }
 }

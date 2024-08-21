@@ -235,7 +235,7 @@ public extension View {
                 selection: state.selection
             )
         )
-        .environment(state.data, state.store.value)
+        .environment(state.data, state.wrappedValue)
     }
 
     /// Registers this view for receiving selection updates of a property in the SwiftUI environment.
