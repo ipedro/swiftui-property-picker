@@ -1,21 +1,5 @@
 import SwiftUI
 
-struct Row: View {
-    var data: Property
-
-    var body: some View {
-        #if VERBOSE
-        Self._printChanges()
-        #endif
-        return Picker(data.title, selection: data.$selection) {
-            ForEach(data.options) { option in
-                Text(option.label)
-            }
-        }
-    }
-}
-
-// FIXME: Find a cleaner solution for inline style.
 struct InlineRow: View {
     var data: Property
 
@@ -35,9 +19,9 @@ struct InlineRow: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+        let _ = Self._printChanges()
         #endif
-        return Menu {
+        Menu {
             picker
         } label: {
             HStack {

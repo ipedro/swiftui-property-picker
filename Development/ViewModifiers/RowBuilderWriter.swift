@@ -26,9 +26,9 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
     @usableFromInline
     func body(content: Content) -> some View {
         #if VERBOSE
-            Self._printChanges()
+        let _ = Self._printChanges()
         #endif
-        return content.modifier(
+        content.modifier(
             PreferenceWriter(
                 type: ViewBuilderPreference.self,
                 value: [id: rowBuilder],

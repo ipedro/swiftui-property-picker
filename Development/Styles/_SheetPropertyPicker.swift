@@ -53,7 +53,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
                     configureList(
                         Form {
                             Section {
-                                content.rows.listRowBackground(Color.clear)
+                                content.listRows.listRowBackground(Color.clear)
                             } header: {
                                 configureTitle(content.title)
                             }

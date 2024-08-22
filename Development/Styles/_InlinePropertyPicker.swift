@@ -14,7 +14,7 @@ public struct _InlinePropertyPicker: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         preview(content).safeAreaInset(edge: .bottom, spacing: 30) {
             LazyVStack {
-                InlineRows()
+                content.inlineRows
             }
         }
     }

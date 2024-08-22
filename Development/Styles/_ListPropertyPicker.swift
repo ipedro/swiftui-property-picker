@@ -26,7 +26,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         Form {
             Section {
-                content.rows.listRowBackground(rowBackground)
+                content.listRows.listRowBackground(rowBackground)
             } header: {
                 VStack(spacing: .zero) {
                     ZStack {
