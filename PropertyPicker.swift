@@ -1112,8 +1112,12 @@ public protocol PropertyPickerStyle: ViewModifier {}
 public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
     /// Provides a view representing the rows of the property picker.
     /// These rows typically display selectable options or properties within the picker.
-    var rows: some View {
-        Rows()
+    var listRows: some View {
+        Rows<ListRow>(row: ListRow.init(data:))
+    }
+
+    var inlineRows: some View {
+        Rows<InlineRow>(row: InlineRow.init(data:))
     }
 
     /// Provides a view representing the title of the property picker.
@@ -1137,7 +1141,7 @@ public struct _InlinePropertyPicker: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         preview(content).safeAreaInset(edge: .bottom, spacing: 30) {
             LazyVStack {
-                InlineRows()
+                content.inlineRows
             }
         }
     }
@@ -1195,7 +1199,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     public func body(content: Content) -> some View {
         Form {
             Section {
-                content.rows.listRowBackground(rowBackground)
+                content.listRows.listRowBackground(rowBackground)
             } header: {
                 VStack(spacing: .zero) {
                     ZStack {
@@ -1294,7 +1298,7 @@ public struct _SheetPropertyPicker: PropertyPickerStyle {
                     configureList(
                         Form {
                             Section {
-                                content.rows.listRowBackground(Color.clear)
+                                content.listRows.listRowBackground(Color.clear)
                             } header: {
                                 configureTitle(content.title)
                             }
@@ -1531,9 +1535,9 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
     @usableFromInline
     func body(content: Content) -> some View {
         #if VERBOSE
-            Self._printChanges()
+        let _ = Self._printChanges()
         #endif
-        return content.modifier(
+        content.modifier(
             PreferenceWriter(
                 type: ViewBuilderPreference.self,
                 value: [id: rowBuilder],
@@ -1543,22 +1547,6 @@ struct RowBuilderWriter<Key, Row>: ViewModifier where Key: PropertyPickerKey, Ro
     }
 }
 
-struct Row: View {
-    var data: Property
-
-    var body: some View {
-        #if VERBOSE
-        Self._printChanges()
-        #endif
-        return Picker(data.title, selection: data.$selection) {
-            ForEach(data.options) { option in
-                Text(option.label)
-            }
-        }
-    }
-}
-
-// FIXME: Find a cleaner solution for inline style.
 struct InlineRow: View {
     var data: Property
 
@@ -1578,9 +1566,9 @@ struct InlineRow: View {
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+        let _ = Self._printChanges()
         #endif
-        return Menu {
+        Menu {
             picker
         } label: {
             HStack {
@@ -1606,55 +1594,39 @@ struct InlineRow: View {
     }
 }
 
-struct Rows: View {
-    @EnvironmentObject
-    private var context: Context.Data
-
-    @Environment(\.rowSorting)
-    private var rowSorting
-
-    var body: some View {
-#if VERBOSE
-        Self._printChanges()
-#endif
-        return ForEach(rowSorting.sort(context.rows)) { property in
-            if let custom = makeBody(configuration: property) {
-                custom
-            } else {
-                Row(data: property)
-            }
-        }
-    }
-
-    private func makeBody(configuration property: Property) -> AnyView? {
-        if let customBuilder = context.rowBuilders[property.id] {
-            let body = customBuilder.body(property)
-            return body
-        }
-        return nil
-    }
-}
-
-// FIXME: Find a cleaner solution for inline style.
-struct InlineRows: View {
-    @EnvironmentObject
-    private var context: Context.Data
-
-    @Environment(\.rowSorting)
-    private var rowSorting
-
-    @Environment(\.rowBackground)
-    private var rowBackground
+struct ListRow: View {
+    var data: Property
 
     var body: some View {
         #if VERBOSE
-        Self._printChanges()
+        let _ = Self._printChanges()
         #endif
-        return ForEach(rowSorting.sort(context.rows)) { property in
-            if let custom = makeBody(configuration: property) {
-                custom
+        Picker(data.title, selection: data.$selection) {
+            ForEach(data.options) { option in
+                Text(option.label)
+            }
+        }
+    }
+}
+
+struct Rows<V>: View where V: View {
+    var row: (Property) -> V
+
+    @EnvironmentObject
+    private var context: Context.Data
+
+    @Environment(\.rowSorting)
+    private var rowSorting
+
+    var body: some View {
+        #if VERBOSE
+        let _ = Self._printChanges()
+        #endif
+        ForEach(rowSorting.sort(context.rows)) { property in
+            if let body = makeBody(configuration: property) {
+                body
             } else {
-                InlineRow(data: property).background(rowBackground)
+                row(property)
             }
         }
     }
