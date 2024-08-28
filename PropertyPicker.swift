@@ -1588,9 +1588,6 @@ struct InlineRow: View {
             spacing: .zero,
             content: Divider.init
         )
-        .accessibilityRepresentation {
-            picker
-        }
     }
 }
 
