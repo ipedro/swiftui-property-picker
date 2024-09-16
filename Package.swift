@@ -29,7 +29,7 @@ let package = Package(
             url: "https://github.com/nicklockwood/SwiftFormat",
             from: "0.54.0"
         )
-    ] : nil,
+    ] : [],
     targets: [
         .target(
             name: "PropertyPicker-Examples",
