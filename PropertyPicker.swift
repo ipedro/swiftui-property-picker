@@ -1051,6 +1051,9 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
     /// understand the context or categorization of the properties.
     static var title: String { get }
 
+    /// The title transformation behavior. Default is automatic.
+    static var titleTransformation: PropertyPickerTextTransformationBehavior { get }
+
     /// The default value of the property. This is used both to provide a default state and to reset the property's value.
     static var defaultValue: Self { get }
 
@@ -1060,6 +1063,13 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
 
     /// The label that describes this property instance. If no label is defined, the `rawValue` used instead.
     var label: String { get }
+
+    /// The label transformation behavior. Default is automatic.
+    static var labelTransformation: PropertyPickerTextTransformationBehavior { get }
+}
+
+public enum PropertyPickerTextTransformationBehavior {
+    case automatic, never
 }
 
 // MARK: - Convenience Default Label
@@ -1067,6 +1077,10 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
 public extension PropertyPickerKey {
     /// Convenience Default label is the `rawValue`.
     var label: String { rawValue }
+
+    static var labelTransformation: PropertyPickerTextTransformationBehavior { .automatic }
+
+    static var titleTransformation: PropertyPickerTextTransformationBehavior { .automatic }
 }
 
 // MARK: - Convenience Default Title
@@ -1479,10 +1493,10 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var property: Property {
         let id = PropertyID(Key.self)
-        let title = titleTransformation.apply(to: Key.title)
+        let title = title()
         let options = Key.allCases.map {
             PropertyOption(
-                label: labelTransformation.apply(to: $0.label),
+                label: label(for: $0),
                 rawValue: $0.rawValue
             )
         }
@@ -1506,6 +1520,24 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                 }
             }
         )
+    }
+
+    private func title() -> String {
+        switch Key.titleTransformation {
+        case .automatic:
+            titleTransformation.apply(to: Key.title)
+        case .never:
+            Key.title
+        }
+    }
+
+    private func label(for key: Key) -> String {
+        switch Key.labelTransformation {
+        case .automatic:
+            labelTransformation.apply(to: key.label)
+        case .never:
+            key.label
+        }
     }
 }
 
@@ -1553,9 +1585,6 @@ struct InlineRow: View {
     @Environment(\.selectionAnimation)
     private var animation
 
-    @Environment(\.labelTransformation)
-    private var labelTransformation
-
     private var picker: some View {
         Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
@@ -1574,7 +1603,7 @@ struct InlineRow: View {
             HStack {
                 Text(verbatim: data.title).layoutPriority(1)
                 Group {
-                    Text(verbatim: labelTransformation.apply(to: data.selection))
+                    Text(verbatim: data.selection)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     Image(systemName: "chevron.up.chevron.down")
                 }
