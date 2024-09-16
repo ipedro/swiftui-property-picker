@@ -67,9 +67,9 @@ struct ListExample<S: ListStyle>: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPickerState($interaction)
-            .propertyPickerState($colorScheme)
-            .propertyPickerState($content)
+            .propertyPicker($interaction)
+            .propertyPicker($colorScheme)
+            .propertyPicker($content)
         }
     }
 }

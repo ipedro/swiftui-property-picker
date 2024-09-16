@@ -73,9 +73,9 @@ struct ExampleSheet: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPickerState($interaction)
-            .propertyPickerState($colorScheme)
-            .propertyPickerState($content)
+            .propertyPicker($interaction)
+            .propertyPicker($colorScheme)
+            .propertyPicker($content)
         }
     }
 }
@@ -140,7 +140,7 @@ struct ContentView: View {
     
     var body: some View {
         YourView(value: myValue)
-            .propertyPickerState($myValue)
+            .propertyPicker($myValue)
     }
 }
 ```
@@ -156,7 +156,7 @@ struct ContentView: View {
     private var myEnvironmentValue
     
     var body: some View {
-        YourView().propertyPickerState($myEnvironmentValue)
+        YourView().propertyPicker($myEnvironmentValue)
     }
 }
 ```
@@ -169,7 +169,7 @@ import PropertyPicker
 
 struct ContentView: View {
     var body: some View {
-        YourView().propertyPickerState(YourPickerKey.self, \.myEnvironmentValue)
+        YourView().propertyPicker(YourPickerKey.self, \.myEnvironmentValue)
     }
 }
 ```
@@ -201,7 +201,7 @@ struct DynamicFontSizeView: View {
     var body: some View {
         Text("Adjustable Font Size")
             .font(.system(size: fontSize))
-            .propertyPickerState($fontSize)
+            .propertyPicker($fontSize)
     }
 }
 
@@ -235,7 +235,7 @@ struct ThemeSwitcherView: View {
             Toggle(isOn: .constant(true)) {
                 Text("Dark Mode")
             }
-            .propertyPickerState(ColorSchemeKey.self, \.colorScheme)
+            .propertyPicker(ColorSchemeKey.self, \.colorScheme)
         }
     }
 }
@@ -270,7 +270,7 @@ struct ContentView: View {
             Text("Button")
         }
         .disabled(isButtonDisabled)
-        .propertyPickerState(DisabledStateKey.self, $isButtonDisabled)
+        .propertyPicker(DisabledStateKey.self, $isButtonDisabled)
     }
 }
 

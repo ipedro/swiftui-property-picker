@@ -60,9 +60,9 @@ struct SheetExample: View {
                 }
             }
             .buttonStyle(.bordered)
-            .propertyPickerState($interaction)
-            .propertyPickerState($colorScheme)
-            .propertyPickerState($content)
+            .propertyPicker($interaction)
+            .propertyPicker($colorScheme)
+            .propertyPicker($content)
             .propertyPickerTitle("Example")
             .propertyPickerListContentBackground(.bar)
         }
