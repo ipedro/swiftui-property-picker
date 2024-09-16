@@ -47,10 +47,10 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
     private var property: Property {
         let id = PropertyID(Key.self)
-        let title = titleTransformation.apply(to: Key.title)
+        let title = title()
         let options = Key.allCases.map {
             PropertyOption(
-                label: labelTransformation.apply(to: $0.label),
+                label: label(for: $0),
                 rawValue: $0.rawValue
             )
         }
@@ -75,5 +75,23 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
                 }
             }
         )
+    }
+
+    private func title() -> String {
+        switch Key.titleTransformation {
+        case .automatic:
+            titleTransformation.apply(to: Key.title)
+        case .never:
+            Key.title
+        }
+    }
+
+    private func label(for key: Key) -> String {
+        switch Key.labelTransformation {
+        case .automatic:
+            labelTransformation.apply(to: key.label)
+        case .never:
+            key.label
+        }
     }
 }

@@ -43,6 +43,9 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
     /// understand the context or categorization of the properties.
     static var title: String { get }
 
+    /// The title transformation behavior. Default is automatic.
+    static var titleTransformation: PropertyPickerTextTransformationBehavior { get }
+
     /// The default value of the property. This is used both to provide a default state and to reset the property's value.
     static var defaultValue: Self { get }
 
@@ -52,6 +55,13 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
 
     /// The label that describes this property instance. If no label is defined, the `rawValue` used instead.
     var label: String { get }
+
+    /// The label transformation behavior. Default is automatic.
+    static var labelTransformation: PropertyPickerTextTransformationBehavior { get }
+}
+
+public enum PropertyPickerTextTransformationBehavior {
+    case automatic, never
 }
 
 // MARK: - Convenience Default Label
@@ -59,6 +69,10 @@ public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIt
 public extension PropertyPickerKey {
     /// Convenience Default label is the `rawValue`.
     var label: String { rawValue }
+
+    static var labelTransformation: PropertyPickerTextTransformationBehavior { .automatic }
+
+    static var titleTransformation: PropertyPickerTextTransformationBehavior { .automatic }
 }
 
 // MARK: - Convenience Default Title

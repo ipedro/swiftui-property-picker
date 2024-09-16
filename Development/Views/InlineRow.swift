@@ -6,9 +6,6 @@ struct InlineRow: View {
     @Environment(\.selectionAnimation)
     private var animation
 
-    @Environment(\.labelTransformation)
-    private var labelTransformation
-
     private var picker: some View {
         Picker(data.title, selection: data.$selection) {
             ForEach(data.options) { option in
@@ -27,7 +24,7 @@ struct InlineRow: View {
             HStack {
                 Text(verbatim: data.title).layoutPriority(1)
                 Group {
-                    Text(verbatim: labelTransformation.apply(to: data.selection))
+                    Text(verbatim: data.selection)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     Image(systemName: "chevron.up.chevron.down")
                 }
