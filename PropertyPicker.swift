@@ -288,6 +288,9 @@ public struct Property: Identifiable {
 
     /// Signal view updates
     let token: AnyHashable
+    
+    /// The formatted selection.
+    let formattedSelection: String
 
     /// A binding to the currently selected option.
     @Binding public var selection: String
@@ -1505,6 +1508,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
             title: title,
             options: options,
             token: selection.rawValue.hashValue,
+            formattedSelection: label(for: selection),
             selection: Binding {
                 selection.rawValue
             } set: { newValue in
@@ -1603,7 +1607,7 @@ struct InlineRow: View {
             HStack {
                 Text(verbatim: data.title).layoutPriority(1)
                 Group {
-                    Text(verbatim: data.selection)
+                    Text(verbatim: data.formattedSelection)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     Image(systemName: "chevron.up.chevron.down")
                 }
