@@ -24,7 +24,7 @@ struct InlineRow: View {
             HStack {
                 Text(verbatim: data.title).layoutPriority(1)
                 Group {
-                    Text(verbatim: data.selection)
+                    Text(verbatim: data.formattedSelection)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     Image(systemName: "chevron.up.chevron.down")
                 }

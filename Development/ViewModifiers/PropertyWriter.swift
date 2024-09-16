@@ -59,6 +59,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
             title: title,
             options: options,
             token: selection.rawValue.hashValue,
+            formattedSelection: label(for: selection),
             selection: Binding {
                 selection.rawValue
             } set: { newValue in

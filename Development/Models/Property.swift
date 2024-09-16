@@ -13,6 +13,9 @@ public struct Property: Identifiable {
 
     /// Signal view updates
     let token: AnyHashable
+    
+    /// The formatted selection.
+    let formattedSelection: String
 
     /// A binding to the currently selected option.
     @Binding public var selection: String
