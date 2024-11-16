@@ -24,14 +24,14 @@ import SwiftUI
 
 // MARK: - Sheet Example
 
-@available(iOS 16.4, *)
+@available(iOS 16.4, macOS 13.3, *)
 #Preview {
     NavigationView {
         SheetExample()
     }
 }
 
-@available(iOS 16.4, *)
+@available(iOS 16.4, macOS 13.3, *)
 struct SheetExample: View {
     // changes are local
     @PropertyPickerState(ContentKey.self)

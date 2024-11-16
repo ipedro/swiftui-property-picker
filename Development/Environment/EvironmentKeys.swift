@@ -30,12 +30,12 @@ struct LabelTransformKey: EnvironmentKey {
     static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
 }
 
-@available(iOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, *)
 struct PresentationDetentKey: EnvironmentKey {
     static var defaultValue: Binding<PresentationDetent>?
 }
 
-@available(iOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, *)
 struct PresentationDetentsKey: EnvironmentKey {
     static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
@@ -62,13 +62,13 @@ extension EnvironmentValues {
         set { self[SelectionAnimationKey.self] = newValue }
     }
 
-    @available(iOS 16.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
     var presentationDetents: Set<PresentationDetent> {
         get { self[PresentationDetentsKey.self] }
         set { self[PresentationDetentsKey.self] = newValue }
     }
 
-    @available(iOS 16.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
     var selectedDetent: Binding<PresentationDetent>? {
         get { self[PresentationDetentKey.self] }
         set { self[PresentationDetentKey.self] = newValue }

@@ -24,12 +24,14 @@ import SwiftUI
 
 // MARK: - List Example
 
+#if canImport(UIKit)
 #Preview("Inset Group List") {
     NavigationView {
         ListExample(style: .insetGrouped)
             .propertyPickerRowBackground(.yellow.opacity(0.2))
     }
 }
+#endif
 
 #Preview("Plain List") {
     NavigationView {

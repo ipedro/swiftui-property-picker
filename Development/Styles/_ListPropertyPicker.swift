@@ -63,7 +63,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
 extension View {
     @ViewBuilder
     func ios16_backgroundStyle<S: ShapeStyle>(_ background: S) -> some View {
-        if #available(iOS 16.0, *) {
+        if #available(iOS 16.0, macOS 13.0, *) {
             backgroundStyle(background)
         } else {
             // Fallback on earlier versions

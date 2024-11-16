@@ -63,7 +63,7 @@ public extension PropertyPicker {
 
 // MARK: - Sheet Style
 
-@available(iOS 16.4, *)
+@available(iOS 16.4, macOS 13.3, *)
 public extension PropertyPicker where Style == _SheetPropertyPicker {
     /// Initializes a ``PropertyPicker`` with a sheet presentation style.
     ///
