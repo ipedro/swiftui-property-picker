@@ -24,7 +24,7 @@ public struct _ListPropertyPicker<S: ListStyle>: PropertyPickerStyle {
     }
 
     public func body(content: Content) -> some View {
-        Form {
+        List {
             Section {
                 content.listRows.listRowBackground(rowBackground)
             } header: {
