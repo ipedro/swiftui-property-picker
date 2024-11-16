@@ -19,15 +19,15 @@
 //  SOFTWARE.
 
 import Foundation
-import SwiftUI
 import PropertyPicker
+import SwiftUI
 
 // MARK: - Sheet Example
 
 @available(iOS 16.4, *)
 #Preview {
     NavigationView {
-       SheetExample()
+        SheetExample()
     }
 }
 
@@ -93,5 +93,3 @@ struct SheetExample: View {
         }
     }
 }
-
-

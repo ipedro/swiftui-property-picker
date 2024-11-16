@@ -42,13 +42,13 @@ let package = Package(
             sources: isDevelopment ? nil : ["PropertyPicker.swift"],
             swiftSettings: isDevelopment ? [
                 .define("VERBOSE")
-            ] : nil,
-            plugins: isDevelopment ? [
-                .plugin(
-                    name: "SwiftLintBuildToolPlugin",
-                    package: "SwiftLintPlugins"
-                )
             ] : nil
+//            plugins: isDevelopment ? [
+//                .plugin(
+//                    name: "SwiftLintBuildToolPlugin",
+//                    package: "SwiftLintPlugins"
+//                )
+//            ] : nil
         )
     ]
 )

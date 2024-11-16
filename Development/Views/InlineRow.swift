@@ -15,9 +15,6 @@ struct InlineRow: View {
     }
 
     var body: some View {
-        #if VERBOSE
-        let _ = Self._printChanges()
-        #endif
         Menu {
             picker
         } label: {

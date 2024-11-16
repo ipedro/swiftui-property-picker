@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/SwiftFormat",
       "state" : {
-        "revision" : "1a4e2fbfead4965b874e37cdff2f180091852f43",
-        "version" : "0.54.2"
+        "revision" : "86ed20990585f478c0daf309af645c2a528b59d8",
+        "version" : "0.54.6"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SimplyDanny/SwiftLintPlugins",
       "state" : {
-        "revision" : "b8431a26655378581890d56b95a0b59aba9f62da",
-        "version" : "0.55.1"
+        "revision" : "7c80ce6f142164b0201871e580b021d1b2c69804",
+        "version" : "0.57.0"
       }
     }
   ],

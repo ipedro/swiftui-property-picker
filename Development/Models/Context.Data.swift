@@ -31,7 +31,7 @@ extension Context {
         var rowBuilders: [PropertyID: RowBuilder] = [:] {
             didSet {
                 #if VERBOSE
-                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.type))")
+                    print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.debugDescription))")
                 #endif
             }
         }

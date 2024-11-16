@@ -19,8 +19,8 @@
 //  SOFTWARE.
 
 import Foundation
-import SwiftUI
 import PropertyPicker
+import SwiftUI
 
 // MARK: - List Example
 
@@ -29,6 +29,7 @@ import PropertyPicker
         InlineExample()
     }
 }
+
 #Preview("Custom Picker Style") {
     NavigationView {
         InlineExample().pickerStyle(.segmented)
@@ -69,6 +70,7 @@ struct InlineExample: View {
             .propertyPicker($colorScheme)
             .propertyPicker($content)
         }
+        .padding(30)
     }
 
     private enum ContentKey: String, PropertyPickerKey {

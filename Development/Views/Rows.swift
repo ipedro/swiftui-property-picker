@@ -10,9 +10,6 @@ struct Rows<V>: View where V: View {
     private var rowSorting
 
     var body: some View {
-        #if VERBOSE
-        let _ = Self._printChanges()
-        #endif
         ForEach(rowSorting.sort(context.rows)) { property in
             if let body = makeBody(configuration: property) {
                 body

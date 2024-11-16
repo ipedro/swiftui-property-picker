@@ -21,7 +21,7 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
         selection: Binding<Key>
     ) {
         self.type = type
-        self._selection = selection
+        _selection = selection
     }
 
     @Environment(\.selectionAnimation)

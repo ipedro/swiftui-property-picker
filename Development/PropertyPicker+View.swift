@@ -169,6 +169,7 @@ public extension View {
         environment(\.labelTransformation, transform)
     }
 }
+
 // MARK: - State
 
 public extension View {

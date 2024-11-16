@@ -13,7 +13,7 @@ public struct Property: Identifiable {
 
     /// Signal view updates
     let token: AnyHashable
-    
+
     /// The formatted selection.
     let formattedSelection: String
 

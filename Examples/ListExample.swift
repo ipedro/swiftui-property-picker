@@ -19,8 +19,8 @@
 //  SOFTWARE.
 
 import Foundation
-import SwiftUI
 import PropertyPicker
+import SwiftUI
 
 // MARK: - List Example
 
