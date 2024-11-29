@@ -1,4 +1,4 @@
-name: Concatenate Files on Merge
+name: CI
 
 on:
   push:
@@ -8,20 +8,18 @@ permissions:
   contents: write
 
 jobs:
-  merge-sources:
-    runs-on: ubuntu-latest
+  format-and-merge-files:
+    runs-on: macos-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v4
+    - name: Run SwiftFormat
+      run: swiftformat .
 
     - name: Clean and create output directory
       run: |
-        rm -rf output
-        mkdir -p output
+        rm -rf output .build
+        mkdir -p output .build
 
     - name: Concatenate files
       run: |
@@ -29,35 +27,45 @@ jobs:
 
     - name: Remove SwiftLint commands
       run: |
-        sed '/\/\/ swiftlint:/d' PropertyPicker.swift > temp && mv temp PropertyPicker.swift
+        sed '/\/\/ swiftlint:/d' PropertyPicker.swift > .build/temp && mv .build/temp PropertyPicker.swift
 
     - name: Prepare LICENSE content
       run: |
         # Prepend "// " to each line in LICENSE and save it to a temp file
-        sed 's/^/\/\/ /' LICENSE > license_commented.txt
+        sed 's/^/\/\/ /' LICENSE > .build/license_commented.txt
     
     - name: Add newlines between LICENSE and imports
       run: |
         # Create a file with newline
-        echo -e "\n// auto-generated file, do not edit directly\n" > newlines.txt
+        echo -e "\n// auto-generated file, do not edit directly\n" > .build/newlines.txt
 
     - name: Reorder, sort, and remove duplicate imports
       run: |
         # Extract, sort, and remove duplicates from import statements
-        awk '/^import / {print}' PropertyPicker.swift | sort | uniq > sorted_unique_imports.txt
+        awk '/^import / {print}' PropertyPicker.swift | sort | uniq > .build/sorted_unique_imports.txt
 
         # Remove import statements from the original file
-        awk '!/^import /' PropertyPicker.swift > code_without_imports.txt
+        awk '!/^import /' PropertyPicker.swift > .build/code_without_imports.txt
 
         # Concatenate sorted and unique imports with the rest of the file
-        cat sorted_unique_imports.txt code_without_imports.txt > code_with_sorted_imports.txt
+        cat .build/sorted_unique_imports.txt .build/code_without_imports.txt > .build/code_with_sorted_imports.txt
 
     - name: Combine LICENSE, newlines, imports, and remaining content
       run: |
         # Concatenate LICENSE content with two newlines, imports, and the rest of the file
-        cat license_commented.txt newlines.txt code_with_sorted_imports.txt > PropertyPicker.swift
-      
+        cat .build/license_commented.txt .build/newlines.txt .build/code_with_sorted_imports.txt > PropertyPicker.swift
+    
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+          
     - name: Commit changes
+      if: ${{ steps.check_changes.outputs.has_changes == 'true' }}
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
