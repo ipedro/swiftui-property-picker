@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 5.9
 
 import PackageDescription
 
@@ -26,8 +26,7 @@ var package = Package(
             dependencies: ["PropertyPicker"],
             path: "Examples"
         )
-    ],
-    swiftLanguageModes: [.v6]
+    ]
 )
 
 if isDevelopment {
@@ -42,7 +41,8 @@ if isDevelopment {
             name: "PropertyPicker",
             path: "Development",
             swiftSettings: [
-                .define("VERBOSE")
+                .define("VERBOSE"),
+                .enableUpcomingFeature("StrictConcurrency")
             ],
             plugins: [
                 .plugin(
@@ -57,7 +57,8 @@ if isDevelopment {
         .target(
             name: "PropertyPicker",
             path: ".",
-            sources: ["PropertyPicker.swift"]
+            sources: ["PropertyPicker.swift"],
+            swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         )
     ]
 }
