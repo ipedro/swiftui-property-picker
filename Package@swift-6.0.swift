@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -26,7 +26,8 @@ var package = Package(
             dependencies: ["PropertyPicker"],
             path: "Examples"
         )
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
 
 if isDevelopment {
