@@ -1,7 +1,7 @@
 # SwiftUI Property Picker
 
-![Swift Version](https://img.shields.io/badge/swift-5.7-orange.svg)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fipedro%2Fswiftui-property-picker%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/ipedro/swiftui-property-picker)
+[![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fipedro%2Fswiftui-property-picker%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/ipedro/swiftui-property-picker)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![SPM Compatible](https://img.shields.io/badge/Swift_Package_Manager-compatible-brightgreen.svg)
 
