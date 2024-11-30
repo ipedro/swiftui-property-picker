@@ -1,46 +1,54 @@
 import SwiftUI
 
-struct SafeAreaAdjustmentKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
+struct SafeAreaAdjustmentKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
 }
 
-struct SheetAnimationKey: EnvironmentKey {
-    static var defaultValue: Animation? = .easeOut
+struct SheetAnimationKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Animation? = .easeOut
 }
 
-struct SelectionAnimationKey: EnvironmentKey {
-    static var defaultValue: Animation?
+struct SelectionAnimationKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Animation?
 }
 
-struct TitleTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+struct TitleTransformKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerTextTransformation = [
+        .camelCaseToWords,
+        .snakeCaseToWords,
+        .capitalize
+    ]
 }
 
-struct RowSortingKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerRowSorting? = .ascending
+struct RowSortingKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerRowSorting? = .ascending
 }
 
-struct RowBackgroundKey: EnvironmentKey {
-    static var defaultValue: AnyView?
+struct RowBackgroundKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: AnyView?
 }
 
 @usableFromInline
-struct LabelTransformKey: EnvironmentKey {
+struct LabelTransformKey: @preconcurrency EnvironmentKey {
     @usableFromInline
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+    @MainActor static var defaultValue: PropertyPickerTextTransformation = [
+        .camelCaseToWords,
+        .snakeCaseToWords,
+        .capitalize
+    ]
 }
 
-@available(iOS 16.0, macOS 13.0, *)
-struct PresentationDetentKey: EnvironmentKey {
-    static var defaultValue: Binding<PresentationDetent>?
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+struct PresentationDetentKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Binding<PresentationDetent>?
 }
 
-@available(iOS 16.0, macOS 13.0, *)
-struct PresentationDetentsKey: EnvironmentKey {
-    static var defaultValue: Set<PresentationDetent> = [
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+struct PresentationDetentsKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
         .fraction(2 / 3),
-        .large,
+        .large
     ]
 }
 
@@ -62,13 +70,15 @@ extension EnvironmentValues {
         set { self[SelectionAnimationKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    @usableFromInline
     var presentationDetents: Set<PresentationDetent> {
         get { self[PresentationDetentsKey.self] }
         set { self[PresentationDetentsKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    @usableFromInline
     var selectedDetent: Binding<PresentationDetent>? {
         get { self[PresentationDetentKey.self] }
         set { self[PresentationDetentKey.self] = newValue }

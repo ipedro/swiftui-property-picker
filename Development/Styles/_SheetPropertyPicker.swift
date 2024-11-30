@@ -6,7 +6,7 @@ import SwiftUI
 /// It includes custom animations, toolbar adjustments, and dynamic insets based on interaction states.
 ///
 /// - Requires: iOS 16.4 or newer for certain APIs used in this struct.
-@available(iOS 16.4, macOS 13.3, *)
+@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 public struct _SheetPropertyPicker: PropertyPickerStyle {
     @Binding
     var isPresented: Bool

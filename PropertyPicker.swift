@@ -55,12 +55,12 @@ struct LabelTransformKey: EnvironmentKey {
     static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
 }
 
-@available(iOS 16.0, macOS 13.0, *)
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct PresentationDetentKey: EnvironmentKey {
     static var defaultValue: Binding<PresentationDetent>?
 }
 
-@available(iOS 16.0, macOS 13.0, *)
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 struct PresentationDetentsKey: EnvironmentKey {
     static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
@@ -87,13 +87,13 @@ extension EnvironmentValues {
         set { self[SelectionAnimationKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) @usableFromInline
     var presentationDetents: Set<PresentationDetent> {
         get { self[PresentationDetentsKey.self] }
         set { self[PresentationDetentsKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) @usableFromInline
     var selectedDetent: Binding<PresentationDetent>? {
         get { self[PresentationDetentKey.self] }
         set { self[PresentationDetentKey.self] = newValue }
@@ -773,7 +773,7 @@ public extension View {
     /// - Parameter detents: A set of supported detents for the sheet.
     ///   If you provide more that one detent, people can drag the sheet
     ///   to resize it.
-    @available(iOS 16.0, macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     @inlinable
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         environment(\.presentationDetents, detents).environment(\.selectedDetent, nil)
@@ -789,7 +789,7 @@ public extension View {
     ///   - selection: A ``Binding`` to the currently selected detent.
     ///     Ensure that the value matches one of the detents that you
     ///     provide for the `detents` parameter.
-    @available(iOS 16.0, macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
         environment(\.presentationDetents, detents).environment(\.selectedDetent, selection)
     }

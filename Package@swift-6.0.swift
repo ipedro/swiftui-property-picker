@@ -9,6 +9,8 @@ var package = Package(
     platforms: [
         .iOS(.v15),
         .macOS(.v12),
+        .tvOS(.v13),
+        .watchOS(.v7)
     ],
     products: [
         .library(
