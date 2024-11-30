@@ -10,7 +10,7 @@ var package = Package(
         .iOS(.v15),
         .macOS(.v12),
         .tvOS(.v13),
-        .watchOS(.v7)
+        .watchOS(.v7),
     ],
     products: [
         .library(
@@ -20,14 +20,14 @@ var package = Package(
         .library(
             name: "PropertyPicker-Examples",
             targets: ["PropertyPicker-Examples"]
-        )
+        ),
     ],
     targets: [
         .target(
             name: "PropertyPicker-Examples",
             dependencies: ["PropertyPicker"],
             path: "Examples"
-        )
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
@@ -37,7 +37,7 @@ if isDevelopment {
         .package(
             url: "https://github.com/SimplyDanny/SwiftLintPlugins",
             from: "0.55.1"
-        )
+        ),
     ]
     package.targets += [
         .target(
@@ -45,15 +45,15 @@ if isDevelopment {
             path: "Development",
             swiftSettings: [
                 .define("VERBOSE"),
-                .enableUpcomingFeature("StrictConcurrency")
+                .enableUpcomingFeature("StrictConcurrency"),
             ],
             plugins: [
                 .plugin(
                     name: "SwiftLintBuildToolPlugin",
                     package: "SwiftLintPlugins"
-                )
+                ),
             ]
-        )
+        ),
     ]
 } else {
     package.targets += [
@@ -62,6 +62,6 @@ if isDevelopment {
             path: ".",
             sources: ["PropertyPicker.swift"],
             swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]
-        )
+        ),
     ]
 }

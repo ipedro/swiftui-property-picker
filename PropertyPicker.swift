@@ -25,44 +25,52 @@
 import Foundation
 import SwiftUI
 
-struct SafeAreaAdjustmentKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
+struct SafeAreaAdjustmentKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerSafeAreaAdjustmentStyle = .automatic
 }
 
-struct SheetAnimationKey: EnvironmentKey {
-    static var defaultValue: Animation? = .easeOut
+struct SheetAnimationKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Animation? = .easeOut
 }
 
-struct SelectionAnimationKey: EnvironmentKey {
-    static var defaultValue: Animation?
+struct SelectionAnimationKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Animation?
 }
 
-struct TitleTransformKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+struct TitleTransformKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerTextTransformation = [
+        .camelCaseToWords,
+        .snakeCaseToWords,
+        .capitalize,
+    ]
 }
 
-struct RowSortingKey: EnvironmentKey {
-    static var defaultValue: PropertyPickerRowSorting? = .ascending
+struct RowSortingKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: PropertyPickerRowSorting? = .ascending
 }
 
-struct RowBackgroundKey: EnvironmentKey {
-    static var defaultValue: AnyView?
+struct RowBackgroundKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: AnyView?
 }
 
 @usableFromInline
-struct LabelTransformKey: EnvironmentKey {
+struct LabelTransformKey: @preconcurrency EnvironmentKey {
     @usableFromInline
-    static var defaultValue: PropertyPickerTextTransformation = [.camelCaseToWords, .snakeCaseToWords, .capitalize]
+    @MainActor static var defaultValue: PropertyPickerTextTransformation = [
+        .camelCaseToWords,
+        .snakeCaseToWords,
+        .capitalize,
+    ]
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-struct PresentationDetentKey: EnvironmentKey {
-    static var defaultValue: Binding<PresentationDetent>?
+struct PresentationDetentKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Binding<PresentationDetent>?
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-struct PresentationDetentsKey: EnvironmentKey {
-    static var defaultValue: Set<PresentationDetent> = [
+struct PresentationDetentsKey: @preconcurrency EnvironmentKey {
+    @MainActor static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
         .fraction(2 / 3),
         .large,
@@ -87,13 +95,15 @@ extension EnvironmentValues {
         set { self[SelectionAnimationKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    @usableFromInline
     var presentationDetents: Set<PresentationDetent> {
         get { self[PresentationDetentsKey.self] }
         set { self[PresentationDetentsKey.self] = newValue }
     }
 
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *) @usableFromInline
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    @usableFromInline
     var selectedDetent: Binding<PresentationDetent>? {
         get { self[PresentationDetentKey.self] }
         set { self[PresentationDetentKey.self] = newValue }
@@ -858,7 +868,7 @@ public extension PropertyPicker {
 
 // MARK: - Sheet Style
 
-@available(iOS 16.4, macOS 13.3, *)
+@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 public extension PropertyPicker where Style == _SheetPropertyPicker {
     /// Initializes a ``PropertyPicker`` with a sheet presentation style.
     ///
@@ -1247,7 +1257,7 @@ extension View {
 /// It includes custom animations, toolbar adjustments, and dynamic insets based on interaction states.
 ///
 /// - Requires: iOS 16.4 or newer for certain APIs used in this struct.
-@available(iOS 16.4, macOS 13.3, *)
+@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 public struct _SheetPropertyPicker: PropertyPickerStyle {
     @Binding
     var isPresented: Bool

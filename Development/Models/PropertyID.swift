@@ -7,7 +7,7 @@ public struct PropertyID: Hashable, CustomDebugStringConvertible {
     public var metadata: UnsafeRawPointer
 
     public init<K: PropertyPickerKey>(_: K.Type = K.self) {
-        self.metadata = unsafeBitCast(K.self, to: UnsafeRawPointer.self)
+        metadata = unsafeBitCast(K.self, to: UnsafeRawPointer.self)
     }
 
     public var debugDescription: String {

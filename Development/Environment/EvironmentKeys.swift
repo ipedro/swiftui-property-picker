@@ -16,7 +16,7 @@ struct TitleTransformKey: @preconcurrency EnvironmentKey {
     @MainActor static var defaultValue: PropertyPickerTextTransformation = [
         .camelCaseToWords,
         .snakeCaseToWords,
-        .capitalize
+        .capitalize,
     ]
 }
 
@@ -34,7 +34,7 @@ struct LabelTransformKey: @preconcurrency EnvironmentKey {
     @MainActor static var defaultValue: PropertyPickerTextTransformation = [
         .camelCaseToWords,
         .snakeCaseToWords,
-        .capitalize
+        .capitalize,
     ]
 }
 
@@ -48,7 +48,7 @@ struct PresentationDetentsKey: @preconcurrency EnvironmentKey {
     @MainActor static var defaultValue: Set<PresentationDetent> = [
         .fraction(1 / 3),
         .fraction(2 / 3),
-        .large
+        .large,
     ]
 }
 

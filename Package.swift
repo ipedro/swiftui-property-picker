@@ -18,14 +18,14 @@ var package = Package(
         .library(
             name: "PropertyPicker-Examples",
             targets: ["PropertyPicker-Examples"]
-        )
+        ),
     ],
     targets: [
         .target(
             name: "PropertyPicker-Examples",
             dependencies: ["PropertyPicker"],
             path: "Examples"
-        )
+        ),
     ]
 )
 
@@ -34,22 +34,22 @@ if isDevelopment {
         .package(
             url: "https://github.com/SimplyDanny/SwiftLintPlugins",
             from: "0.55.1"
-        )
+        ),
     ]
     package.targets += [
         .target(
             name: "PropertyPicker",
             path: "Development",
             swiftSettings: [
-                .define("VERBOSE")
+                .define("VERBOSE"),
             ],
             plugins: [
                 .plugin(
                     name: "SwiftLintBuildToolPlugin",
                     package: "SwiftLintPlugins"
-                )
+                ),
             ]
-        )
+        ),
     ]
 } else {
     package.targets += [
@@ -57,6 +57,6 @@ if isDevelopment {
             name: "PropertyPicker",
             path: ".",
             sources: ["PropertyPicker.swift"]
-        )
+        ),
     ]
 }
