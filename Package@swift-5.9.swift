@@ -26,7 +26,8 @@ var package = Package(
             dependencies: ["PropertyPicker"],
             path: "Examples"
         )
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
 
 if isDevelopment {

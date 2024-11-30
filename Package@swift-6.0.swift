@@ -27,7 +27,7 @@ var package = Package(
             path: "Examples"
         )
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageModes: [.v5]
 )
 
 if isDevelopment {
