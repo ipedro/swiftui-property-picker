@@ -69,7 +69,12 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git commit -am "Generated PropertyPicker.swift"
-        git push origin HEAD:main
+        if [[ -n "$(git status --porcelain PropertyPicker.swift)" ]]; then
+          git add PropertyPicker.swift
+          git commit -m "Generated PropertyPicker.swift"
+          git push origin HEAD:main
+        else
+          echo "No changes to commit"
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
