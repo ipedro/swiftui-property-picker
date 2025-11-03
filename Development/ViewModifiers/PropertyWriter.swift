@@ -33,6 +33,10 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     @Environment(\.titleTransformation)
     private var titleTransformation
 
+    /// Cache for property configuration to avoid recreating on every render
+    @StateObject
+    private var cache = PropertyCache()
+
     @usableFromInline
     func body(content: Content) -> some View {
         content.modifier(
@@ -45,7 +49,16 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
+    /// Uses memoization to avoid recreating the property configuration on every render when selection hasn't changed.
     private var property: Property {
+        cache.getOrCreate(for: selection.rawValue) {
+            createProperty()
+        }
+    }
+
+    /// Creates a new Property configuration with all options and transformations applied.
+    /// This expensive operation is only called when the selection changes.
+    private func createProperty() -> Property {
         let id = PropertyID(Key.self)
         let title = title()
         let options = Key.allCases.map {
@@ -93,6 +106,29 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
             labelTransformation.apply(to: key.label)
         case .never:
             key.label
+        }
+    }
+
+    /// Observable cache for property configuration with smart memoization logic
+    private class PropertyCache: ObservableObject {
+        private var property: Property?
+        private var selectionKey: String?
+
+        /// Returns cached property if key matches, otherwise creates and caches a new one
+        func getOrCreate(for key: String, create: () -> Property) -> Property {
+            // Return cached property if selection hasn't changed
+            if let cached = property, selectionKey == key {
+                return cached
+            }
+
+            // Selection changed or first access - create new property
+            let newProperty = create()
+
+            // Update cache
+            property = newProperty
+            selectionKey = key
+
+            return newProperty
         }
     }
 }
