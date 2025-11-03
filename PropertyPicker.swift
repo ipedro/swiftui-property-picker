@@ -271,6 +271,7 @@ extension Context {
                 #if VERBOSE
                     print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
                 #endif
+                invalidateSortedRowsCache()
             }
         }
 
@@ -280,6 +281,52 @@ extension Context {
                 #if VERBOSE
                     print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.debugDescription))")
                 #endif
+            }
+        }
+
+        // MARK: - Sorted Rows Cache
+
+        private var sortedRowsCache: [Property]?
+        private var cachedSortingKey: String?
+
+        /// Returns sorted rows using memoization to avoid re-sorting on every render.
+        /// Cache invalidates when rows change or sorting configuration changes.
+        func sortedRows(using sorting: PropertyPickerRowSorting?) -> [Property] {
+            let sortingKey = makeSortingKey(for: sorting)
+
+            // Return cached result if rows and sorting haven't changed
+            if let cached = sortedRowsCache, cachedSortingKey == sortingKey {
+                return cached
+            }
+
+            // Rows or sorting changed - recompute
+            let sorted = sorting.sort(rows)
+
+            // Update cache
+            sortedRowsCache = sorted
+            cachedSortingKey = sortingKey
+
+            return sorted
+        }
+
+        private func invalidateSortedRowsCache() {
+            sortedRowsCache = nil
+            cachedSortingKey = nil
+        }
+
+        private func makeSortingKey(for sorting: PropertyPickerRowSorting?) -> String {
+            switch sorting {
+            case .none:
+                return "none"
+            case .ascending:
+                return "ascending"
+            case .descending:
+                return "descending"
+            case .custom:
+                // For custom comparators, we can't easily create a stable key
+                // so we'll use object identity. This means cache won't work
+                // across different custom comparator instances, but that's acceptable.
+                return "custom_\(ObjectIdentifier(sorting as AnyObject).hashValue)"
             }
         }
     }
@@ -457,14 +504,23 @@ public struct PropertyPickerTextTransformation: OptionSet {
 // MARK: - Private Helpers
 
 extension String {
+    /// Cached regex pattern for camelCase to words conversion.
+    /// Compiled once and reused across all string transformations for better performance.
+        try! NSRegularExpression(
+            pattern: "(?<=[a-z])(?=[A-Z])",
+            options: []
+        )
+
     /// Adds spaces before each uppercase letter in a camelCase string.
     /// - Returns: A new string with spaces added before each uppercase letter.
     func addingSpacesToCamelCase() -> String {
-        replacingOccurrences(
-            of: "(?<=[a-z])(?=[A-Z])",
-            with: " $0",
-            options: .regularExpression,
-            range: range(of: self)
+        let nsString = self as NSString
+        let range = NSRange(location: 0, length: nsString.length)
+        return Self.camelCaseRegex.stringByReplacingMatches(
+            in: self,
+            options: [],
+            range: range,
+            withTemplate: " $0"
         )
     }
 
@@ -493,6 +549,85 @@ struct RowBuilder: Equatable, Identifiable {
 
     static func == (lhs: RowBuilder, rhs: RowBuilder) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+/// A SwiftUI view that enables dynamic property selection.
+///
+/// This view acts as a container that integrates with the property picker system to allow users
+/// to dynamically select properties and apply them to the enclosed content.
+public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
+    /// The content to be presented alongside the dynamic value selector.
+    var content: Content
+
+    /// The presentation style
+    var style: Style
+
+    @_disfavoredOverload
+    public init(style: Style, @ViewBuilder content: () -> Content) {
+        self.content = content()
+        self.style = style
+    }
+
+    /// A view modifier that updates a shared context with changes from preference keys.
+    private var context = Context()
+
+    /// The body of the dynamic value selector, presenting the content using the current selector style.
+    public var body: some View {
+        content
+            .modifier(style)
+            .modifier(context)
+    }
+}
+
+// MARK: - Inline Style
+
+public extension PropertyPicker where Style == _InlinePropertyPicker {
+    /// Initializes a ``PropertyPicker`` with an inline presentation style.
+    ///
+    /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
+    /// rather than in a separate modal or layered interface. The inline style is suitable for contexts where space allows
+    /// for direct embedding of components without the need for additional navigation.
+    ///
+    /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+        style = _InlinePropertyPicker()
+    }
+}
+
+// MARK: - List Style
+
+public extension PropertyPicker {
+    /// Initializes a ``PropertyPicker`` using a specific `ListStyle`.
+    ///
+    /// This initializer configures the property picker to display its items as a list styled according to the provided `ListStyle`.
+    /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
+    ///
+    /// - Parameters:
+    ///   - style: Defines the list style.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init<S: ListStyle>(style: S, @ViewBuilder content: () -> Content) where Style == _ListPropertyPicker<S> {
+        self.content = content()
+        self.style = _ListPropertyPicker(listStyle: style)
+    }
+}
+
+// MARK: - Sheet Style
+
+@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
+public extension PropertyPicker where Style == _SheetPropertyPicker {
+    /// Initializes a ``PropertyPicker`` with a sheet presentation style.
+    ///
+    /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
+    /// The sheet's size and how it reacts to different device contexts can be customized through various parameters.
+    ///
+    /// - Parameters:
+    ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
+    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
+    init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
+        self.content = content()
+        style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }
 
@@ -802,85 +937,6 @@ public extension View {
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     func propertyPickerPresentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
         environment(\.presentationDetents, detents).environment(\.selectedDetent, selection)
-    }
-}
-
-/// A SwiftUI view that enables dynamic property selection.
-///
-/// This view acts as a container that integrates with the property picker system to allow users
-/// to dynamically select properties and apply them to the enclosed content.
-public struct PropertyPicker<Content: View, Style: PropertyPickerStyle>: View {
-    /// The content to be presented alongside the dynamic value selector.
-    var content: Content
-
-    /// The presentation style
-    var style: Style
-
-    @_disfavoredOverload
-    public init(style: Style, @ViewBuilder content: () -> Content) {
-        self.content = content()
-        self.style = style
-    }
-
-    /// A view modifier that updates a shared context with changes from preference keys.
-    private var context = Context()
-
-    /// The body of the dynamic value selector, presenting the content using the current selector style.
-    public var body: some View {
-        content
-            .modifier(style)
-            .modifier(context)
-    }
-}
-
-// MARK: - Inline Style
-
-public extension PropertyPicker where Style == _InlinePropertyPicker {
-    /// Initializes a ``PropertyPicker`` with an inline presentation style.
-    ///
-    /// This initializer sets up a property picker that displays its content directly within the surrounding view hierarchy,
-    /// rather than in a separate modal or layered interface. The inline style is suitable for contexts where space allows
-    /// for direct embedding of components without the need for additional navigation.
-    ///
-    /// - Parameter content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-        style = _InlinePropertyPicker()
-    }
-}
-
-// MARK: - List Style
-
-public extension PropertyPicker {
-    /// Initializes a ``PropertyPicker`` using a specific `ListStyle`.
-    ///
-    /// This initializer configures the property picker to display its items as a list styled according to the provided `ListStyle`.
-    /// It allows for customization of the list's appearance and interaction model, making it adaptable to various UI designs.
-    ///
-    /// - Parameters:
-    ///   - style: Defines the list style.
-    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init<S: ListStyle>(style: S, @ViewBuilder content: () -> Content) where Style == _ListPropertyPicker<S> {
-        self.content = content()
-        self.style = _ListPropertyPicker(listStyle: style)
-    }
-}
-
-// MARK: - Sheet Style
-
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-public extension PropertyPicker where Style == _SheetPropertyPicker {
-    /// Initializes a ``PropertyPicker`` with a sheet presentation style.
-    ///
-    /// This initializer sets up a property picker to appear as a modal sheet, which slides up from the bottom of the screen.
-    /// The sheet's size and how it reacts to different device contexts can be customized through various parameters.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to a Boolean value that determines whether the sheet is presented.
-    ///   - content: A `ViewBuilder` closure that generates the content to be displayed within the picker.
-    init(isPresented: Binding<Bool>, @ViewBuilder content: () -> Content) {
-        self.content = content()
-        style = _SheetPropertyPicker(isPresented: isPresented)
     }
 }
 
@@ -1471,6 +1527,10 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     @Environment(\.titleTransformation)
     private var titleTransformation
 
+    /// Cache for property configuration to avoid recreating on every render
+    @StateObject
+    private var cache = PropertyCache()
+
     @usableFromInline
     func body(content: Content) -> some View {
         content.modifier(
@@ -1483,7 +1543,16 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
     }
 
     /// The item representing the currently selected value, used for updating the UI and storing preferences.
+    /// Uses memoization to avoid recreating the property configuration on every render when selection hasn't changed.
     private var property: Property {
+        cache.getOrCreate(for: selection.rawValue) {
+            createProperty()
+        }
+    }
+
+    /// Creates a new Property configuration with all options and transformations applied.
+    /// This expensive operation is only called when the selection changes.
+    private func createProperty() -> Property {
         let id = PropertyID(Key.self)
         let title = title()
         let options = Key.allCases.map {
@@ -1530,6 +1599,29 @@ struct PropertyWriter<Key>: ViewModifier where Key: PropertyPickerKey {
             labelTransformation.apply(to: key.label)
         case .never:
             key.label
+        }
+    }
+
+    /// Observable cache for property configuration with smart memoization logic
+    private class PropertyCache: ObservableObject {
+        private var property: Property?
+        private var selectionKey: String?
+
+        /// Returns cached property if key matches, otherwise creates and caches a new one
+        func getOrCreate(for key: String, create: () -> Property) -> Property {
+            // Return cached property if selection hasn't changed
+            if let cached = property, selectionKey == key {
+                return cached
+            }
+
+            // Selection changed or first access - create new property
+            let newProperty = create()
+
+            // Update cache
+            property = newProperty
+            selectionKey = key
+
+            return newProperty
         }
     }
 }
@@ -1629,7 +1721,7 @@ struct Rows<V>: View where V: View {
     private var rowSorting
 
     var body: some View {
-        ForEach(rowSorting.sort(context.rows)) { property in
+        ForEach(context.sortedRows(using: rowSorting)) { property in
             if let body = makeBody(configuration: property) {
                 body
             } else {
