@@ -24,6 +24,7 @@ extension Context {
                 #if VERBOSE
                     print("\(Self.self): Updated Rows \(rows.map(\.title).sorted())")
                 #endif
+                invalidateSortedRowsCache()
             }
         }
 
@@ -33,6 +34,52 @@ extension Context {
                 #if VERBOSE
                     print("\(Self.self): Updated Builders \(rowBuilders.keys.map(\.debugDescription))")
                 #endif
+            }
+        }
+
+        // MARK: - Sorted Rows Cache
+
+        private var sortedRowsCache: [Property]?
+        private var cachedSortingKey: String?
+
+        /// Returns sorted rows using memoization to avoid re-sorting on every render.
+        /// Cache invalidates when rows change or sorting configuration changes.
+        func sortedRows(using sorting: PropertyPickerRowSorting?) -> [Property] {
+            let sortingKey = makeSortingKey(for: sorting)
+
+            // Return cached result if rows and sorting haven't changed
+            if let cached = sortedRowsCache, cachedSortingKey == sortingKey {
+                return cached
+            }
+
+            // Rows or sorting changed - recompute
+            let sorted = sorting.sort(rows)
+
+            // Update cache
+            sortedRowsCache = sorted
+            cachedSortingKey = sortingKey
+
+            return sorted
+        }
+
+        private func invalidateSortedRowsCache() {
+            sortedRowsCache = nil
+            cachedSortingKey = nil
+        }
+
+        private func makeSortingKey(for sorting: PropertyPickerRowSorting?) -> String {
+            switch sorting {
+            case .none:
+                return "none"
+            case .ascending:
+                return "ascending"
+            case .descending:
+                return "descending"
+            case .custom:
+                // For custom comparators, we can't easily create a stable key
+                // so we'll use object identity. This means cache won't work
+                // across different custom comparator instances, but that's acceptable.
+                return "custom_\(ObjectIdentifier(sorting as AnyObject).hashValue)"
             }
         }
     }
