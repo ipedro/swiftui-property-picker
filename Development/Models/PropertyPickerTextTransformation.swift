@@ -38,14 +38,26 @@ public struct PropertyPickerTextTransformation: OptionSet {
 // MARK: - Private Helpers
 
 extension String {
+    /// Cached regex pattern for camelCase to words conversion.
+    /// Compiled once and reused across all string transformations for better performance.
+    private static let camelCaseRegex: NSRegularExpression = {
+        // swiftlint:disable:next force_try
+        try! NSRegularExpression(
+            pattern: "(?<=[a-z])(?=[A-Z])",
+            options: []
+        )
+    }()
+
     /// Adds spaces before each uppercase letter in a camelCase string.
     /// - Returns: A new string with spaces added before each uppercase letter.
     func addingSpacesToCamelCase() -> String {
-        replacingOccurrences(
-            of: "(?<=[a-z])(?=[A-Z])",
-            with: " $0",
-            options: .regularExpression,
-            range: range(of: self)
+        let nsString = self as NSString
+        let range = NSRange(location: 0, length: nsString.length)
+        return Self.camelCaseRegex.stringByReplacingMatches(
+            in: self,
+            options: [],
+            range: range,
+            withTemplate: " $0"
         )
     }
 
