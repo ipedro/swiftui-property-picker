@@ -29,7 +29,8 @@ var package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
             ]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v6]
 )
 
 if isDevelopment {
