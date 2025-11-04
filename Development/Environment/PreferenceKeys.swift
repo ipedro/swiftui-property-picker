@@ -7,7 +7,7 @@ import SwiftUI
 /// their own title.
 struct TitlePreference: PreferenceKey {
     /// The default title shown if no other title is specified by child views.
-    static var defaultValue: Text?
+    nonisolated(unsafe) static var defaultValue: Text?
 
     static func reduce(value: inout Text?, nextValue: () -> Text?) {
         if let nextValue = nextValue() {
@@ -24,7 +24,7 @@ struct TitlePreference: PreferenceKey {
 struct ContentBackgroundStylePreference: PreferenceKey {
     /// The default value for the background context, initially nil indicating no background is applied.
     @usableFromInline
-    static var defaultValue: AnimationBox<AnyShapeStyle>?
+    nonisolated(unsafe) static var defaultValue: AnimationBox<AnyShapeStyle>?
 
     /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
     @usableFromInline
@@ -57,7 +57,7 @@ struct ViewBuilderPreference: PreferenceKey {
 /// It is useful for aggregating properties that need to be accessible at a higher level in the application.
 struct PropertyPreference: PreferenceKey {
     /// The default value, an empty set, indicates that no properties are collected initially.
-    static var defaultValue: Set<Property> = []
+    nonisolated(unsafe) static var defaultValue: Set<Property> = []
 
     /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
     static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {

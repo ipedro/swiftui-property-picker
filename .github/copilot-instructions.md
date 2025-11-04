@@ -16,17 +16,17 @@ This is a **SwiftUI package** that provides dynamic property selection capabilit
 **IMPORTANT**: This project has access to specialized Xcode build and simulation tools via Model Context Protocol (MCP). Always check `.vscode/mcp.json` for available tool configurations.
 
 **Current Configuration** (`.vscode/mcp.json`):
-- **Server**: `xcodebuildmcp2` (via npx)
+- **Server**: `xcodebuildmcp` (via npx)
 - **Workspace**: Auto-configured to current workspace folder
 - **Project**: `Package.swift`
 - **Scheme**: `PropertyPicker`
 
 **Preferred Workflows**:
-1. **Building & Running**: Use `#mcp_xcodebuildmcp2_build_run_sim` or `#mcp_xcodebuildmcp2_build_sim` instead of terminal commands
-2. **Simulator Management**: Use `#mcp_xcodebuildmcp2_boot_sim`, `#mcp_xcodebuildmcp2_list_sims` for simulator control
-3. **Testing**: Use `#mcp_xcodebuildmcp2_swift_package_test` for running tests
-4. **UI Interaction**: Use `#mcp_xcodebuildmcp2_tap`, `#mcp_xcodebuildmcp2_type_text`, `#mcp_xcodebuildmcp2_screenshot` for simulator interaction
-5. **Log Capture**: Use `#mcp_xcodebuildmcp2_start_sim_log_cap` and `#mcp_xcodebuildmcp2_launch_app_logs_sim` for debugging
+1. **Building & Running**: Use `mcp_xcodebuildmcp_build_run_sim` or `mcp_xcodebuildmcp_build_sim` instead of terminal commands
+2. **Simulator Management**: Use `mcp_xcodebuildmcp_boot_sim`, `mcp_xcodebuildmcp_list_sims` for simulator control
+3. **Testing**: Use `mcp_xcodebuildmcp_swift_package_test` for running tests
+4. **UI Interaction**: Use `mcp_xcodebuildmcp_tap`, `mcp_xcodebuildmcp_type_text`, `mcp_xcodebuildmcp_screenshot` for simulator interaction
+5. **Log Capture**: Use `mcp_xcodebuildmcp_start_sim_log_cap` and `mcp_xcodebuildmcp_launch_app_logs_sim` for debugging
 
 **Available Tool Categories**:
 - Building: `build_sim`, `build_macos`, `build_device`, `build_run_sim`, `build_run_macos`

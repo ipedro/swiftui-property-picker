@@ -13,16 +13,19 @@ public protocol PropertyPickerStyle: ViewModifier {}
 public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
     /// Provides a view representing the rows of the property picker.
     /// These rows typically display selectable options or properties within the picker.
+    @MainActor
     var listRows: some View {
         Rows<ListRow>(row: ListRow.init(data:))
     }
 
+    @MainActor
     var inlineRows: some View {
         Rows<InlineRow>(row: InlineRow.init(data:))
     }
 
     /// Provides a view representing the title of the property picker.
     /// This view is generally used to display a header or title for the picker section.
+    @MainActor
     var title: some View {
         Title()
     }

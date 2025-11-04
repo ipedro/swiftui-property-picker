@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PropertyPickerTextTransformation: OptionSet {
+public struct PropertyPickerTextTransformation: OptionSet, Sendable {
     public let rawValue: Int8
 
     public init(rawValue: Int8) {

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RowBuilder: Equatable, Identifiable {
+struct RowBuilder: Equatable, Identifiable, @unchecked Sendable {
     let id: PropertyID
     let body: (Property) -> AnyView?
 

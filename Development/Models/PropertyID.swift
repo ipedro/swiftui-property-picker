@@ -3,7 +3,7 @@ import Foundation
 /// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
 /// across different components of an application.
-public struct PropertyID: Hashable, CustomDebugStringConvertible {
+public struct PropertyID: Hashable, CustomDebugStringConvertible, @unchecked Sendable {
     public var metadata: UnsafeRawPointer
 
     public init<K: PropertyPickerKey>(_: K.Type = K.self) {
