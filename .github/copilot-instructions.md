@@ -9,6 +9,42 @@ This is a **SwiftUI package** that provides dynamic property selection capabilit
 - Repository: https://github.com/ipedro/swiftui-property-picker
 - Minimum platforms: iOS 15, macOS 12
 
+## Development Tools & Environment
+
+### MCP Xcode Build Tools
+
+**IMPORTANT**: This project has access to specialized Xcode build and simulation tools via Model Context Protocol (MCP). Always check `.vscode/mcp.json` for available tool configurations.
+
+**Current Configuration** (`.vscode/mcp.json`):
+- **Server**: `xcodebuildmcp2` (via npx)
+- **Workspace**: Auto-configured to current workspace folder
+- **Project**: `Package.swift`
+- **Scheme**: `PropertyPicker`
+
+**Preferred Workflows**:
+1. **Building & Running**: Use `#mcp_xcodebuildmcp2_build_run_sim` or `#mcp_xcodebuildmcp2_build_sim` instead of terminal commands
+2. **Simulator Management**: Use `#mcp_xcodebuildmcp2_boot_sim`, `#mcp_xcodebuildmcp2_list_sims` for simulator control
+3. **Testing**: Use `#mcp_xcodebuildmcp2_swift_package_test` for running tests
+4. **UI Interaction**: Use `#mcp_xcodebuildmcp2_tap`, `#mcp_xcodebuildmcp2_type_text`, `#mcp_xcodebuildmcp2_screenshot` for simulator interaction
+5. **Log Capture**: Use `#mcp_xcodebuildmcp2_start_sim_log_cap` and `#mcp_xcodebuildmcp2_launch_app_logs_sim` for debugging
+
+**Available Tool Categories**:
+- Building: `build_sim`, `build_macos`, `build_device`, `build_run_sim`, `build_run_macos`
+- Swift Package: `swift_package_build`, `swift_package_run`, `swift_package_test`, `swift_package_clean`
+- Simulators: `list_sims`, `boot_sim`, `erase_sims`, `open_sim`, `set_sim_appearance`, `set_sim_location`
+- Apps: `install_app_sim`, `launch_app_sim`, `launch_app_logs_sim`, `stop_app_sim`
+- UI Interaction: `tap`, `swipe`, `type_text`, `button`, `long_press`, `screenshot`, `describe_ui`
+- Logging: `start_sim_log_cap`, `stop_sim_log_cap`, `launch_app_logs_sim`
+- Project Info: `discover_projs`, `list_schemes`, `show_build_settings`, `get_sim_app_path`
+
+**Why use MCP tools instead of terminal commands?**
+- Native Xcode integration (no need to manually craft `xcodebuild` commands)
+- Structured output (JSON responses instead of parsing terminal output)
+- Automatic error handling and retries
+- Simulator state management (boot, location, appearance)
+- Built-in screenshot and UI interaction capabilities
+- Log capture with structured filtering
+
 ## Critical Architecture Patterns
 
 ### Dual-Build System (Development vs. Release)
