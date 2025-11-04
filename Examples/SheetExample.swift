@@ -73,7 +73,7 @@ struct SheetExample: View {
     }
 
     private enum InteractionKey: String, PropertyPickerKey {
-        static var defaultValue: InteractionKey = .enabled
+        nonisolated(unsafe) static var defaultValue: InteractionKey = .enabled
 
         case disabled, enabled
 
