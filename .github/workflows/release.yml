@@ -4,13 +4,61 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
+  # Validate before releasing
+  validate:
+    name: Validate Release
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+      
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      
+      - name: Run Tests
+        run: swift test --parallel
+      
+      - name: Build Package
+        run: swift build --configuration release
+      
+      - name: Verify Version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "Creating release for tag: $TAG"
+          
+          # Verify tag format (semantic versioning)
+          if [[ ! $TAG =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "Error: Tag must follow semantic versioning (e.g., v1.0.0)"
+            exit 1
+          fi
+
   release:
+    name: Create GitHub Release
     runs-on: ubuntu-latest
+    needs: validate
     
     steps:
       - name: Checkout code
@@ -24,7 +72,11 @@ jobs:
           # Get the previous tag (second in the list)
           PREVIOUS_TAG=$(git tag --sort=-v:refname | sed -n '2p')
           echo "tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
-          echo "Previous tag: $PREVIOUS_TAG"
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found - this is the first release"
+          else
+            echo "Previous tag: $PREVIOUS_TAG"
+          fi
       
       - name: Generate changelog
         id: changelog
@@ -35,13 +87,27 @@ jobs:
           echo "Generating changelog from $PREVIOUS_TAG to $CURRENT_TAG"
           
           # Generate changelog
-          CHANGELOG=$(git log $PREVIOUS_TAG..$CURRENT_TAG --pretty=format:"- %s (%h)" --no-merges)
-          
-          # Get commit count
-          COMMIT_COUNT=$(git rev-list --count $PREVIOUS_TAG..$CURRENT_TAG)
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG="Initial release"
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+          else
+            CHANGELOG=$(git log $PREVIOUS_TAG..$CURRENT_TAG --pretty=format:"- %s (%h)" --no-merges)
+            COMMIT_COUNT=$(git rev-list --count $PREVIOUS_TAG..$CURRENT_TAG)
+          fi
           
           # Create release body
-          cat << EOF > release_notes.md
+          if [ -z "$PREVIOUS_TAG" ]; then
+            cat << EOF > release_notes.md
+          ## What's Changed
+          
+          $CHANGELOG
+          
+          ---
+          
+          **$COMMIT_COUNT commits** in this release
+          EOF
+          else
+            cat << EOF > release_notes.md
           ## What's Changed
           
           $CHANGELOG
@@ -52,6 +118,7 @@ jobs:
           
           **$COMMIT_COUNT commits** in this release
           EOF
+          fi
           
           # Output for use in next step
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
