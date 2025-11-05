@@ -141,7 +141,7 @@ extension EnvironmentValues {
 /// their own title.
 struct TitlePreference: PreferenceKey {
     /// The default title shown if no other title is specified by child views.
-    static var defaultValue: Text?
+    nonisolated(unsafe) static var defaultValue: Text?
 
     static func reduce(value: inout Text?, nextValue: () -> Text?) {
         if let nextValue = nextValue() {
@@ -158,7 +158,7 @@ struct TitlePreference: PreferenceKey {
 struct ContentBackgroundStylePreference: PreferenceKey {
     /// The default value for the background context, initially nil indicating no background is applied.
     @usableFromInline
-    static var defaultValue: AnimationBox<AnyShapeStyle>?
+    nonisolated(unsafe) static var defaultValue: AnimationBox<AnyShapeStyle>?
 
     /// Combines multiple values into a single context, prioritizing the latest value set by any child view.
     @usableFromInline
@@ -191,7 +191,7 @@ struct ViewBuilderPreference: PreferenceKey {
 /// It is useful for aggregating properties that need to be accessible at a higher level in the application.
 struct PropertyPreference: PreferenceKey {
     /// The default value, an empty set, indicates that no properties are collected initially.
-    static var defaultValue: Set<Property> = []
+    nonisolated(unsafe) static var defaultValue: Set<Property> = []
 
     /// Reduces multiple sets of properties into a single set, adding any new properties found in child views to the existing set.
     static func reduce(value: inout Set<Property>, nextValue: () -> Set<Property>) {
@@ -376,7 +376,7 @@ extension Property: Comparable {
 /// `PropertyID` provides a unique identifier for property picker elements,
 /// facilitating the tracking and management of property picker states and configurations
 /// across different components of an application.
-public struct PropertyID: Hashable, CustomDebugStringConvertible {
+public struct PropertyID: Hashable, CustomDebugStringConvertible, @unchecked Sendable {
     public var metadata: UnsafeRawPointer
 
     public init<K: PropertyPickerKey>(_: K.Type = K.self) {
@@ -466,7 +466,7 @@ public enum PropertyPickerSafeAreaAdjustmentStyle {
     case never
 }
 
-public struct PropertyPickerTextTransformation: OptionSet {
+public struct PropertyPickerTextTransformation: OptionSet, Sendable {
     public let rawValue: Int8
 
     public init(rawValue: Int8) {
@@ -543,7 +543,7 @@ extension String {
     }
 }
 
-struct RowBuilder: Equatable, Identifiable {
+struct RowBuilder: Equatable, Identifiable, @unchecked Sendable {
     let id: PropertyID
     let body: (Property) -> AnyView?
 
@@ -1088,7 +1088,7 @@ public extension PropertyPickerState where Data == Key.KeyPath {
 
  `PropertyPickerKey` offers a robust foundation for handling selectable properties in SwiftUI. By adhering to this protocol, developers can ensure their property types are well-integrated within the SwiftUI framework, benefiting from both the type safety and the rich user interface capabilities it provides. Whether for simple settings or complex configuration screens, `PropertyPickerKey` paves the way for more organized and maintainable code.
   */
-public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIterable where AllCases == [Self] {
+public protocol PropertyPickerKey<PickerValue>: RawRepresentable<String>, CaseIterable, Sendable where AllCases == [Self] {
     /// The type of the value associated with the property. By default, it is the type of `Self`, allowing for types
     /// where the key and the value are the same.
     associatedtype PickerValue = Self
@@ -1174,16 +1174,19 @@ public protocol PropertyPickerStyle: ViewModifier {}
 public extension _ViewModifier_Content where Modifier: PropertyPickerStyle {
     /// Provides a view representing the rows of the property picker.
     /// These rows typically display selectable options or properties within the picker.
+    @MainActor
     var listRows: some View {
         Rows<ListRow>(row: ListRow.init(data:))
     }
 
+    @MainActor
     var inlineRows: some View {
         Rows<InlineRow>(row: InlineRow.init(data:))
     }
 
     /// Provides a view representing the title of the property picker.
     /// This view is generally used to display a header or title for the picker section.
+    @MainActor
     var title: some View {
         Title()
     }
